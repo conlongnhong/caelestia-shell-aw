@@ -7,7 +7,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Status icons")
+    title: qsTr("Biểu tượng trạng thái")
     isSubPage: true
 
     ColumnLayout {
@@ -19,30 +19,30 @@ PageBase {
         // Visible icons
         SectionHeader {
             first: true
-            text: qsTr("Visible icons")
+            text: qsTr("Biểu tượng hiển thị")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Speakers")
+            text: qsTr("Loa")
             checked: Config.bar.status.showAudio
             onToggled: GlobalConfig.bar.status.showAudio = checked
         }
 
         ToggleRow {
-            text: qsTr("Microphone")
+            text: qsTr("Micrô")
             checked: Config.bar.status.showMicrophone
             onToggled: GlobalConfig.bar.status.showMicrophone = checked
         }
 
         ToggleRow {
-            text: qsTr("Keyboard layout")
+            text: qsTr("Bố cục bàn phím")
             checked: Config.bar.status.showKbLayout
             onToggled: GlobalConfig.bar.status.showKbLayout = checked
         }
 
         ToggleRow {
-            text: qsTr("Network")
+            text: qsTr("Mạng")
             checked: Config.bar.status.showNetwork
             onToggled: GlobalConfig.bar.status.showNetwork = checked
         }
@@ -60,28 +60,28 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Battery")
+            text: qsTr("Pin")
             checked: Config.bar.status.showBattery
             onToggled: GlobalConfig.bar.status.showBattery = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Caps lock")
+            text: qsTr("Khóa chữ hoa")
             checked: Config.bar.status.showLockStatus
             onToggled: GlobalConfig.bar.status.showLockStatus = checked
         }
 
         // Behaviour
         SectionHeader {
-            text: qsTr("Behaviour")
+            text: qsTr("Hành vi")
         }
 
         ToggleRow {
             first: true
             last: true
-            text: qsTr("Popout on hover")
-            subtext: qsTr("Show a details popout when hovering the status icons")
+            text: qsTr("Hiện bảng bật ra khi rê chuột")
+            subtext: qsTr("Hiện bảng chi tiết khi rê chuột trên biểu tượng trạng thái")
             checked: Config.bar.popouts.statusIcons
             onToggled: GlobalConfig.bar.popouts.statusIcons = checked
         }

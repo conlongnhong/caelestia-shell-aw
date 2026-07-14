@@ -16,7 +16,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Wallpapers")
+    title: qsTr("Hình nền")
     isSubPage: true
 
     ColumnLayout {
@@ -32,7 +32,7 @@ PageBase {
 
             IconTextButton {
                 icon: "photo_library"
-                text: qsTr("Browse")
+                text: qsTr("Duyệt")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -43,8 +43,8 @@ PageBase {
                 FileDialog {
                     id: browseDialog
 
-                    title: qsTr("Select an image")
-                    filterLabel: qsTr("Image files")
+                    title: qsTr("Chọn hình ảnh")
+                    filterLabel: qsTr("Tệp hình ảnh")
                     filters: Images.validImageExtensions
                     onAccepted: path => {
                         Wallpapers.setWallpaper(path);
@@ -55,7 +55,7 @@ PageBase {
 
             IconTextButton {
                 icon: "shuffle"
-                text: qsTr("Random")
+                text: qsTr("Ngẫu nhiên")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -73,7 +73,7 @@ PageBase {
             imgHeight: Math.round(width * 0.3)
             radius: Tokens.rounding.extraLarge
             source: Quickshell.shellPath("assets/wallpaper.webp")
-            text: qsTr("Featured wallpaper")
+            text: qsTr("Hình nền nổi bật")
             fillLabel: false
             onClicked: {
                 Wallpapers.setWallpaper(Quickshell.shellPath("assets/wallpaper.webp"));
@@ -83,7 +83,7 @@ PageBase {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.large
-            text: qsTr("Local wallpapers")
+            text: qsTr("Hình nền cục bộ")
             font: Tokens.font.title.small
         }
 
@@ -177,7 +177,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("No local wallpapers found")
+                        text: qsTr("Không tìm thấy hình nền cục bộ")
                         color: Colours.palette.m3outline
                         font: Tokens.font.title.small
                     }

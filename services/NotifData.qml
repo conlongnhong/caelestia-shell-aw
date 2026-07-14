@@ -16,7 +16,7 @@ QtObject {
     property var locks: new Set()
 
     property date time: new Date()
-    property string timeStr: qsTr("now")
+    property string timeStr: qsTr("bây giờ")
 
     readonly property Timer timeStrTimer: Timer {
         running: !notif.closed
@@ -173,20 +173,20 @@ QtObject {
         const m = Math.floor(diff / 60000);
 
         if (m < 1) {
-            timeStr = qsTr("now");
+            timeStr = qsTr("bây giờ");
             timeStrTimer.interval = 5000;
         } else {
             const h = Math.floor(m / 60);
             const d = Math.floor(h / 24);
 
             if (d > 0) {
-                timeStr = `${d}d`;
+                timeStr = qsTr("%1 ngày").arg(d);
                 timeStrTimer.interval = 3600000;
             } else if (h > 0) {
-                timeStr = `${h}h`;
+                timeStr = qsTr("%1 giờ").arg(h);
                 timeStrTimer.interval = 300000;
             } else {
-                timeStr = `${m}m`;
+                timeStr = qsTr("%1 phút").arg(m);
                 timeStrTimer.interval = m < 10 ? 30000 : 60000;
             }
         }

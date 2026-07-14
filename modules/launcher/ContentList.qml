@@ -113,7 +113,7 @@ Item {
 
                 IconTextButton {
                     icon: "image"
-                    text: qsTr("Static")
+                    text: qsTr("Tĩnh")
                     font.pointSize: Tokens.font.size.small
                     isRound: true
                     horizontalPadding: Tokens.padding.medium
@@ -124,7 +124,7 @@ Item {
 
                 IconTextButton {
                     icon: "movie"
-                    text: qsTr("Animated")
+                    text: qsTr("Động")
                     font.pointSize: Tokens.font.size.small
                     isRound: true
                     horizontalPadding: Tokens.padding.medium
@@ -135,7 +135,7 @@ Item {
 
                 IconTextButton {
                     icon: "refresh"
-                    text: qsTr("Refresh")
+                    text: qsTr("Làm mới")
                     font.pointSize: Tokens.font.size.small
                     scale: 0.9
                     isRound: true
@@ -164,7 +164,7 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
 
                     property int dotCount: 1
-                    text: "Processing" + ".".repeat(dotCount)
+                    text: qsTr("Đang xử lý") + ".".repeat(dotCount)
                 }
             }
 
@@ -206,13 +206,13 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
 
             StyledText {
-                text: root.state === "wallpapers" ? qsTr("No wallpapers found") : qsTr("No results")
+                text: root.state === "wallpapers" ? qsTr("Không tìm thấy hình nền") : qsTr("Không có kết quả")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
             }
 
             StyledText {
-                text: root.state === "wallpapers" && Wallpapers.list.length === 0 ? qsTr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir)) : qsTr("Try searching for something else")
+                text: root.state === "wallpapers" && Wallpapers.list.length === 0 ? qsTr("Hãy thêm một số hình nền vào %1").arg(Paths.shortenHome(Paths.wallsdir)) : qsTr("Hãy thử tìm nội dung khác")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.medium
             }

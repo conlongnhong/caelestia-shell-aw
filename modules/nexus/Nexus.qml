@@ -18,10 +18,16 @@ Item {
     }
     property color blobColour: Colours.tPalette.m3surfaceContainerLow
 
+    readonly property real screenWidth: nState.screen?.width ?? 0
+    readonly property real screenHeight: nState.screen?.height ?? 0
+    readonly property real availableWidth: Math.max(1, screenWidth - Tokens.padding.extraLargeIncreased * 2)
+    readonly property real availableHeight: Math.max(1, screenHeight - Tokens.padding.extraLargeIncreased * 2)
+    readonly property real desiredHeight: screenHeight * Tokens.sizes.nexus.heightMult
+
     signal close
 
     implicitWidth: implicitHeight * Tokens.sizes.nexus.ratio
-    implicitHeight: nState.screen.height * Tokens.sizes.nexus.heightMult
+    implicitHeight: Math.max(1, Math.min(desiredHeight, availableHeight, availableWidth / Tokens.sizes.nexus.ratio))
 
     Behavior on blobColour {
         CAnim {}

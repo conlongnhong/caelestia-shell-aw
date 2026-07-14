@@ -16,7 +16,7 @@ Singleton {
     property list<var> hourlyForecast
 
     readonly property string icon: cc ? Icons.getWeatherIcon(cc.weatherCode) : "cloud_alert"
-    readonly property string description: cc?.weatherDesc ?? qsTr("No weather")
+    readonly property string description: cc?.weatherDesc ?? qsTr("Không có dữ liệu thời tiết")
     readonly property string temp: formatTemp(cc?.tempC)
     readonly property string feelsLike: formatTemp(cc?.feelsLikeC)
     readonly property int humidity: cc?.humidity ?? 0
@@ -119,7 +119,7 @@ Singleton {
                     city = fixCityName(geoCity);
                     cachedCities.set(coords, city);
                 } else {
-                    city = "Unknown City";
+                    city = qsTr("Không rõ thành phố");
                 }
             });
         };
@@ -227,36 +227,36 @@ Singleton {
 
     function getWeatherCondition(code: string): string {
         const conditions = {
-            "0": "Clear",
-            "1": "Clear",
-            "2": "Partly cloudy",
-            "3": "Overcast",
-            "45": "Fog",
-            "48": "Fog",
-            "51": "Drizzle",
-            "53": "Drizzle",
-            "55": "Drizzle",
-            "56": "Freezing drizzle",
-            "57": "Freezing drizzle",
-            "61": "Light rain",
-            "63": "Rain",
-            "65": "Heavy rain",
-            "66": "Light rain",
-            "67": "Heavy rain",
-            "71": "Light snow",
-            "73": "Snow",
-            "75": "Heavy snow",
-            "77": "Snow",
-            "80": "Light rain",
-            "81": "Rain",
-            "82": "Heavy rain",
-            "85": "Light snow showers",
-            "86": "Heavy snow showers",
-            "95": "Thunderstorm",
-            "96": "Thunderstorm with hail",
-            "99": "Thunderstorm with hail"
+            "0": qsTr("Trời quang"),
+            "1": qsTr("Trời quang"),
+            "2": qsTr("Mây rải rác"),
+            "3": qsTr("Trời âm u"),
+            "45": qsTr("Sương mù"),
+            "48": qsTr("Sương mù"),
+            "51": qsTr("Mưa phùn"),
+            "53": qsTr("Mưa phùn"),
+            "55": qsTr("Mưa phùn"),
+            "56": qsTr("Mưa phùn đóng băng"),
+            "57": qsTr("Mưa phùn đóng băng"),
+            "61": qsTr("Mưa nhẹ"),
+            "63": qsTr("Mưa"),
+            "65": qsTr("Mưa lớn"),
+            "66": qsTr("Mưa nhẹ"),
+            "67": qsTr("Mưa lớn"),
+            "71": qsTr("Tuyết nhẹ"),
+            "73": qsTr("Tuyết"),
+            "75": qsTr("Tuyết rơi dày"),
+            "77": qsTr("Tuyết"),
+            "80": qsTr("Mưa nhẹ"),
+            "81": qsTr("Mưa"),
+            "82": qsTr("Mưa lớn"),
+            "85": qsTr("Tuyết rơi rải rác nhẹ"),
+            "86": qsTr("Tuyết rơi rải rác dày"),
+            "95": qsTr("Dông"),
+            "96": qsTr("Dông kèm mưa đá"),
+            "99": qsTr("Dông kèm mưa đá")
         };
-        return conditions[code] || "Unknown";
+        return conditions[code] || qsTr("Không rõ");
     }
 
     onLocChanged: fetchWeatherData()

@@ -15,7 +15,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Apps")
+    title: qsTr("Ứng dụng")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -26,27 +26,27 @@ PageBase {
         // Default applications
         SectionHeader {
             first: true
-            text: qsTr("Default applications")
+            text: qsTr("Ứng dụng mặc định")
         }
 
         DefaultRow {
             first: true
             icon: "terminal"
-            label: qsTr("Terminal")
+            label: qsTr("Trình dòng lệnh")
             status: GlobalConfig.general.apps.terminal.join(" ")
             onSelected: app => GlobalConfig.general.apps.terminal = app.command
         }
 
         DefaultRow {
             icon: "volume_up"
-            label: qsTr("Audio")
+            label: qsTr("Âm thanh")
             status: GlobalConfig.general.apps.audio.join(" ")
             onSelected: app => GlobalConfig.general.apps.audio = app.command
         }
 
         DefaultRow {
             icon: "play_circle"
-            label: qsTr("Media playback")
+            label: qsTr("Phát phương tiện")
             status: GlobalConfig.general.apps.playback.join(" ")
             onSelected: app => GlobalConfig.general.apps.playback = app.command
         }
@@ -54,22 +54,22 @@ PageBase {
         DefaultRow {
             last: true
             icon: "folder"
-            label: qsTr("File manager")
+            label: qsTr("Trình quản lý tệp")
             status: GlobalConfig.general.apps.explorer.join(" ")
             onSelected: app => GlobalConfig.general.apps.explorer = app.command
         }
 
         // Library
         SectionHeader {
-            text: qsTr("Library")
+            text: qsTr("Thư viện")
         }
 
         NavRow {
             first: true
             last: true
             icon: "apps"
-            label: qsTr("All apps")
-            status: qsTr("Browse installed apps, set favourites and hidden")
+            label: qsTr("Tất cả ứng dụng")
+            status: qsTr("Duyệt ứng dụng đã cài, đặt mục yêu thích và ứng dụng ẩn")
             onClicked: root.nState.openSubPage(1)
         }
     }

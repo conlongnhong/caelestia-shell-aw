@@ -14,8 +14,8 @@ PageBase {
     id: root
 
     readonly property list<MenuItem> hwDecoderItems: [
-        MenuItem { text: qsTr("Auto") },
-        MenuItem { text: qsTr("Software") },
+        MenuItem { text: qsTr("Tự động") },
+        MenuItem { text: qsTr("Phần mềm") },
         MenuItem { text: "VAAPI" },
         MenuItem { text: "VDPAU" },
         MenuItem { text: "CUDA" },
@@ -33,7 +33,7 @@ PageBase {
         return v in hwDecoderIndexMap ? hwDecoderIndexMap[v] : 1; // Default to software (none)
     }
 
-    title: qsTr("Wallpaper & style")
+    title: qsTr("Hình nền & kiểu dáng")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -77,7 +77,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("Wallpaper disabled")
+                        text: qsTr("Hình nền đã tắt")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.large
                     }
@@ -168,7 +168,7 @@ PageBase {
 
             IconTextButton {
                 icon: "wallpaper"
-                text: qsTr("Wallpapers")
+                text: qsTr("Hình nền")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -181,7 +181,7 @@ PageBase {
 
             IconTextButton {
                 icon: "palette"
-                text: qsTr("Colours")
+                text: qsTr("Màu sắc")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -195,7 +195,7 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             first: true
-            text: qsTr("Display wallpaper")
+            text: qsTr("Hiển thị hình nền")
             checked: Config.background.wallpaperEnabled
             onToggled: GlobalConfig.background.wallpaperEnabled = checked
         }
@@ -204,7 +204,7 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
 
-            label: qsTr("Video Hardware Decoder")
+            label: qsTr("Bộ giải mã video phần cứng")
             menuOnTop: true
             menuItems: root.hwDecoderItems
             active: root.hwDecoderItems[root.hwDecoderToIndex(WallpaperPauser.hwDecoder)]
@@ -215,7 +215,7 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
 
-            text: qsTr("Pause animated wallpapers on battery")
+            text: qsTr("Tạm dừng hình nền động khi dùng pin")
             checked: WallpaperPauser.pauseOnBattery
             onToggled: WallpaperPauser.pauseOnBattery = checked
         }
@@ -224,7 +224,7 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
 
-            text: qsTr("Pause animated wallpapers behind windows")
+            text: qsTr("Tạm dừng hình nền động khi bị cửa sổ che")
             checked: WallpaperPauser.pauseOnWindowOverlap
             onToggled: WallpaperPauser.pauseOnWindowOverlap = checked
         }
@@ -233,8 +233,8 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
 
-            text: qsTr("Transparency")
-            subtext: qsTr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
+            text: qsTr("Độ trong suốt")
+            subtext: qsTr("Nền %1, lớp %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
             checked: Colours.transparency.enabled
             onToggled: GlobalConfig.appearance.transparency.enabled = checked
         }
@@ -244,7 +244,7 @@ PageBase {
             Layout.fillWidth: true
 
             last: true
-            text: qsTr("Dark theme")
+            text: qsTr("Giao diện tối")
             checked: !Colours.light
             onToggled: Colours.setMode(checked ? "dark" : "light")
         }

@@ -44,7 +44,7 @@ ColumnLayout {
         visible: root.rootHeight > Tokens.sizes.lock.showWeatherDetailsHeight
         Layout.alignment: Qt.AlignHCenter
         animate: true
-        text: qsTr("Feels like %1").arg(Weather.temp)
+        text: qsTr("Cảm giác như %1").arg(Weather.temp)
         color: Colours.palette.m3onSurfaceVariant
         font: Tokens.font.body.large
     }
@@ -55,7 +55,7 @@ ColumnLayout {
         animate: true
         text: {
             const today = Weather.forecast[0];
-            return qsTr("High %1 • Low %2").arg(Weather.formatTemp(today?.maxTempC)).arg(Weather.formatTemp(today?.minTempC));
+            return qsTr("Cao nhất %1 • Thấp nhất %2").arg(Weather.formatTemp(today?.maxTempC)).arg(Weather.formatTemp(today?.minTempC));
         }
         color: Colours.palette.m3onSurfaceVariant
         font: Tokens.font.body.medium

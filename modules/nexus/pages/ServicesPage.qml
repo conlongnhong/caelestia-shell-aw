@@ -13,7 +13,7 @@ PageBase {
     // Lyrics backends, ordered to match LyricsBackend::Backend (Auto, Local, LRCLIB, NetEase)
     readonly property list<MenuItem> lyricsItems: [
         MenuItem {
-            text: qsTr("Auto")
+            text: qsTr("Tự động")
         },
         MenuItem {
             text: "Local"
@@ -29,16 +29,16 @@ PageBase {
     // GPU options + the config string each maps to (see Gpu::parseType)
     readonly property list<MenuItem> gpuItems: [
         MenuItem {
-            text: qsTr("Auto")
+            text: qsTr("Tự động")
         },
         MenuItem {
             text: "NVIDIA"
         },
         MenuItem {
-            text: qsTr("Generic")
+            text: qsTr("Phổ thông")
         },
         MenuItem {
-            text: qsTr("None")
+            text: qsTr("Không có")
         }
     ]
     readonly property list<string> gpuValues: ["", "NVIDIA", "GENERIC", "None"]
@@ -54,7 +54,7 @@ PageBase {
         return 3; // None
     }
 
-    title: qsTr("Services")
+    title: qsTr("Dịch vụ")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -80,27 +80,27 @@ PageBase {
         // Notifications
         SectionHeader {
             first: true
-            text: qsTr("Notifications")
+            text: qsTr("Thông báo")
         }
 
         NavRow {
             first: true
             last: true
             icon: "notifications"
-            label: qsTr("Notifications")
-            status: qsTr("Notifications, toasts, timeouts")
+            label: qsTr("Thông báo")
+            status: qsTr("Thông báo, thông báo nổi, thời gian chờ")
             onClicked: root.nState.openSubPage(1)
         }
 
         // Polling
         SectionHeader {
-            text: qsTr("Polling")
+            text: qsTr("Cập nhật định kỳ")
         }
 
         StepperRow {
             first: true
-            label: qsTr("Media refresh")
-            subtext: qsTr("How often the media position updates (ms)")
+            label: qsTr("Cập nhật phương tiện")
+            subtext: qsTr("Chu kỳ cập nhật vị trí phát (ms)")
             value: GlobalConfig.dashboard.mediaUpdateInterval
             from: 100
             to: 2000
@@ -109,8 +109,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("System stats refresh")
-            subtext: qsTr("CPU, memory and GPU update interval (seconds)")
+            label: qsTr("Cập nhật thống kê hệ thống")
+            subtext: qsTr("Chu kỳ cập nhật CPU, bộ nhớ và GPU (giây)")
             value: GlobalConfig.dashboard.resourceUpdateInterval / 1000
             from: 0.5
             to: 10
@@ -120,8 +120,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Wi-Fi rescan")
-            subtext: qsTr("How often available networks are rescanned (seconds)")
+            label: qsTr("Quét lại Wi-Fi")
+            subtext: qsTr("Chu kỳ quét lại mạng khả dụng (giây)")
             value: GlobalConfig.nexus.networkRescanInterval / 1000
             from: 5
             to: 120
@@ -131,13 +131,13 @@ PageBase {
 
         // Media & lyrics
         SectionHeader {
-            text: qsTr("Media & lyrics")
+            text: qsTr("Phương tiện & lời bài hát")
         }
 
         SelectRow {
             first: true
-            label: qsTr("Lyrics backend")
-            subtext: qsTr("Source used to fetch synced lyrics")
+            label: qsTr("Nguồn lời bài hát")
+            subtext: qsTr("Nguồn dùng để lấy lời bài hát đồng bộ")
             menuItems: root.lyricsItems
             active: root.lyricsItems[Lyrics.preferredBackend] ?? root.lyricsItems[0]
             onSelected: item => Lyrics.preferredBackend = root.lyricsItems.indexOf(item)
@@ -145,24 +145,24 @@ PageBase {
 
         SelectRow {
             last: true
-            label: qsTr("Default player")
-            subtext: qsTr("Preferred media player when several are open")
+            label: qsTr("Trình phát mặc định")
+            subtext: qsTr("Trình phát ưu tiên khi mở nhiều trình phát")
             menuItems: playerVariants.instances
             active: menuItems.find(i => i.text === GlobalConfig.services.defaultPlayer) ?? null
             fallbackIcon: "music_note"
-            fallbackText: GlobalConfig.services.defaultPlayer || qsTr("Auto")
+            fallbackText: GlobalConfig.services.defaultPlayer || qsTr("Tự động")
             onSelected: item => GlobalConfig.services.defaultPlayer = item.text
         }
 
         // Input increments
         SectionHeader {
-            text: qsTr("Input increments")
+            text: qsTr("Mức điều chỉnh")
         }
 
         StepperRow {
             first: true
-            label: qsTr("Volume step")
-            subtext: qsTr("Amount the volume changes per scroll (%)")
+            label: qsTr("Bước âm lượng")
+            subtext: qsTr("Mức thay đổi âm lượng mỗi lần cuộn (%)")
             value: Math.round(GlobalConfig.services.audioIncrement * 100)
             from: 1
             to: 50
@@ -171,8 +171,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Brightness step")
-            subtext: qsTr("Amount the brightness changes per scroll (%)")
+            label: qsTr("Bước độ sáng")
+            subtext: qsTr("Mức thay đổi độ sáng mỗi lần cuộn (%)")
             value: Math.round(GlobalConfig.services.brightnessIncrement * 100)
             from: 1
             to: 50
@@ -182,8 +182,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Max volume")
-            subtext: qsTr("Upper limit for output volume (%)")
+            label: qsTr("Âm lượng tối đa")
+            subtext: qsTr("Giới hạn trên của âm lượng đầu ra (%)")
             value: Math.round(GlobalConfig.services.maxVolume * 100)
             from: 50
             to: 200
@@ -193,13 +193,13 @@ PageBase {
 
         // Service tuning
         SectionHeader {
-            text: qsTr("Service tuning")
+            text: qsTr("Tinh chỉnh dịch vụ")
         }
 
         StepperRow {
             first: true
-            label: qsTr("Visualiser bars")
-            subtext: qsTr("Number of bars in the audio visualisers")
+            label: qsTr("Thanh trực quan hóa")
+            subtext: qsTr("Số thanh trực quan hóa âm thanh")
             value: GlobalConfig.services.visualiserBars
             from: 10
             to: 120
@@ -208,8 +208,8 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Smart colour scheme")
-            subtext: qsTr("Derive theme mode and variant from the wallpaper")
+            text: qsTr("Bảng màu thông minh")
+            subtext: qsTr("Tự xác định chế độ và biến thể màu từ hình nền")
             checked: GlobalConfig.services.smartScheme
             onToggled: GlobalConfig.services.smartScheme = checked
         }
@@ -217,7 +217,7 @@ PageBase {
         SelectRow {
             last: true
             label: qsTr("GPU")
-            subtext: Gpu.name ? qsTr("Monitoring: %1").arg(Gpu.name) : qsTr("Override for GPU type")
+            subtext: Gpu.name ? qsTr("Đang giám sát: %1").arg(Gpu.name) : qsTr("Ghi đè loại GPU")
             menuOnTop: true
             menuItems: root.gpuItems
             active: root.gpuItems[root.gpuKeyToIndex(GlobalConfig.services.gpuType)]

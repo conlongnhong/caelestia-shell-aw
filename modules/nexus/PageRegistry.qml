@@ -8,85 +8,85 @@ QtObject {
     readonly property list<var> pages: [
         // Appearance
         {
-            label: qsTr("Wallpaper & style"),
+            label: qsTr("Hình nền & kiểu dáng"),
             icon: "palette",
-            description: qsTr("Wallpaper, fonts, colours"),
+            description: qsTr("Hình nền, phông chữ, màu sắc"),
             category: "appearance"
         },
 
         // Connectivity
         // TODO
         // {
-        //     label: qsTr("Display"),
+        //     label: qsTr("Màn hình"),
         //     icon: "monitor",
-        //     description: qsTr("Output configuration"),
+        //     description: qsTr("Cấu hình đầu ra"),
         //     category: "connectivity"
         // },
         {
-            label: qsTr("Network"),
+            label: qsTr("Mạng"),
             icon: "wifi",
-            description: qsTr("Wi-Fi, ethernet"),
+            description: qsTr("Wi-Fi, Ethernet"),
             category: "connectivity"
         },
         {
-            label: qsTr("Connected devices"),
+            label: qsTr("Thiết bị đã kết nối"),
             icon: "devices_other",
-            description: qsTr("Bluetooth, pairing"),
+            description: qsTr("Bluetooth, ghép đôi"),
             category: "connectivity",
             noFill: true
         },
         {
-            label: qsTr("Audio"),
+            label: qsTr("Âm thanh"),
             icon: "volume_up",
-            description: qsTr("App volumes, sound devices"),
+            description: qsTr("Âm lượng ứng dụng, thiết bị âm thanh"),
             category: "connectivity"
         },
 
         // System
         {
-            label: qsTr("Updates"),
+            label: qsTr("Cập nhật"),
             icon: "update",
-            description: qsTr("System updates"),
+            description: qsTr("Cập nhật hệ thống"),
             category: "system"
         },
         {
-            label: qsTr("Plugins"),
+            label: qsTr("Tiện ích bổ sung"),
             icon: "extension",
-            description: qsTr("Manage plugins"),
+            description: qsTr("Quản lý tiện ích bổ sung"),
             category: "system"
         },
 
         // Shell
         {
-            label: qsTr("Panels"),
+            label: qsTr("Bảng"),
             icon: "dock_to_bottom",
-            description: qsTr("Dashboard, taskbar, launcher, sidebar"),
+            description: qsTr("Bảng điều khiển, thanh tác vụ, trình khởi chạy, thanh bên"),
             category: "shell"
         },
         {
-            label: qsTr("Apps"),
+            label: qsTr("Ứng dụng"),
             icon: "apps",
-            description: qsTr("Default apps, favourites, hidden apps"),
+            description: qsTr("Ứng dụng mặc định, yêu thích và ứng dụng ẩn"),
             category: "shell"
         },
         {
-            label: qsTr("Services"),
+            label: qsTr("Dịch vụ"),
             icon: "build",
-            description: qsTr("Poll intervals, lyrics backend"),
+            description: qsTr("Chu kỳ cập nhật, nguồn lời bài hát"),
             category: "shell"
         },
         {
-            label: qsTr("Language & region"),
+            label: qsTr("Ngôn ngữ & khu vực"),
             icon: "globe",
-            description: qsTr("UI language, weather location, display units"),
+            description: qsTr("Ngôn ngữ giao diện, vị trí thời tiết, đơn vị hiển thị"),
             category: "shell"
         },
 
         // About
         {
-            label: qsTr("About"),
+            label: qsTr("Giới thiệu"),
             icon: "info",
-            description: qsTr("System information, credits"),
+            description: qsTr("Thông tin hệ thống, ghi công"),
             category: "about"
         },
     ]

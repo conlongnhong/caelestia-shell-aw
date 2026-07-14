@@ -17,56 +17,56 @@ Searcher {
         Variant {
             variant: "vibrant"
             icon: "sentiment_very_dissatisfied"
-            name: qsTr("Vibrant")
-            description: qsTr("A high chroma palette. The primary palette's chroma is at maximum.")
+            name: qsTr("Sống động")
+            description: qsTr("Bảng màu có độ rực cao. Độ rực của bảng màu chính ở mức tối đa.")
         },
         Variant {
             variant: "tonalspot"
             icon: "android"
-            name: qsTr("Tonal Spot")
-            description: qsTr("Default for Material theme colours. A pastel palette with a low chroma.")
+            name: qsTr("Điểm tông màu")
+            description: qsTr("Mặc định cho màu chủ đề Material. Bảng màu pastel có độ rực thấp.")
         },
         Variant {
             variant: "expressive"
             icon: "compare_arrows"
-            name: qsTr("Expressive")
-            description: qsTr("A medium chroma palette. The primary palette's hue is different from the seed colour, for variety.")
+            name: qsTr("Biểu cảm")
+            description: qsTr("Bảng màu có độ rực trung bình. Sắc màu của bảng màu chính khác màu gốc để tạo sự đa dạng.")
         },
         Variant {
             variant: "fidelity"
             icon: "compare"
-            name: qsTr("Fidelity")
-            description: qsTr("Matches the seed colour, even if the seed colour is very bright (high chroma).")
+            name: qsTr("Trung thực")
+            description: qsTr("Khớp với màu gốc, kể cả khi màu gốc rất rực (độ rực cao).")
         },
         Variant {
             variant: "content"
             icon: "sentiment_calm"
-            name: qsTr("Content")
-            description: qsTr("Almost identical to fidelity.")
+            name: qsTr("Nội dung")
+            description: qsTr("Gần như giống chế độ Trung thực.")
         },
         Variant {
             variant: "fruitsalad"
             icon: "nutrition"
-            name: qsTr("Fruit Salad")
-            description: qsTr("A playful theme - the seed colour's hue does not appear in the theme.")
+            name: qsTr("Salad trái cây")
+            description: qsTr("Chủ đề vui mắt — sắc màu gốc không xuất hiện trong chủ đề.")
         },
         Variant {
             variant: "rainbow"
             icon: "looks"
-            name: qsTr("Rainbow")
-            description: qsTr("A playful theme - the seed colour's hue does not appear in the theme.")
+            name: qsTr("Cầu vồng")
+            description: qsTr("Chủ đề vui mắt — sắc màu gốc không xuất hiện trong chủ đề.")
         },
         Variant {
             variant: "neutral"
             icon: "contrast"
-            name: qsTr("Neutral")
-            description: qsTr("Close to grayscale, a hint of chroma.")
+            name: qsTr("Trung tính")
+            description: qsTr("Gần với thang xám, chỉ phảng phất màu sắc.")
         },
         Variant {
             variant: "monochrome"
             icon: "filter_b_and_w"
-            name: qsTr("Monochrome")
-            description: qsTr("All colours are grayscale, no chroma.")
+            name: qsTr("Đơn sắc")
+            description: qsTr("Tất cả màu đều ở dạng thang xám, không có sắc màu.")
         }
     ]
     useFuzzy: GlobalConfig.launcher.useFuzzy.variants

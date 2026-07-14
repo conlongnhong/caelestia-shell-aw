@@ -79,7 +79,7 @@ Item {
 
         animate: true
         horizontalAlignment: Text.AlignHCenter
-        text: (Players.active?.trackTitle ?? qsTr("No media")) || qsTr("Unknown title")
+        text: (Players.active?.trackTitle ?? qsTr("Không có nội dung")) || qsTr("Không rõ tiêu đề")
         color: Colours.palette.m3primary
         font: Tokens.font.title.small
 
@@ -96,7 +96,7 @@ Item {
 
         animate: true
         horizontalAlignment: Text.AlignHCenter
-        text: (Players.active?.trackAlbum ?? qsTr("No media")) || qsTr("Unknown album")
+        text: (Players.active?.trackAlbum ?? qsTr("Không có nội dung")) || qsTr("Không rõ album")
         color: Colours.palette.m3outline
         font: Tokens.font.body.small
 
@@ -113,7 +113,7 @@ Item {
 
         animate: true
         horizontalAlignment: Text.AlignHCenter
-        text: (Players.active?.trackArtist ?? qsTr("No media")) || qsTr("Unknown artist")
+        text: (Players.active?.trackArtist ?? qsTr("Không có nội dung")) || qsTr("Không rõ nghệ sĩ")
         color: Colours.palette.m3secondary
 
         width: parent.implicitWidth - Tokens.padding.extraLargeIncreased

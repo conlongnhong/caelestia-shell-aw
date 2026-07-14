@@ -42,9 +42,9 @@ Singleton {
             return;
 
         if (dnd)
-            Toaster.toast(qsTr("Do not disturb enabled"), qsTr("Popup notifications are now disabled"), "do_not_disturb_on");
+            Toaster.toast(qsTr("Đã bật Không làm phiền"), qsTr("Thông báo bật lên hiện đã bị tắt"), "do_not_disturb_on");
         else
-            Toaster.toast(qsTr("Do not disturb disabled"), qsTr("Popup notifications are now enabled"), "do_not_disturb_off");
+            Toaster.toast(qsTr("Đã tắt Không làm phiền"), qsTr("Thông báo bật lên hiện đã được bật"), "do_not_disturb_off");
     }
 
     onListChanged: {
@@ -134,7 +134,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "clearNotifs"
-        description: "Clear all notifications"
+        description: qsTr("Xóa mọi thông báo")
         onPressed: {
             for (const notif of root.list.slice())
                 notif.close();

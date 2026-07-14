@@ -13,14 +13,14 @@ Item {
 
     required property ScreenState screenState
     readonly property FileDialog facePicker: FileDialog {
-        title: qsTr("Select a profile picture")
-        filterLabel: qsTr("Image files")
+        title: qsTr("Chọn ảnh đại diện")
+        filterLabel: qsTr("Tệp hình ảnh")
         filters: Images.validImageExtensions
         onAccepted: path => {
             if (CUtils.copyFile(Qt.resolvedUrl(path), Qt.resolvedUrl(`${Paths.home}/.face`)))
-                Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "low", "-h", `STRING:image-path:${path}`, "Profile picture changed", `Profile picture changed to ${Paths.shortenHome(path)}`]);
+                Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "low", "-h", `STRING:image-path:${path}`, "Đã đổi ảnh đại diện", `Đã đổi ảnh đại diện thành ${Paths.shortenHome(path)}`]);
             else
-                Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "critical", "Unable to change profile picture", `Failed to change profile picture to ${Paths.shortenHome(path)}`]);
+                Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "critical", "Không thể đổi ảnh đại diện", `Không thể đổi ảnh đại diện thành ${Paths.shortenHome(path)}`]);
         }
     }
 

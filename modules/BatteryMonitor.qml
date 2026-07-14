@@ -14,10 +14,10 @@ Scope {
         function onOnBatteryChanged(): void {
             if (UPower.onBattery) {
                 if (GlobalConfig.utilities.toasts.chargingChanged)
-                    Toaster.toast(qsTr("Charger unplugged"), qsTr("Battery is discharging"), "power_off");
+                    Toaster.toast(qsTr("Đã rút sạc"), qsTr("Pin đang xả"), "power_off");
             } else {
                 if (GlobalConfig.utilities.toasts.chargingChanged)
-                    Toaster.toast(qsTr("Charger plugged in"), qsTr("Battery is charging"), "power");
+                    Toaster.toast(qsTr("Đã cắm sạc"), qsTr("Pin đang sạc"), "power");
                 for (const level of root.warnLevels)
                     level.warned = false;
             }
@@ -35,12 +35,12 @@ Scope {
             for (const level of root.warnLevels) {
                 if (p <= level.level && !level.warned) {
                     level.warned = true;
-                    Toaster.toast(level.title ?? qsTr("Battery warning"), level.message ?? qsTr("Battery level is low"), level.icon ?? "battery_android_alert", level.critical ? Toast.Error : Toast.Warning);
+                    Toaster.toast(level.title ?? qsTr("Cảnh báo pin"), level.message ?? qsTr("Mức pin thấp"), level.icon ?? "battery_android_alert", level.critical ? Toast.Error : Toast.Warning);
                 }
             }
 
             if (!hibernateTimer.running && p <= GlobalConfig.general.battery.criticalLevel) {
-                Toaster.toast(qsTr("Hibernating in 5 seconds"), qsTr("Hibernating to prevent data loss"), "battery_android_alert", Toast.Error);
+                Toaster.toast(qsTr("Sẽ ngủ đông sau 5 giây"), qsTr("Hệ thống sẽ ngủ đông để tránh mất dữ liệu"), "battery_android_alert", Toast.Error);
                 hibernateTimer.start();
             }
         }

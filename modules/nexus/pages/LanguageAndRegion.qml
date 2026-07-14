@@ -22,14 +22,14 @@ PageBase {
     // Clock format (index 0 = 24-hour, 1 = 12-hour — matches Time.useTwelveHourClock)
     readonly property list<MenuItem> clockItems: [
         MenuItem {
-            text: qsTr("24-hour")
+            text: qsTr("24 giờ")
         },
         MenuItem {
-            text: qsTr("12-hour")
+            text: qsTr("12 giờ")
         }
     ]
 
-    title: qsTr("Language & region")
+    title: qsTr("Ngôn ngữ & khu vực")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -40,7 +40,7 @@ PageBase {
         // Language
         SectionHeader {
             first: true
-            text: qsTr("Language")
+            text: qsTr("Ngôn ngữ")
         }
 
         // Read-only: the shell follows the system locale (no in-shell translations yet)
@@ -65,14 +65,14 @@ PageBase {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("System language")
+                        text: qsTr("Ngôn ngữ hệ thống")
                         font: Tokens.font.body.small
                         elide: Text.ElideRight
                     }
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Follows your system locale (%1)").arg(Qt.locale().name)
+                        text: qsTr("Theo ngôn ngữ hệ thống (%1)").arg(Qt.locale().name)
                         color: Colours.palette.m3outline
                         font: Tokens.font.label.small
                         elide: Text.ElideRight
@@ -89,7 +89,7 @@ PageBase {
 
         // Weather
         SectionHeader {
-            text: qsTr("Weather")
+            text: qsTr("Thời tiết")
         }
 
         // Placeholder until the map-based location picker lands
@@ -115,7 +115,7 @@ PageBase {
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Location picker coming soon")
+                    text: qsTr("Tính năng chọn vị trí sắp ra mắt")
                     color: Colours.palette.m3outlineVariant
                     font: Tokens.font.title.small
                 }
@@ -124,7 +124,7 @@ PageBase {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
-                    text: qsTr("Choose your weather location on a map in a future update")
+                    text: qsTr("Chọn vị trí thời tiết trên bản đồ trong bản cập nhật sau")
                     color: Colours.palette.m3outlineVariant
                     font: Tokens.font.body.small
                 }
@@ -133,13 +133,13 @@ PageBase {
 
         // Units
         SectionHeader {
-            text: qsTr("Units")
+            text: qsTr("Đơn vị")
         }
 
         SelectRow {
             first: true
-            label: qsTr("Temperature")
-            subtext: qsTr("Units for weather temperatures")
+            label: qsTr("Nhiệt độ")
+            subtext: qsTr("Đơn vị nhiệt độ thời tiết")
             menuItems: root.tempItems
             active: root.tempItems[GlobalConfig.services.useFahrenheit ? 1 : 0]
             onSelected: item => GlobalConfig.services.useFahrenheit = root.tempItems.indexOf(item) === 1
@@ -147,8 +147,8 @@ PageBase {
 
         SelectRow {
             last: true
-            label: qsTr("System temperatures")
-            subtext: qsTr("Units for CPU and GPU temperatures")
+            label: qsTr("Nhiệt độ hệ thống")
+            subtext: qsTr("Đơn vị nhiệt độ CPU và GPU")
             menuItems: root.tempItems
             active: root.tempItems[GlobalConfig.services.useFahrenheitPerformance ? 1 : 0]
             onSelected: item => GlobalConfig.services.useFahrenheitPerformance = root.tempItems.indexOf(item) === 1
@@ -156,14 +156,14 @@ PageBase {
 
         // Time & date
         SectionHeader {
-            text: qsTr("Time & date")
+            text: qsTr("Ngày & giờ")
         }
 
         SelectRow {
             first: true
             last: true
-            label: qsTr("Clock format")
-            subtext: qsTr("How times are shown across the shell")
+            label: qsTr("Định dạng đồng hồ")
+            subtext: qsTr("Cách hiển thị thời gian trong toàn bộ giao diện")
             menuItems: root.clockItems
             active: root.clockItems[GlobalConfig.services.useTwelveHourClock ? 1 : 0]
             onSelected: item => GlobalConfig.services.useTwelveHourClock = root.clockItems.indexOf(item) === 1

@@ -26,7 +26,7 @@ ColumnLayout {
     StyledText {
         Layout.topMargin: Tokens.padding.medium
         Layout.rightMargin: Tokens.padding.extraSmall
-        text: qsTr("Keyboard Layouts")
+        text: qsTr("Bố cục bàn phím")
         font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
     }
 
@@ -90,7 +90,7 @@ ColumnLayout {
             width: list.width
             height: Math.max(36, rowText.implicitHeight + Tokens.padding.small)
             ToolTip.visible: isDisabled && layer.containsMouse
-            ToolTip.text: "XKB limitation: maximum 4 layouts allowed"
+            ToolTip.text: "XKB chỉ hỗ trợ tối đa 4 bố cục cùng lúc"
 
             StateLayer {
                 id: layer

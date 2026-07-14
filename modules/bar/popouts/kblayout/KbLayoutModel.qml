@@ -110,7 +110,7 @@ Item {
             return;
 
         if (layoutsModel.count > 4) {
-            Toaster.toast(qsTr("Keyboard layout limit"), qsTr("XKB supports only 4 layouts at a time"), "warning");
+            Toaster.toast(qsTr("Giới hạn bố cục bàn phím"), qsTr("XKB chỉ hỗ trợ tối đa 4 bố cục cùng lúc"), "warning");
         }
     }
 

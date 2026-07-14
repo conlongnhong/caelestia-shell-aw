@@ -167,13 +167,13 @@ Loader {
                 spacing: Tokens.spacing.medium
 
                 StyledText {
-                    text: qsTr("Delete recording?")
+                    text: qsTr("Xóa bản ghi?")
                     font: Tokens.font.body.large
                 }
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Recording '%1' will be permanently deleted.").arg(deleteConfirmation.path)
+                    text: qsTr("Bản ghi '%1' sẽ bị xóa vĩnh viễn.").arg(deleteConfirmation.path)
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -185,13 +185,13 @@ Loader {
                     spacing: Tokens.spacing.medium
 
                     TextButton {
-                        text: qsTr("Cancel")
+                        text: qsTr("Hủy")
                         type: TextButton.Text
                         onClicked: root.props.recordingConfirmDelete = ""
                     }
 
                     TextButton {
-                        text: qsTr("Delete")
+                        text: qsTr("Xóa")
                         type: TextButton.Text
                         onClicked: {
                             CUtils.deleteFile(Qt.resolvedUrl(root.props.recordingConfirmDelete));

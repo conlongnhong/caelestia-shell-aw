@@ -11,7 +11,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Audio")
+    title: qsTr("Âm thanh")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -23,7 +23,7 @@ PageBase {
         SliderRow {
             first: true
             icon: Icons.getVolumeIcon(Audio.volume, Audio.muted)
-            label: qsTr("Output")
+            label: qsTr("Đầu ra")
             valueLabel: Math.round(value * 100) + "%"
             value: Audio.volume
             enabled: !Audio.muted
@@ -31,7 +31,7 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Muted")
+            text: qsTr("Đã tắt tiếng")
             checked: Audio.muted
             onToggled: Audio.setStreamMuted(Audio.sink, checked)
         }
@@ -41,7 +41,7 @@ PageBase {
             currentId: Audio.sink?.id ?? -1
             iconName: "speaker"
             placeholderIcon: "speaker"
-            placeholderText: qsTr("No output devices")
+            placeholderText: qsTr("Không có thiết bị đầu ra")
             onSelected: node => Audio.setAudioSink(node)
         }
 
@@ -50,7 +50,7 @@ PageBase {
             Layout.topMargin: Tokens.spacing.large - parent.spacing
             first: true
             icon: Icons.getMicVolumeIcon(Audio.sourceVolume, Audio.sourceMuted)
-            label: qsTr("Input")
+            label: qsTr("Đầu vào")
             valueLabel: Math.round(value * 100) + "%"
             value: Audio.sourceVolume
             enabled: !Audio.sourceMuted
@@ -58,7 +58,7 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Muted")
+            text: qsTr("Đã tắt tiếng")
             checked: Audio.sourceMuted
             onToggled: Audio.setStreamMuted(Audio.source, checked)
         }
@@ -68,7 +68,7 @@ PageBase {
             currentId: Audio.source?.id ?? -1
             iconName: "mic"
             placeholderIcon: "mic_off"
-            placeholderText: qsTr("No input devices")
+            placeholderText: qsTr("Không có thiết bị đầu vào")
             onSelected: node => Audio.setAudioSource(node)
         }
 
@@ -104,14 +104,14 @@ PageBase {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("App volumes")
+                        text: qsTr("Âm lượng ứng dụng")
                         font: Tokens.font.body.small
                         elide: Text.ElideRight
                     }
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: Audio.streams.length === 0 ? qsTr("No apps playing audio") : Audio.streams.length === 1 ? qsTr("1 app playing audio") : qsTr("%1 apps playing audio").arg(Audio.streams.length)
+                        text: Audio.streams.length === 0 ? qsTr("Không có ứng dụng nào đang phát âm thanh") : Audio.streams.length === 1 ? qsTr("1 ứng dụng đang phát âm thanh") : qsTr("%1 ứng dụng đang phát âm thanh").arg(Audio.streams.length)
                         color: Colours.palette.m3outline
                         font: Tokens.font.label.small
                         elide: Text.ElideRight

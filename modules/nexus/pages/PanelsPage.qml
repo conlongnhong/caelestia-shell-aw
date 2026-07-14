@@ -5,7 +5,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Panels")
+    title: qsTr("Bảng")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -16,30 +16,30 @@ PageBase {
         NavRow {
             first: true
             icon: "dashboard"
-            label: qsTr("Dashboard")
-            status: Config.dashboard.enabled ? qsTr("Enabled") : qsTr("Disabled")
+            label: qsTr("Bảng điều khiển")
+            status: Config.dashboard.enabled ? qsTr("Đã bật") : qsTr("Đã tắt")
             onClicked: root.nState.openSubPage(1)
         }
 
         NavRow {
             icon: "dock_to_bottom"
-            label: qsTr("Taskbar")
-            status: Config.bar.persistent ? qsTr("Always visible") : Config.bar.showOnHover ? qsTr("Reveal on hover") : qsTr("Reveal on drag")
+            label: qsTr("Thanh tác vụ")
+            status: Config.bar.persistent ? qsTr("Luôn hiển thị") : Config.bar.showOnHover ? qsTr("Hiện khi rê chuột") : qsTr("Hiện khi kéo")
             onClicked: root.nState.openSubPage(2)
         }
 
         NavRow {
             icon: "apps"
-            label: qsTr("Launcher")
-            status: Config.launcher.enabled ? qsTr("Enabled") : qsTr("Disabled")
+            label: qsTr("Trình khởi chạy")
+            status: Config.launcher.enabled ? qsTr("Đã bật") : qsTr("Đã tắt")
             onClicked: root.nState.openSubPage(3)
         }
 
         NavRow {
             last: true
             icon: "dock_to_right"
-            label: qsTr("Sidebar")
-            status: Config.sidebar.enabled ? qsTr("Enabled") : qsTr("Disabled")
+            label: qsTr("Thanh bên")
+            status: Config.sidebar.enabled ? qsTr("Đã bật") : qsTr("Đã tắt")
             onClicked: root.nState.openSubPage(4)
         }
     }

@@ -7,7 +7,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Clock")
+    title: qsTr("Đồng hồ")
     isSubPage: true
 
     ColumnLayout {
@@ -18,20 +18,20 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: qsTr("Background")
+            text: qsTr("Nền")
             checked: Config.bar.clock.background
             onToggled: GlobalConfig.bar.clock.background = checked
         }
 
         ToggleRow {
-            text: qsTr("Show date")
+            text: qsTr("Hiện ngày")
             checked: Config.bar.clock.showDate
             onToggled: GlobalConfig.bar.clock.showDate = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Show icon")
+            text: qsTr("Hiện biểu tượng")
             checked: Config.bar.clock.showIcon
             onToggled: GlobalConfig.bar.clock.showIcon = checked
         }

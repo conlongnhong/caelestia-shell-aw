@@ -9,11 +9,27 @@ import qs.services
 Column {
     id: root
 
+    function powerProfileName(profile: int): string {
+        if (profile === PowerProfile.PowerSaver)
+            return qsTr("Tiết kiệm điện");
+        if (profile === PowerProfile.Performance)
+            return qsTr("Hiệu năng");
+        return qsTr("Cân bằng");
+    }
+
+    function degradationReasonName(reason: int): string {
+        if (reason === PerformanceDegradationReason.LapDetected)
+            return qsTr("Phát hiện máy đang đặt trên đùi");
+        if (reason === PerformanceDegradationReason.HighTemperature)
+            return qsTr("Nhiệt độ cao");
+        return qsTr("Không rõ");
+    }
+
     spacing: Tokens.spacing.medium
     width: Tokens.sizes.bar.batteryWidth
 
     StyledText {
-        text: UPower.displayDevice.isLaptopBattery ? qsTr("Remaining: %1%").arg(Math.round(UPower.displayDevice.percentage * 100)) : qsTr("No battery detected")
+        text: UPower.displayDevice.isLaptopBattery ? qsTr("Còn lại: %1%").arg(Math.round(UPower.displayDevice.percentage * 100)) : qsTr("Không phát hiện pin")
     }
 
     StyledText {
@@ -24,16 +40,16 @@ Column {
 
             let comps = [];
             if (day > 0)
-                comps.push(`${day} days`);
+                comps.push(`${day} ngày`);
             if (hr > 0)
-                comps.push(`${hr} hours`);
+                comps.push(`${hr} giờ`);
             if (min > 0)
-                comps.push(`${min} mins`);
+                comps.push(`${min} phút`);
 
             return comps.join(", ") || fallback;
         }
 
-        text: UPower.displayDevice.isLaptopBattery ? qsTr("Time %1: %2").arg(UPower.onBattery ? "remaining" : "until charged").arg(UPower.onBattery ? formatSeconds(UPower.displayDevice.timeToEmpty, "Calculating...") : formatSeconds(UPower.displayDevice.timeToFull, "Fully charged!")) : qsTr("Power profile: %1").arg(PowerProfile.toString(PowerProfiles.profile))
+        text: UPower.displayDevice.isLaptopBattery ? qsTr("Thời gian %1: %2").arg(UPower.onBattery ? qsTr("còn lại") : qsTr("đến khi sạc đầy")).arg(UPower.onBattery ? formatSeconds(UPower.displayDevice.timeToEmpty, qsTr("Đang tính...")) : formatSeconds(UPower.displayDevice.timeToFull, qsTr("Đã sạc đầy!"))) : qsTr("Chế độ nguồn: %1").arg(root.powerProfileName(PowerProfiles.profile))
     }
 
     Loader {
@@ -70,7 +86,7 @@ Column {
 
                     StyledText {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: qsTr("Performance Degraded")
+                        text: qsTr("Hiệu năng suy giảm")
                         color: Colours.palette.m3onError
                         font: Tokens.font.mono.builders.medium.weight(Font.Medium).build()
                     }
@@ -87,7 +103,7 @@ Column {
                 StyledText {
                     anchors.horizontalCenter: parent.horizontalCenter
 
-                    text: qsTr("Reason: %1").arg(PerformanceDegradationReason.toString(PowerProfiles.degradationReason))
+                    text: qsTr("Lý do: %1").arg(root.degradationReasonName(PowerProfiles.degradationReason))
                     color: Colours.palette.m3onError
                 }
             }

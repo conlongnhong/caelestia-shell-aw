@@ -148,21 +148,21 @@ Item {
                 opacity: 0
 
                 StyledText {
-                    text: qsTr("Backend: %1").arg(LyricsBackend.toString(Lyrics.backend))
+                    text: qsTr("Nguồn dữ liệu: %1").arg(LyricsBackend.toString(Lyrics.backend))
                     color: Colours.palette.m3onSurfaceVariant
                     animate: true
                 }
 
                 StyledText {
                     Layout.maximumWidth: Tokens.sizes.dashboard.mediaTabWidth / 2
-                    text: qsTr("Selected candidate: %1 | %2 | %3").arg(Lyrics.selectedCandidate.title).arg(Lyrics.selectedCandidate.artist).arg(Lyrics.selectedCandidate.album)
+                    text: qsTr("Kết quả đã chọn: %1 | %2 | %3").arg(Lyrics.selectedCandidate.title).arg(Lyrics.selectedCandidate.artist).arg(Lyrics.selectedCandidate.album)
                     color: Colours.palette.m3onSurfaceVariant
                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                     animate: true
                 }
 
                 StyledText {
-                    text: qsTr("Offset: %1 ms").arg(Lyrics.offset)
+                    text: qsTr("Độ lệch: %1 ms").arg(Lyrics.offset)
                     color: Colours.palette.m3onSurfaceVariant
                     animate: true
                 }
@@ -178,7 +178,7 @@ Item {
                 StyledText {
                     id: placeholderText
 
-                    text: Lyrics.loading ? qsTr("Loading...") : qsTr("No lyrics found")
+                    text: Lyrics.loading ? qsTr("Đang tải...") : qsTr("Không tìm thấy lời bài hát")
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.medium
                     animate: true

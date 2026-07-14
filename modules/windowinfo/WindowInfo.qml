@@ -12,7 +12,11 @@ Item {
     required property ShellScreen screen
     required property HyprlandToplevel client
 
-    implicitWidth: child.implicitWidth
+    readonly property real availableWidth: Math.max(1, screen.width - Tokens.padding.extraLargeIncreased * 2)
+    readonly property real detailsWidth: Math.min(Tokens.sizes.winfo.detailsWidth, availableWidth * 0.46)
+    readonly property real previewWidth: Math.max(1, availableWidth - detailsWidth - Tokens.spacing.medium - Tokens.padding.large * 2)
+
+    implicitWidth: Math.min(child.implicitWidth, availableWidth)
     implicitHeight: screen.height * Tokens.sizes.winfo.heightMult
 
     RowLayout {
@@ -26,12 +30,15 @@ Item {
         Preview {
             screen: root.screen
             client: root.client
+            maximumWidth: root.previewWidth
         }
 
         ColumnLayout {
             spacing: Tokens.spacing.medium
 
-            Layout.preferredWidth: Tokens.sizes.winfo.detailsWidth
+            Layout.minimumWidth: 0
+            Layout.preferredWidth: root.detailsWidth
+            Layout.maximumWidth: root.detailsWidth
             Layout.fillHeight: true
 
             StyledRect {

@@ -17,7 +17,7 @@ PageBase {
     property string quickshellVersion
     property string cliVersion
 
-    title: qsTr("About")
+    title: qsTr("Giới thiệu")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -85,39 +85,39 @@ PageBase {
 
         // System
         SectionHeader {
-            text: qsTr("System")
+            text: qsTr("Hệ thống")
         }
 
         InfoRow {
             first: true
-            label: qsTr("Hostname")
+            label: qsTr("Tên máy")
             value: SysInfo.hostname
         }
 
         InfoRow {
-            label: qsTr("Device")
+            label: qsTr("Thiết bị")
             value: SysInfo.device
         }
 
         InfoRow {
-            label: qsTr("Distro")
+            label: qsTr("Bản phân phối")
             value: SysInfo.osPrettyName || SysInfo.osName
         }
 
         InfoRow {
-            label: qsTr("Kernel")
+            label: qsTr("Nhân hệ thống")
             value: SysInfo.kernel
         }
 
         InfoRow {
             last: true
-            label: qsTr("Firmware")
+            label: qsTr("Phần sụn")
             value: SysInfo.firmware
         }
 
         // Software
         SectionHeader {
-            text: qsTr("Software")
+            text: qsTr("Phần mềm")
         }
 
         InfoRow {
@@ -144,13 +144,13 @@ PageBase {
 
         // Plugins
         SectionHeader {
-            text: qsTr("Plugins")
+            text: qsTr("Tiện ích bổ sung")
         }
 
         InfoRow {
             first: true
             last: true
-            label: qsTr("Loaded plugins")
+            label: qsTr("Tiện ích bổ sung đã nạp")
             value: root.pluginCount.toString()
         }
     }

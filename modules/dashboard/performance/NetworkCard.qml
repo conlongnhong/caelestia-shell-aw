@@ -37,7 +37,7 @@ StyledRect {
             }
 
             StyledText {
-                text: qsTr("Network")
+                text: qsTr("Mạng")
                 font: Tokens.font.title.medium
             }
         }
@@ -93,7 +93,7 @@ StyledRect {
             // "Collecting data" placeholder
             StyledText {
                 anchors.centerIn: parent
-                text: qsTr("Collecting data...")
+                text: qsTr("Đang thu thập dữ liệu...")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3outline
                 visible: NetworkUsage.downloadBuffer.count < 2
@@ -112,7 +112,7 @@ StyledRect {
             }
 
             StyledText {
-                text: qsTr("Download")
+                text: qsTr("Tải xuống")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }
@@ -143,7 +143,7 @@ StyledRect {
             }
 
             StyledText {
-                text: qsTr("Upload")
+                text: qsTr("Tải lên")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }
@@ -174,7 +174,7 @@ StyledRect {
             }
 
             StyledText {
-                text: qsTr("Total")
+                text: qsTr("Tổng cộng")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }
