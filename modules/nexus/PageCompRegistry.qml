@@ -66,6 +66,13 @@ QtObject {
         }
     }
 
+    readonly property Component displayComp: Component {
+        StackPage {
+            Component { DisplayPage {} }
+            Component { DisplayDetailPage {} }
+        }
+    }
+
     readonly property Component bluetoothComp: Component {
         StackPage {
             Component {
@@ -204,6 +211,7 @@ QtObject {
 
     readonly property var pageCompsById: ({
             "appearance": appearanceComp,
+            "display": displayComp,
             "network": networkComp,
             "bluetooth": bluetoothComp,
             "audio": audioComp,

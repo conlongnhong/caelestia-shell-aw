@@ -13,6 +13,15 @@ PageBase {
 
     title: qsTr("Âm thanh")
 
+    Component.onCompleted: AudioProfiles.refresh()
+
+    Connections {
+        function onSinkChanged(): void { AudioProfiles.refresh(); }
+        function onSourceChanged(): void { AudioProfiles.refresh(); }
+
+        target: Audio
+    }
+
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -45,6 +54,15 @@ PageBase {
             onSelected: node => Audio.setAudioSink(node)
         }
 
+        SectionHeader {
+            text: qsTr("Profile đầu ra")
+        }
+
+        AudioProfileList {
+            node: Audio.sink
+            last: true
+        }
+
         // Input
         SliderRow {
             Layout.topMargin: Tokens.spacing.large - parent.spacing
@@ -70,6 +88,15 @@ PageBase {
             placeholderIcon: "mic_off"
             placeholderText: qsTr("Không có thiết bị đầu vào")
             onSelected: node => Audio.setAudioSource(node)
+        }
+
+        SectionHeader {
+            text: qsTr("Profile đầu vào")
+        }
+
+        AudioProfileList {
+            node: Audio.source
+            last: true
         }
 
         // Per-app volumes

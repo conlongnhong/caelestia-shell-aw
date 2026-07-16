@@ -16,6 +16,7 @@ QtObject {
     property DesktopEntry selectedApp
     property string selectedNetworkSsid
     property string selectedEthernetInterface
+    property string selectedDisplayName
 
     signal close
     signal subPageOpened(idx: int)

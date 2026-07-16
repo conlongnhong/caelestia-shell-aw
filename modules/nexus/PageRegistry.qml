@@ -16,13 +16,13 @@ QtObject {
         },
 
         // Connectivity
-        // TODO
-        // {
-        //     label: qsTr("Màn hình"),
-        //     icon: "monitor",
-        //     description: qsTr("Cấu hình đầu ra"),
-        //     category: "connectivity"
-        // },
+        {
+            id: "display",
+            label: qsTr("Màn hình"),
+            icon: "monitor",
+            description: qsTr("Độ phân giải, tần số, tỉ lệ và ánh sáng ban đêm"),
+            category: "connectivity"
+        },
         {
             id: "network",
             label: qsTr("Mạng"),
