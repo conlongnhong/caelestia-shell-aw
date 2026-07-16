@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://github.com/conlongnhong/caelestia-shell-aw/commits/main"><img src="https://img.shields.io/github/last-commit/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=C%E1%BA%ADp%20nh%E1%BA%ADt&labelColor=1e1e2e&color=89b4fa&cacheSeconds=3600" alt="Lần cập nhật gần nhất"></a>
   <a href="https://github.com/conlongnhong/caelestia-shell-aw/stargazers"><img src="https://img.shields.io/github/stars/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=Sao&labelColor=1e1e2e&color=f9e2af&cacheSeconds=3600" alt="Số sao"></a>
-  <a href="https://github.com/conlongnhong/caelestia-shell-aw/network/members"><img src="https://img.shields.io/github/forks/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=Nh%C3%A1nh&labelColor=1e1e2e&color=cba6f7&cacheSeconds=3600" alt="Số nhánh fork"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/network/members"><img src="https://img.shields.io/github/forks/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=L%C6%B0%E1%BB%A3t%20fork&labelColor=1e1e2e&color=cba6f7&cacheSeconds=3600" alt="Số lượt fork"></a>
   <a href="https://github.com/conlongnhong/caelestia-shell-aw/issues"><img src="https://img.shields.io/github/issues/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=V%E1%BA%A5n%20%C4%91%E1%BB%81&labelColor=1e1e2e&color=f38ba8&cacheSeconds=3600" alt="Vấn đề đang mở"></a>
   <a href="https://github.com/conlongnhong/caelestia-shell-aw/blob/main/LICENSE"><img src="https://img.shields.io/github/license/conlongnhong/caelestia-shell-aw?style=for-the-badge&label=Gi%E1%BA%A5y%20ph%C3%A9p&labelColor=1e1e2e&color=a6e3a1&cacheSeconds=3600" alt="Giấy phép"></a>
 </p>
@@ -524,6 +524,25 @@ Ví dụ tắt bar cố định trên `DP-1`:
 ```
 
 Giá trị trong tệp theo màn hình sẽ ghi đè cấu hình toàn cục khi tùy chọn đó hỗ trợ override. Một số thiết lập dịch vụ, đường dẫn, launcher, lock và hành vi toàn hệ thống chỉ đọc từ cấu hình toàn cục.
+
+<details>
+<summary>Các nhóm chỉ đọc từ cấu hình toàn cục</summary>
+
+- `appearance`: animation và transparency.
+- `general`: logo, ứng dụng mặc định, idle và cảnh báo pin.
+- `bar.workspaces`: `perMonitorWorkspaces`, `specialWorkspaceIcons`, `windowIcons`; `bar.tray`: `iconSubs`, `hiddenIcons`.
+- `dashboard`: chu kỳ cập nhật media và tài nguyên.
+- `launcher`: prefix, fuzzy search, danh sách ứng dụng và action.
+- `notifs`: timeout, chế độ fullscreen và action khi click.
+- `lock`: vân tay và Howdy.
+- `nexus.networkRescanInterval`.
+- `utilities.toasts` và `utilities.vpn`, ngoại trừ các thuộc tính được khai báo per-monitor.
+- `services`: thời tiết/đơn vị, GPU, tạm dừng và decoder wallpaper, audio/brightness, player và lyrics.
+- `paths`: thư mục wallpaper và lyrics.
+
+Nếu đặt các khóa này trong `monitors/<ten-man-hinh>/shell.json`, shell sẽ bỏ qua và ghi cảnh báo `global-only` vào log.
+
+</details>
 
 ### Nexus
 

@@ -10,13 +10,8 @@ import qs.services
 PathView {
     id: root
 
-    required property SearchBar search
-    required property var screenState
-    required property var panels
     required property var content
-
     readonly property int itemWidth: Tokens.sizes.launcher.wallpaperWidth * 0.8 + Tokens.padding.medium * 2
-
     readonly property int numItems: {
         const screen = (QsWindow.window as QsWindow)?.screen;
         if (!screen)
@@ -43,51 +38,33 @@ PathView {
             return visible - 1;
         return visible;
     }
+    required property var panels
+    required property var screenState
+    required property SearchBar search
 
+    cacheItemCount: 4
+    highlightRangeMode: PathView.StrictlyEnforceRange
+    implicitWidth: Math.min(numItems, count) * itemWidth
+    pathItemCount: numItems
+    preferredHighlightBegin: 0.5
+    preferredHighlightEnd: 0.5
+    snapMode: PathView.SnapToItem
+
+    delegate: WallpaperItem {
+        screenState: root.screenState
+    }
     model: ScriptModel {
         id: scriptModel
 
         readonly property string search: root.search.text.split(" ").slice(1).join(" ")
 
         values: Wallpapers.query(search)
+
         onValuesChanged: {
             const idx = values.findIndex(w => w.path === Wallpapers.actualCurrent);
             root.currentIndex = search ? 0 : Math.max(0, idx);
         }
     }
-
-    Component.onCompleted: {
-        currentIndex = Math.max(0, Wallpapers.list.findIndex(w => w.path === Wallpapers.actualCurrent));
-    }
-    Component.onDestruction: Wallpapers.stopPreview()
-
-    Timer {
-        id: previewDebounce
-        interval: 100
-        repeat: false
-        onTriggered: {
-            if (!root || !scriptModel.values) return;
-            if (scriptModel.values[root.currentIndex]) {
-                Wallpapers.preview(scriptModel.values[root.currentIndex].path);
-            }
-        }
-    }
-
-    onCurrentIndexChanged: previewDebounce.restart()
-
-    implicitWidth: Math.min(numItems, count) * itemWidth
-    pathItemCount: numItems
-    cacheItemCount: 4
-
-    snapMode: PathView.SnapToItem
-    preferredHighlightBegin: 0.5
-    preferredHighlightEnd: 0.5
-    highlightRangeMode: PathView.StrictlyEnforceRange
-
-    delegate: WallpaperItem {
-        screenState: root.screenState
-    }
-
     path: Path {
         startY: root.height / 2
 
@@ -96,16 +73,37 @@ PathView {
             value: 0
         }
         PathLine {
-            x: root.width / 2
             relativeY: 0
+            x: root.width / 2
         }
         PathAttribute {
             name: "z"
             value: 1
         }
         PathLine {
-            x: root.width
             relativeY: 0
+            x: root.width
+        }
+    }
+
+    Component.onCompleted: {
+        currentIndex = Math.max(0, Wallpapers.list.findIndex(w => w.path === Wallpapers.actualCurrent));
+    }
+    Component.onDestruction: Wallpapers.stopPreview()
+    onCurrentIndexChanged: previewDebounce.restart()
+
+    Timer {
+        id: previewDebounce
+
+        interval: 100
+        repeat: false
+
+        onTriggered: {
+            if (!root || !scriptModel.values)
+                return;
+            if (scriptModel.values[root.currentIndex]) {
+                Wallpapers.preview(scriptModel.values[root.currentIndex].path);
+            }
         }
     }
 }

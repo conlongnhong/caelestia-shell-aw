@@ -83,7 +83,7 @@ Item {
                     return Math.max(1, Math.min(root.contentMaximumWidth, parent.height));
 
                 const screenRatio = root.screen.height > 0 ? root.screen.width / root.screen.height : 1;
-                const clientSize = client.lastIpcObject?.size ?? [1, 1];
+                const clientSize = client.lastIpcObject.size ?? [1, 1];
                 const clientRatio = clientSize[1] > 0 ? clientSize[0] / clientSize[1] : screenRatio;
                 return Math.max(1, Math.min(root.contentMaximumWidth, parent.height * Math.min(screenRatio, clientRatio)));
             }
@@ -109,7 +109,7 @@ Item {
                 return qsTr("Không có cửa sổ đang hoạt động");
 
             const mon = client.monitor;
-            const position = client.lastIpcObject?.at ?? [];
+            const position = client.lastIpcObject.at ?? [];
             return qsTr("%1 trên màn hình %2 tại %3, %4").arg(client.title).arg(mon?.name ?? qsTr("không xác định")).arg(position[0] ?? -1).arg(position[1] ?? -1);
         }
     }

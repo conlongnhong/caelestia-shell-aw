@@ -307,10 +307,14 @@ void ConfigObject::restoreUnloadedValues() {
         if (!fallback || !prop.isWritable() || m_loadedKeys.contains(key))
             continue;
 
+        const auto previous = prop.read(this);
         if (!writeInheritedProperty(prop, prop.read(fallback))) {
             qCWarning(lcConfig, "Unable to restore option '%s'", qUtf8Printable(propertyPath(key)));
             continue;
         }
+        const auto restored = prop.read(this);
+        if (previous != restored)
+            notifyPropertyChanged(key, restored);
         // Inherited/default values are never persisted as explicit overrides.
     }
 }

@@ -22,7 +22,8 @@ ColumnLayout {
 
     spacing: Tokens.spacing.extraLargeIncreased
 
-    MouseArea { // Prevent clicks from reaching flickable
+    MouseArea {
+        // Prevent clicks from reaching flickable
         z: 1
         implicitWidth: header.implicitWidth
         implicitHeight: header.implicitHeight - Layout.bottomMargin

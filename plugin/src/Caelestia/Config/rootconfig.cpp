@@ -154,6 +154,12 @@ void RootConfig::setupFileBackend(const QString& path, const QString& screen) {
                 m_reloadDebounce->start();
                 return;
             }
+        } else if (!m_lastSignature.isEmpty()) {
+            const auto err = QStringLiteral("Config was removed externally before saving: %1").arg(m_filePath);
+            qCWarning(lcConfig, "%s", qUtf8Printable(err));
+            emit saveFailed(err, m_screen);
+            m_reloadDebounce->start();
+            return;
         }
 
         QSaveFile file(m_filePath);
@@ -166,6 +172,7 @@ void RootConfig::setupFileBackend(const QString& path, const QString& screen) {
 
         const auto json = mergePreservingUnknown(this, sourceJson, toJsonObject());
         const auto data = QJsonDocument(json).toJson(QJsonDocument::Indented);
+        const auto savedSignature = dataSignature(data);
         if (file.write(data) != data.size()) {
             auto err = QStringLiteral("Failed to write %1: %2").arg(m_filePath, file.errorString());
             qCWarning(lcConfig, "%s", qUtf8Printable(err));
@@ -193,7 +200,11 @@ void RootConfig::setupFileBackend(const QString& path, const QString& screen) {
         }
         // Update watches — save may have created directories
         updateWatch();
-        m_lastSignature = fileSignature();
+        // The baseline is the content we committed, not a later reread that
+        // could already contain an external writer's replacement.
+        m_lastSignature = savedSignature;
+        if (fileSignature() != savedSignature)
+            m_reloadDebounce->start();
 
         emit saved(m_screen);
     });
@@ -315,8 +326,6 @@ std::optional<QString> RootConfig::reloadFromFile() {
     if (m_retryTimer)
         m_retryTimer->stop();
 
-    m_lastSignature = fileSignature();
-
     QFile file(m_filePath);
 
     if (!file.exists()) {
@@ -328,6 +337,9 @@ std::optional<QString> RootConfig::reloadFromFile() {
         m_loading = false;
         m_lastUnknownKeys.clear();
         m_parseRetries = 0;
+        m_lastSignature.clear();
+        if (!fileSignature().isEmpty())
+            m_reloadDebounce->start();
         return QString();
     }
 
@@ -337,8 +349,10 @@ std::optional<QString> RootConfig::reloadFromFile() {
         return err;
     }
 
+    const auto sourceData = file.readAll();
+    const auto loadedSignature = dataSignature(sourceData);
     QJsonParseError error{};
-    auto doc = QJsonDocument::fromJson(file.readAll(), &error);
+    auto doc = QJsonDocument::fromJson(sourceData, &error);
 
     if (error.error != QJsonParseError::NoError) {
         if (m_retryTimer && m_parseRetries < 3) {
@@ -385,6 +399,11 @@ std::optional<QString> RootConfig::reloadFromFile() {
     m_loading = false;
     // Collect unknown keys — caller is responsible for emitting signals
     m_lastUnknownKeys = collectUnknownKeys(this, jsonObj);
+    // Invalid files must never become a save baseline. Only accept the content
+    // signature after parsing, validation and loading have all succeeded.
+    m_lastSignature = loadedSignature;
+    if (fileSignature() != loadedSignature)
+        m_reloadDebounce->start();
 
     return QString(); // success
 }

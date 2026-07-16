@@ -3,26 +3,21 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import Quickshell.Services.UPower
 import Quickshell.Io
+import Quickshell.Services.UPower
 import Caelestia.Config
-
-import qs.services
 
 Singleton {
     id: root
 
+    property bool _loaded: false
+    property string hwDecoder: GlobalConfig.services.wallpaperHwDecoder
+
     // Các giá trị này được GlobalConfig lưu trong ~/.config/caelestia/shell.json.
     property bool pauseOnBattery: GlobalConfig.services.pauseWallpaperOnBattery
     property bool pauseOnWindowOverlap: GlobalConfig.services.pauseWallpaperOnWindowOverlap
-    property string hwDecoder: GlobalConfig.services.wallpaperHwDecoder
-    property bool paused: false
-    property bool _loaded: false
     property string pauseReason: "None"
-
-    Process {
-        id: saveHwDecoderProcess
-    }
+    property bool paused: false
 
     function recalculate() {
         let newPaused = false;
@@ -71,63 +66,10 @@ Singleton {
         root.pauseReason = reason;
     }
 
-    Connections {
-        target: Hyprland
-        function onFocusedWorkspaceChanged() {
-            root.recalculate();
-        }
-        function onFocusedMonitorChanged() {
-            root.recalculate();
-        }
-        function onRawEvent(event) {
-            const n = event.name;
-            if (n.startsWith("workspace") || n.startsWith("activewindow") || n.startsWith("createworkspace") || n.startsWith("destroyworkspace") || ["fullscreen", "changefloatingmode", "minimize", "movewindow", "openwindow", "closewindow", "moveworkspace", "focusedmon"].includes(n)) {
-                recalcTimer.restart();
-            }
-        }
-    }
-
-    Connections {
-        target: UPower
-        function onOnBatteryChanged() {
-            recalcTimer.restart();
-        }
-    }
-
-    Timer {
-        id: recalcTimer
-        interval: 50
-        onTriggered: root.recalculate()
-    }
-
-    // Startup timer to ensure we catch the asynchronously loaded Hyprland and Quickshell state
-    Timer {
-        id: startupTimer
-        interval: 1000
-        repeat: true
-        running: true
-        property int attempts: 0
-        onTriggered: {
-            root.recalculate();
-            attempts++;
-            if (attempts >= 5) {
-                running = false;
-            }
-        }
-    }
-
-    onPauseOnBatteryChanged: {
-        if (GlobalConfig.services.pauseWallpaperOnBattery !== pauseOnBattery)
-            GlobalConfig.services.pauseWallpaperOnBattery = pauseOnBattery;
+    Component.onCompleted: {
+        root._loaded = true;
         recalculate();
     }
-
-    onPauseOnWindowOverlapChanged: {
-        if (GlobalConfig.services.pauseWallpaperOnWindowOverlap !== pauseOnWindowOverlap)
-            GlobalConfig.services.pauseWallpaperOnWindowOverlap = pauseOnWindowOverlap;
-        recalculate();
-    }
-
     onHwDecoderChanged: {
         if (GlobalConfig.services.wallpaperHwDecoder !== hwDecoder)
             GlobalConfig.services.wallpaperHwDecoder = hwDecoder;
@@ -138,25 +80,80 @@ Singleton {
             saveHwDecoderProcess.running = true;
         }
     }
-
-    Component.onCompleted: {
-        root._loaded = true;
+    onPauseOnBatteryChanged: {
+        if (GlobalConfig.services.pauseWallpaperOnBattery !== pauseOnBattery)
+            GlobalConfig.services.pauseWallpaperOnBattery = pauseOnBattery;
+        recalculate();
+    }
+    onPauseOnWindowOverlapChanged: {
+        if (GlobalConfig.services.pauseWallpaperOnWindowOverlap !== pauseOnWindowOverlap)
+            GlobalConfig.services.pauseWallpaperOnWindowOverlap = pauseOnWindowOverlap;
         recalculate();
     }
 
+    Process {
+        id: saveHwDecoderProcess
+    }
     Connections {
-        target: GlobalConfig.services
+        function onFocusedMonitorChanged() {
+            root.recalculate();
+        }
+        function onFocusedWorkspaceChanged() {
+            root.recalculate();
+        }
+        function onRawEvent(event) {
+            const n = event.name;
+            if (n.startsWith("workspace") || n.startsWith("activewindow") || n.startsWith("createworkspace") || n.startsWith("destroyworkspace") || ["fullscreen", "changefloatingmode", "minimize", "movewindow", "openwindow", "closewindow", "moveworkspace", "focusedmon"].includes(n)) {
+                recalcTimer.restart();
+            }
+        }
 
+        target: Hyprland
+    }
+    Connections {
+        function onOnBatteryChanged() {
+            recalcTimer.restart();
+        }
+
+        target: UPower
+    }
+    Timer {
+        id: recalcTimer
+
+        interval: 50
+
+        onTriggered: root.recalculate()
+    }
+
+    // Startup timer to ensure we catch the asynchronously loaded Hyprland and Quickshell state
+    Timer {
+        id: startupTimer
+
+        property int attempts: 0
+
+        interval: 1000
+        repeat: true
+        running: true
+
+        onTriggered: {
+            root.recalculate();
+            attempts++;
+            if (attempts >= 5) {
+                running = false;
+            }
+        }
+    }
+    Connections {
         function onPauseWallpaperOnBatteryChanged(): void {
             root.pauseOnBattery = GlobalConfig.services.pauseWallpaperOnBattery;
         }
-
         function onPauseWallpaperOnWindowOverlapChanged(): void {
             root.pauseOnWindowOverlap = GlobalConfig.services.pauseWallpaperOnWindowOverlap;
         }
-
         function onWallpaperHwDecoderChanged(): void {
             root.hwDecoder = GlobalConfig.services.wallpaperHwDecoder;
         }
+
+        target: GlobalConfig.services
     }
 }

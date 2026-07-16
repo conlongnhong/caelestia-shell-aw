@@ -43,6 +43,16 @@ Singleton {
             }
         })
     readonly property list<string> gameModeKeys: ["animations:enabled", "decoration:shadow:enabled", "decoration:blur:enabled", "general:gaps_in", "general:gaps_out", "general:border_size", "decoration:rounding", "general:allow_tearing"]
+    readonly property var gameModeOverrides: ({
+            "animations:enabled": false,
+            "decoration:shadow:enabled": false,
+            "decoration:blur:enabled": false,
+            "general:gaps_in": 0,
+            "general:gaps_out": 0,
+            "general:border_size": 1,
+            "decoration:rounding": 0,
+            "general:allow_tearing": true
+        })
 
     readonly property var monitors: Hypr.monitors.values
     readonly property int monitorCount: monitors.length
@@ -74,6 +84,11 @@ Singleton {
     readonly property int rounding: _optionInt("decoration:rounding", 0)
 
     property var pendingOptions: ({})
+    property var inFlightOptions: ({})
+    property int applyAttempts
+
+    signal optionsApplied(options: var)
+    signal optionsApplyFailed(options: var, reason: string)
 
     function supportsOption(key: string): bool {
         return Object.keys(Hypr.options).includes(key);
@@ -176,13 +191,114 @@ Singleton {
         return true;
     }
 
+    function optionsMatch(options: var): bool {
+        if (!options || typeof options !== "object" || Array.isArray(options))
+            return false;
+
+        for (const [key, value] of Object.entries(options)) {
+            const expected = _normaliseOption(key, value, false);
+            if (expected === undefined || _currentOption(key) !== expected)
+                return false;
+        }
+        return true;
+    }
+
+    function optionsContainExpected(options: var, expected: var): bool {
+        if (!options || typeof options !== "object" || Array.isArray(options) || !expected || typeof expected !== "object" || Array.isArray(expected))
+            return false;
+
+        let compared = false;
+        for (const [key, value] of Object.entries(expected)) {
+            if (!supportsOption(key))
+                continue;
+
+            compared = true;
+            if (!(key in options) || _normaliseOption(key, options[key], false) !== _normaliseOption(key, value, false))
+                return false;
+        }
+        return compared;
+    }
+
+    function gameModeOverridesActive(): bool {
+        const supportedOverrides = {};
+        for (const key of gameModeKeys) {
+            if (supportsOption(key))
+                supportedOverrides[key] = gameModeOverrides[key];
+        }
+        return Object.keys(supportedOverrides).length > 0 && optionsMatch(supportedOverrides);
+    }
+
+    function _acknowledgeInFlight(): bool {
+        if (Object.keys(inFlightOptions).length === 0 || !optionsMatch(inFlightOptions))
+            return false;
+
+        const applied = Object.assign({}, inFlightOptions);
+        confirmationTimer.stop();
+        inFlightOptions = {};
+        applyAttempts = 0;
+        optionsApplied(applied);
+
+        if (Object.keys(pendingOptions).length > 0)
+            applyTimer.restart();
+        return true;
+    }
+
+    function _deferInFlight(): void {
+        if (Object.keys(inFlightOptions).length === 0)
+            return;
+
+        confirmationTimer.stop();
+        pendingOptions = Object.assign({}, inFlightOptions, pendingOptions);
+        inFlightOptions = {};
+        applyAttempts = 0;
+    }
+
+    function _failInFlight(reason: string): void {
+        if (Object.keys(inFlightOptions).length === 0)
+            return;
+
+        const failed = Object.assign({}, inFlightOptions);
+        const hasNewerPending = Object.keys(pendingOptions).length > 0;
+        confirmationTimer.stop();
+        // Values queued while this batch was in flight are newer and must win.
+        pendingOptions = Object.assign({}, failed, pendingOptions);
+        inFlightOptions = {};
+        applyAttempts = 0;
+        optionsApplyFailed(failed, reason);
+
+        if (hasNewerPending)
+            applyTimer.restart();
+    }
+
+    function _sendInFlight(): void {
+        if (!providerReady) {
+            _deferInFlight();
+            return;
+        }
+        if (Object.keys(inFlightOptions).length === 0 || _acknowledgeInFlight())
+            return;
+
+        applyAttempts++;
+        Hypr.extras.applyOptions(Object.assign({}, inFlightOptions));
+        confirmationTimer.restart();
+    }
+
     function flushOptions(): void {
-        if (!providerReady || Object.keys(pendingOptions).length === 0)
+        if (!providerReady || Object.keys(pendingOptions).length === 0 || Object.keys(inFlightOptions).length > 0)
             return;
 
         const options = Object.assign({}, pendingOptions);
         pendingOptions = {};
-        Hypr.extras.applyOptions(options);
+        if (optionsMatch(options)) {
+            optionsApplied(options);
+            if (Object.keys(pendingOptions).length > 0)
+                applyTimer.restart();
+            return;
+        }
+
+        inFlightOptions = options;
+        applyAttempts = 0;
+        _sendInFlight();
     }
 
     function setAnimationsEnabled(enabled: bool): void {
@@ -223,30 +339,23 @@ Singleton {
         return snapshot;
     }
 
-    function applyGameModeOverrides(): void {
-        const overrides = {
-            "animations:enabled": false,
-            "decoration:shadow:enabled": false,
-            "decoration:blur:enabled": false,
-            "general:gaps_in": 0,
-            "general:gaps_out": 0,
-            "general:border_size": 1,
-            "decoration:rounding": 0,
-            "general:allow_tearing": true
-        };
-
+    function applyGameModeOverrides(): bool {
+        let queued = false;
         for (const key of gameModeKeys)
-            _queueOption(key, overrides[key], true);
+            queued = _queueOption(key, gameModeOverrides[key], true) || queued;
+        return queued;
     }
 
-    function restoreGameModeOptions(snapshot: var): void {
+    function restoreGameModeOptions(snapshot: var): bool {
         if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot))
-            return;
+            return false;
 
+        let queued = false;
         for (const key of gameModeKeys) {
             if (key in snapshot)
-                _queueOption(key, snapshot[key], false);
+                queued = _queueOption(key, snapshot[key], false) || queued;
         }
+        return queued;
     }
 
     function refresh(): void {
@@ -263,8 +372,19 @@ Singleton {
     }
 
     onProviderReadyChanged: {
-        if (providerReady && Object.keys(pendingOptions).length > 0)
+        if (!providerReady) {
+            root._deferInFlight();
+        } else if (Object.keys(pendingOptions).length > 0) {
             applyTimer.restart();
+        }
+    }
+
+    Connections {
+        function onOptionsChanged(): void {
+            root._acknowledgeInFlight();
+        }
+
+        target: Hypr.extras
     }
 
     Timer {
@@ -272,5 +392,22 @@ Singleton {
 
         interval: 0
         onTriggered: root.flushOptions()
+    }
+
+    Timer {
+        id: confirmationTimer
+
+        interval: 1200
+        onTriggered: {
+            if (root._acknowledgeInFlight())
+                return;
+            if (!root.providerReady) {
+                root._deferInFlight();
+            } else if (root.applyAttempts < 3) {
+                root._sendInFlight();
+            } else {
+                root._failInFlight(qsTr("Hyprland không xác nhận thay đổi sau 3 lần thử"));
+            }
+        }
     }
 }

@@ -80,7 +80,7 @@ ColumnLayout {
         id: ethRepeater
 
         model: ScriptModel {
-            values: Nmcli.ethernetDevices.filter(d => d.state !== "unavailable")
+            values: [...Nmcli.ethernetDevices].filter(d => d.state !== "unavailable")
         }
 
         delegate: ConnectedRect {

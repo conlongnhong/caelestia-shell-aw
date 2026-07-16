@@ -17,7 +17,7 @@ Item {
     property alias imgHeight: imgWrapper.implicitHeight
     property bool fillLabel: true
     readonly property bool sourceIsVideo: Wallpapers.isVideo(source)
-    readonly property url previewSource: Wallpapers.getPreviewSource(source, Wallpapers.cacheBuster)
+    readonly property url previewSource: Wallpapers.getPreviewSource(source, Wallpapers.itemBusters[source] || Wallpapers.cacheBuster)
 
     signal clicked
 

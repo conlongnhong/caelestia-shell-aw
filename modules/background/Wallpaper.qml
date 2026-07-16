@@ -7,98 +7,36 @@ import qs.components
 import qs.components.filedialog
 import qs.components.images
 import qs.services
-import qs.utils
 
 Item {
     id: root
 
-    property string source: Wallpapers.current
-    property Image current: one
     property bool completed
+    property Image current: one
+    readonly property url gifSource: sourceIsGif ? toFileUrl(source) : ""
+    property string source: Wallpapers.current
+    readonly property bool sourceIsGif: Wallpapers.isGif(source)
     readonly property bool sourceIsVideo: Wallpapers.isVideo(source)
     readonly property url videoSource: sourceIsVideo ? toFileUrl(source) : ""
 
-    function fileExtension(path) {
-        const clean = String(path || "").split(/[?#]/)[0].toLowerCase();
-        const index = clean.lastIndexOf(".");
-        return index >= 0 ? clean.slice(index + 1) : "";
-    }
-
     function toFileUrl(path) {
-        const clean = String(path || "").trim();
+        const clean = Wallpapers.localPath(path);
 
         if (!clean)
             return "";
-        if (clean.indexOf("file://") === 0)
-            return clean;
-        if (clean[0] === "/")
-            return "file://" + clean;
+        if (clean[0] === "/") {
+            // Encode path segments so # and ? remain filename characters.
+            return "file://" + clean.split("/").map(segment => encodeURIComponent(segment)).join("/");
+        }
 
         return Qt.resolvedUrl(clean);
     }
-
     function updateVideoPreview(): void {
         if (!sourceIsVideo)
             return;
 
         const preview = current === one ? two : one;
         preview.update();
-    }
-
-    Timer {
-        id: videoUpdateTimer
-        interval: 50
-        repeat: false
-        onTriggered: {
-            if (videoLoader.item && root.sourceIsVideo) {
-                videoLoader.item.videoSource = root.videoSource;
-                videoLoader.item.autoStart = !WallpaperPauser.paused;
-            }
-        }
-    }
-
-    Connections {
-        target: WallpaperPauser
-        ignoreUnknownSignals: true
-        function onPausedChanged() {
-            if (videoLoader.item && root.sourceIsVideo) {
-                videoLoader.item.autoStart = !WallpaperPauser.paused;
-                if (WallpaperPauser.paused) {
-                    videoLoader.item.pause();
-                } else {
-                    videoLoader.item.play();
-                }
-            }
-        }
-    }
-
-    Connections {
-        target: Wallpapers
-
-        function onCacheBusterChanged() {
-            root.updateVideoPreview();
-        }
-
-        function onItemBustersChanged() {
-            root.updateVideoPreview();
-        }
-    }
-
-    onSourceChanged: {
-        if (sourceIsVideo) {
-            current = null;
-            videoUpdateTimer.restart();
-            if (current === one)
-                two.update();
-            else
-                one.update();
-        } else if (!source) {
-            current = null;
-        } else if (current === one) {
-            two.update();
-        } else {
-            one.update();
-        }
     }
 
     Component.onCompleted: {
@@ -112,12 +50,66 @@ Item {
             });
         }
     }
+    onSourceChanged: {
+        if (sourceIsVideo) {
+            const previous = current;
+            current = null;
+            videoUpdateTimer.restart();
+            if (previous === one)
+                two.update();
+            else
+                one.update();
+        } else if (!source) {
+            current = null;
+        } else if (current === one) {
+            two.update();
+        } else {
+            one.update();
+        }
+    }
 
+    Timer {
+        id: videoUpdateTimer
+
+        interval: 50
+        repeat: false
+
+        onTriggered: {
+            if (videoLoader.video && root.sourceIsVideo) {
+                videoLoader.video.videoSource = root.videoSource;
+                videoLoader.video.autoStart = !WallpaperPauser.paused;
+            }
+        }
+    }
+    Connections {
+        function onPausedChanged() {
+            if (videoLoader.video && root.sourceIsVideo) {
+                videoLoader.video.autoStart = !WallpaperPauser.paused;
+                if (WallpaperPauser.paused) {
+                    videoLoader.video.pause();
+                } else {
+                    videoLoader.video.play();
+                }
+            }
+        }
+
+        ignoreUnknownSignals: true
+        target: WallpaperPauser
+    }
+    Connections {
+        function onCacheBusterChanged() {
+            root.updateVideoPreview();
+        }
+        function onItemBustersChanged() {
+            root.updateVideoPreview();
+        }
+
+        target: Wallpapers
+    }
     Loader {
-        asynchronous: true
-        anchors.fill: parent
-
         active: root.completed && !root.source
+        anchors.fill: parent
+        asynchronous: true
 
         sourceComponent: StyledRect {
             color: Colours.palette.m3surfaceContainer
@@ -127,79 +119,88 @@ Item {
                 spacing: Tokens.spacing.largeIncreased
 
                 MaterialIcon {
-                    text: "sentiment_stressed"
                     color: Colours.palette.m3onSurfaceVariant
                     fontStyle: Tokens.font.icon.builders.extraLarge.scale(5).build()
+                    text: "sentiment_stressed"
                 }
-
                 Column {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Tokens.spacing.small
 
                     StyledText {
-                        text: qsTr("Thiếu hình nền?")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.builders.large.size(28 * 2).weight(Font.Bold).build()
+                        text: qsTr("Thiếu hình nền?")
                     }
-
                     StyledRect {
-                        implicitWidth: selectWallText.implicitWidth + Tokens.padding.extraLargeIncreased
-                        implicitHeight: selectWallText.implicitHeight + Tokens.padding.small
-
-                        radius: Tokens.rounding.full
                         color: Colours.palette.m3primary
+                        implicitHeight: selectWallText.implicitHeight + Tokens.padding.small
+                        implicitWidth: selectWallText.implicitWidth + Tokens.padding.extraLargeIncreased
+                        radius: Tokens.rounding.full
 
                         FileDialog {
                             id: dialog
 
+                            filterLabel: qsTr("Tệp hình ảnh và video")
+                            filters: Wallpapers.validWallpaperExtensions
                             targetScreen: (root.QsWindow.window as QsWindow)?.screen
                             title: qsTr("Chọn hình nền")
-                            filterLabel: qsTr("Tệp hình nền")
-                            filters: Images.validImageExtensions.concat(Wallpapers.validVideoExtensions)
+
                             onAccepted: path => Wallpapers.setWallpaper(path)
                         }
-
                         StateLayer {
-                            radius: parent.radius
                             color: Colours.palette.m3onPrimary
+                            radius: parent.radius
+
                             onClicked: dialog.open()
                         }
-
                         StyledText {
                             id: selectWallText
 
                             anchors.centerIn: parent
-
-                            text: qsTr("Đặt ngay!")
                             color: Colours.palette.m3onPrimary
                             font: Tokens.font.body.large
+                            text: qsTr("Đặt ngay!")
                         }
                     }
                 }
             }
         }
     }
-
     Img {
         id: one
     }
-
     Img {
         id: two
     }
-
     Loader {
         id: videoLoader
 
-        anchors.fill: parent
+        readonly property VideoWallpaper video: item as VideoWallpaper
 
         active: root.sourceIsVideo
+        anchors.fill: parent
         source: "VideoWallpaper.qml"
 
         onLoaded: {
-            item.autoStart = !WallpaperPauser.paused;
-            item.videoSource = root.videoSource;
+            if (!video)
+                return;
+
+            video.autoStart = !WallpaperPauser.paused;
+            video.videoSource = root.videoSource;
         }
+    }
+    AnimatedImage {
+        id: gifWallpaper
+
+        anchors.fill: parent
+        asynchronous: true
+        cache: false
+        fillMode: Image.PreserveAspectCrop
+        paused: WallpaperPauser.paused
+        playing: root.sourceIsGif
+        source: root.gifSource
+        visible: root.sourceIsGif && status === Image.Ready
     }
 
     component Img: CachingImage {
@@ -208,7 +209,7 @@ Item {
         function update(): void {
             const thumbnailBuster = Wallpapers.itemBusters[root.source] || Wallpapers.cacheBuster;
             const newPath = root.sourceIsVideo ? Wallpapers.getWallpaperThumb(root.source, thumbnailBuster) : root.source;
-            
+
             if (!root.sourceIsVideo && path === root.source) {
                 root.current = this;
                 return;
@@ -224,15 +225,9 @@ Item {
         }
 
         anchors.fill: parent
-
-        visible: !root.sourceIsVideo || !videoLoader.item || !videoLoader.item.hasRenderedFrame
         opacity: 0
         scale: Wallpapers.showPreview ? 1 : 0.8
-
-        onStatusChanged: {
-            if (status === Image.Ready)
-                root.current = this;
-        }
+        visible: !root.sourceIsVideo || !videoLoader.video || !videoLoader.video.hasRenderedFrame
 
         states: State {
             name: "visible"
@@ -243,12 +238,16 @@ Item {
                 img.scale: 1
             }
         }
-
         transitions: Transition {
             Anim {
-                target: img
                 properties: "opacity,scale"
+                target: img
             }
+        }
+
+        onStatusChanged: {
+            if (status === Image.Ready)
+                root.current = this;
         }
     }
 }
