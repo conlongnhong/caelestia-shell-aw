@@ -7,17 +7,29 @@ import qs.components
 import qs.components.filedialog
 import qs.components.images
 import qs.services
+import qs.utils
 
 Item {
     id: root
 
     property bool completed
     property Image current: one
+    readonly property bool centered: Config.background.centeredWallpaper && (!Config.background.centeredWallpaperOnlyWhenLocked || ShellState.locked)
+    readonly property real centeredExtent: Math.min(Config.background.centeredWallpaperSize, width, height)
+    readonly property real wallpaperWidth: centered ? centeredExtent : width
+    readonly property real wallpaperHeight: centered ? centeredExtent : height
     readonly property url gifSource: sourceIsGif ? toFileUrl(source) : ""
-    property string source: Wallpapers.current
+    readonly property string configuredSource: Config.background.wallpaperPath.trim() ? Paths.absolutePath(Config.background.wallpaperPath.trim()) : ""
+    property string source: configuredSource || Wallpapers.current
     readonly property bool sourceIsGif: Wallpapers.isGif(source)
     readonly property bool sourceIsVideo: Wallpapers.isVideo(source)
     readonly property url videoSource: sourceIsVideo ? toFileUrl(source) : ""
+
+    function centeredColour(): color {
+        const configured = Config.background.centeredWallpaperColor;
+        const paletteName = configured.startsWith("m3") ? configured : "m3" + configured.slice(0, 1).toUpperCase() + configured.slice(1);
+        return Colours.palette[paletteName] ?? Colours.palette.m3surface;
+    }
 
     function toFileUrl(path) {
         const clean = Wallpapers.localPath(path);
@@ -106,6 +118,13 @@ Item {
 
         target: Wallpapers
     }
+
+    Rectangle {
+        anchors.fill: parent
+        visible: root.centered
+        color: root.centeredColour()
+    }
+
     Loader {
         active: root.completed && !root.source
         anchors.fill: parent
@@ -179,7 +198,9 @@ Item {
         readonly property VideoWallpaper video: item as VideoWallpaper
 
         active: root.sourceIsVideo
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: root.wallpaperWidth
+        height: root.wallpaperHeight
         source: "VideoWallpaper.qml"
 
         onLoaded: {
@@ -193,7 +214,9 @@ Item {
     AnimatedImage {
         id: gifWallpaper
 
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: root.wallpaperWidth
+        height: root.wallpaperHeight
         asynchronous: true
         cache: false
         fillMode: Image.PreserveAspectCrop
@@ -208,7 +231,8 @@ Item {
 
         function update(): void {
             const thumbnailBuster = Wallpapers.itemBusters[root.source] || Wallpapers.cacheBuster;
-            const newPath = root.sourceIsVideo ? Wallpapers.getWallpaperThumb(root.source, thumbnailBuster) : root.source;
+            const configuredThumbnail = Config.background.thumbnailPath.trim() ? Paths.absolutePath(Config.background.thumbnailPath.trim()) : "";
+            const newPath = root.sourceIsVideo ? (configuredThumbnail || Wallpapers.getWallpaperThumb(root.source, thumbnailBuster)) : root.source;
 
             if (!root.sourceIsVideo && path === root.source) {
                 root.current = this;
@@ -224,7 +248,9 @@ Item {
             source = newPath;
         }
 
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: root.wallpaperWidth
+        height: root.wallpaperHeight
         opacity: 0
         scale: Wallpapers.showPreview ? 1 : 0.8
         visible: !root.sourceIsVideo || !videoLoader.video || !videoLoader.video.hasRenderedFrame

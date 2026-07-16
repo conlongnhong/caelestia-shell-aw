@@ -22,7 +22,15 @@ class NotifsConfig : public ConfigObject {
 
 public:
     explicit NotifsConfig(QObject* parent = nullptr)
-        : ConfigObject(parent) {}
+        : ConfigObject(parent) {
+        addEnumConstraint(
+            QStringLiteral("fullscreen"), { QStringLiteral("off"), QStringLiteral("on") });
+        addRangeConstraint(QStringLiteral("defaultExpireTimeout"), 0, 600000);
+        addRangeConstraint(QStringLiteral("fullscreenExpireTimeout"), 0, 600000);
+        addRangeConstraint(QStringLiteral("clearThreshold"), 0, 1);
+        addRangeConstraint(QStringLiteral("expandThreshold"), 0, 1000);
+        addRangeConstraint(QStringLiteral("groupPreviewNum"), 1, 100);
+    }
 };
 
 } // namespace caelestia::config

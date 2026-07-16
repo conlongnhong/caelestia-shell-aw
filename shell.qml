@@ -19,11 +19,18 @@ ShellRoot {
     id: root
 
     settings.watchFiles: true
+    readonly property bool hyprlandSettingsReady: HyprlandSettings.ready
 
     Binding {
         target: ShellState
         property: "shellRoot"
         value: root
+    }
+
+    Binding {
+        target: ShellState
+        property: "locked"
+        value: lock.lock.locked
     }
 
     GSFLoader {}
@@ -37,6 +44,7 @@ ShellRoot {
     }
 
     ConfigToasts {}
+    AppearanceSettings {}
     Shortcuts {}
     BatteryMonitor {}
     IdleMonitors {

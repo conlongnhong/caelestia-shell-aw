@@ -48,10 +48,24 @@ QtObject {
 
         // System
         {
+            id: "updates",
+            label: qsTr("Cập nhật"),
+            icon: "update",
+            description: qsTr("Cập nhật hệ thống"),
+            category: "system"
+        },
+        {
             id: "hyprland",
             label: "Hyprland",
             icon: "tune",
             description: qsTr("Màn hình, không gian làm việc, hiệu ứng thời gian chạy"),
+            category: "system"
+        },
+        {
+            id: "behaviour",
+            label: qsTr("Hành vi shell"),
+            icon: "settings_suggest",
+            description: qsTr("Pin, khóa màn hình, OSD và hành vi toàn màn hình"),
             category: "system"
         },
         {

@@ -25,10 +25,14 @@ RowLayout {
             rootHeight: root.height
         }
 
-        Media {
+        Loader {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            lock: root.lock
+            active: Config.lock.showMedia
+
+            sourceComponent: Media {
+                lock: root.lock
+            }
         }
     }
 

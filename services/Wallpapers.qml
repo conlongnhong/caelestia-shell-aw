@@ -143,6 +143,14 @@ Searcher {
             Colours.showPreview = false;
     }
 
+    Timer {
+        interval: Math.max(60000, GlobalConfig.nexus.wallpaperChangeInterval * 60000)
+        repeat: true
+        running: GlobalConfig.nexus.wallpaperChangeInterval > 0 && root.allWallpapers.length > 1
+        triggeredOnStart: false
+        onTriggered: root.setRandom()
+    }
+
     IpcHandler {
         function get(): string {
             return root.actualCurrent;

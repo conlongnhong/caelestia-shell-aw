@@ -13,6 +13,9 @@ Singleton {
 
     property string previousSinkName: ""
     property string previousSourceName: ""
+    property real lastSafeOutputVolume: NaN
+    property real expectedOutputVolume: NaN
+    readonly property real outputVolumeEpsilon: 0.0005
 
     property list<PwNode> sinks: []
     property list<PwNode> sources: []
@@ -30,11 +33,81 @@ Singleton {
     readonly property alias cava: cava
     readonly property alias beatTracker: beatTracker
 
-    function setVolume(newVolume: real): void {
-        if (sink?.ready && sink?.audio) {
-            sink.audio.muted = false;
-            sink.audio.volume = Math.max(0, Math.min(GlobalConfig.services.maxVolume, newVolume));
+    function outputVolumesClose(a: real, b: real): bool {
+        return Math.abs(a - b) <= outputVolumeEpsilon;
+    }
+
+    function resetOutputProtection(): void {
+        expectedOutputVolume = NaN;
+        lastSafeOutputVolume = sink?.ready && sink?.audio ? volume : NaN;
+    }
+
+    function writeOutputVolume(newVolume: real, allowJump: bool): void {
+        if (!sink?.ready || !sink?.audio)
+            return;
+
+        const target = Math.max(0, Math.min(GlobalConfig.services.maxVolume, newVolume));
+        sink.audio.muted = false;
+        if (outputVolumesClose(volume, target)) {
+            lastSafeOutputVolume = target;
+            expectedOutputVolume = NaN;
+            return;
         }
+
+        expectedOutputVolume = allowJump && GlobalConfig.services.audioProtection.enabled ? target : NaN;
+        sink.audio.volume = target;
+    }
+
+    function enforceOutputVolume(target: real, title: string, message: string): void {
+        if (!sink?.ready || !sink?.audio)
+            return;
+
+        const safeTarget = Math.max(0, Math.min(GlobalConfig.services.maxVolume, target));
+        expectedOutputVolume = safeTarget;
+        sink.audio.volume = safeTarget;
+        Toaster.toast(title, message, "hearing");
+    }
+
+    function handleOutputVolumeChanged(): void {
+        const newVolume = volume;
+        if (isNaN(newVolume) || !isFinite(newVolume)) {
+            resetOutputProtection();
+            return;
+        }
+
+        if (!GlobalConfig.services.audioProtection.enabled) {
+            lastSafeOutputVolume = newVolume;
+            expectedOutputVolume = NaN;
+            return;
+        }
+
+        if (!isNaN(expectedOutputVolume)) {
+            if (outputVolumesClose(newVolume, expectedOutputVolume)) {
+                lastSafeOutputVolume = newVolume;
+                expectedOutputVolume = NaN;
+                return;
+            }
+            expectedOutputVolume = NaN;
+        }
+
+        if (isNaN(lastSafeOutputVolume) || !isFinite(lastSafeOutputVolume)) {
+            lastSafeOutputVolume = newVolume;
+            return;
+        }
+
+        const maxVolume = Math.max(0, GlobalConfig.services.maxVolume);
+        const maxIncrease = Math.max(0, GlobalConfig.services.audioProtection.maxIncrease);
+        if (newVolume > maxVolume + outputVolumeEpsilon) {
+            enforceOutputVolume(Math.min(lastSafeOutputVolume, maxVolume), qsTr("Đã giới hạn âm lượng"), qsTr("Âm lượng đầu ra vượt quá giới hạn đã cấu hình"));
+        } else if (newVolume - lastSafeOutputVolume > maxIncrease + outputVolumeEpsilon) {
+            enforceOutputVolume(lastSafeOutputVolume, qsTr("Đã chặn tăng âm lượng"), qsTr("Phát hiện mức tăng âm lượng đột ngột từ ứng dụng bên ngoài"));
+        } else {
+            lastSafeOutputVolume = newVolume;
+        }
+    }
+
+    function setVolume(newVolume: real): void {
+        writeOutputVolume(newVolume, true);
     }
 
     function incrementVolume(amount: real): void {
@@ -127,6 +200,8 @@ Singleton {
     }
 
     onSinkChanged: {
+        resetOutputProtection();
+
         if (!sink?.ready)
             return;
 
@@ -156,6 +231,40 @@ Singleton {
         refreshNodes();
         previousSinkName = sink?.description || sink?.name || qsTr("Thiết bị không rõ");
         previousSourceName = source?.description || source?.name || qsTr("Thiết bị không rõ");
+        resetOutputProtection();
+    }
+
+    Connections {
+        function onVolumeChanged(): void {
+            root.handleOutputVolumeChanged();
+        }
+
+        target: root.sink?.audio ?? null
+    }
+
+    Connections {
+        function onEnabledChanged(): void {
+            root.resetOutputProtection();
+            if (GlobalConfig.services.audioProtection.enabled && root.volume > GlobalConfig.services.maxVolume)
+                root.enforceOutputVolume(GlobalConfig.services.maxVolume, qsTr("Đã giới hạn âm lượng"), qsTr("Âm lượng đầu ra vượt quá giới hạn đã cấu hình"));
+        }
+
+        function onMaxIncreaseChanged(): void {
+            root.resetOutputProtection();
+        }
+
+        target: GlobalConfig.services.audioProtection
+    }
+
+    Connections {
+        function onMaxVolumeChanged(): void {
+            if (GlobalConfig.services.audioProtection.enabled && root.volume > GlobalConfig.services.maxVolume)
+                root.enforceOutputVolume(GlobalConfig.services.maxVolume, qsTr("Đã giới hạn âm lượng"), qsTr("Âm lượng đầu ra vượt quá giới hạn đã cấu hình"));
+            else
+                root.resetOutputProtection();
+        }
+
+        target: GlobalConfig.services
     }
 
     Connections {

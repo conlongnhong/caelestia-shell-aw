@@ -11,12 +11,26 @@ import qs.components.misc
 Singleton {
     id: root
 
-    readonly property list<MprisPlayer> list: Mpris.players.values
-    readonly property MprisPlayer active: props.manualActive ?? list.find(p => getIdentity(p) === GlobalConfig.services.defaultPlayer) ?? list[0] ?? null
+    readonly property list<MprisPlayer> rawList: Mpris.players.values
+    readonly property bool hasActivePlasmaIntegration: rawList.some(player => (player.dbusName ?? "").startsWith("org.mpris.MediaPlayer2.plasma-browser-integration"))
+    readonly property list<MprisPlayer> list: GlobalConfig.services.filterDuplicatePlayers ? rawList.filter(player => isRealPlayer(player)) : rawList
+    readonly property string preferredIdentity: GlobalConfig.bar.media.preferredPlayer.trim() || GlobalConfig.services.defaultPlayer
+    readonly property MprisPlayer active: props.manualActive ?? list.find(p => getIdentity(p).toLowerCase() === preferredIdentity.toLowerCase()) ?? list[0] ?? null
     property alias manualActive: props.manualActive
 
     // Dedup key for progressive metadata (e.g. mpv-mpris/yt-dlp player fills title then artist later).
     property string lastNowPlayingKey: ""
+
+    function isRealPlayer(player: MprisPlayer): bool {
+        const dbusName = player?.dbusName ?? "";
+        if (hasActivePlasmaIntegration && (dbusName.startsWith("org.mpris.MediaPlayer2.firefox") || dbusName.startsWith("org.mpris.MediaPlayer2.chromium")))
+            return false;
+        if (dbusName.startsWith("org.mpris.MediaPlayer2.playerctld"))
+            return false;
+        if (dbusName.endsWith(".mpd") && !dbusName.endsWith("MediaPlayer2.mpd"))
+            return false;
+        return true;
+    }
 
     function getIdentity(player: MprisPlayer): string {
         if (!player)

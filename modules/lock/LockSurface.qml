@@ -160,13 +160,14 @@ WlSessionLockSurface {
         anchors.fill: parent
         captureSource: root.screen
         opacity: 0
+        scale: Config.lock.blur.managed ? Config.lock.blur.extraZoom : 1
 
         layer.enabled: true
         layer.effect: MultiEffect {
             autoPaddingEnabled: false
-            blurEnabled: true
-            blur: 1
-            blurMax: 64
+            blurEnabled: !Config.lock.blur.managed || Config.lock.blur.enable
+            blur: Config.lock.blur.managed ? Config.lock.blur.radius / 100 : 1
+            blurMax: Config.lock.blur.managed ? Config.lock.blur.size : 64
             blurMultiplier: 1
         }
     }

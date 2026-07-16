@@ -9,12 +9,17 @@ import qs.components.containers
 import qs.services
 
 Variants {
-    model: Screens.screens.filter(s => GlobalConfig.forScreen(s.name).background.enabled)
+    model: Screens.screens.filter(s => {
+        const background = GlobalConfig.forScreen(s.name).background;
+        return background.enabled && (background.screenList.length === 0 || background.screenList.includes(s.name));
+    })
 
     StyledWindow {
         id: win
 
         required property ShellScreen modelData
+        readonly property bool hasFullscreenWindow: Hypr.monitorFor(win.modelData)?.activeWorkspace?.toplevels?.values.some(toplevel => (toplevel.lastIpcObject?.fullscreen ?? 0) !== 0) ?? false
+        readonly property bool hideDesktopWidgets: Config.background.hideWhenFullscreen && hasFullscreenWindow
 
         screen: modelData
         name: "background"
@@ -95,13 +100,14 @@ Variants {
 
             anchors.fill: parent
             screen: win.modelData
+            visible: !win.hideDesktopWidgets
         }
 
         Loader {
             id: clockLoader
 
             asynchronous: true
-            active: Config.background.desktopClock.enabled
+            active: Config.background.desktopClock.enabled && (!Config.background.desktopClock.showOnlyWhenLocked || ShellState.locked) && !win.hideDesktopWidgets
 
             anchors.margins: Tokens.padding.extraLargeIncreased
             anchors.leftMargin: Tokens.padding.extraLargeIncreased + Tokens.sizes.bar.innerWidth + Math.max(Tokens.padding.small, Config.border.thickness)

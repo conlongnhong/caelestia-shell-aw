@@ -36,6 +36,8 @@ signals:
 
 protected:
     void setDefaults(ConfigObject* defaults);
+    [[nodiscard]] virtual int currentConfigVersion() const;
+    [[nodiscard]] virtual QString migrateConfig(QJsonObject& json, int fromVersion) const;
 
 private:
     static QStringList collectUnknownKeys(const ConfigObject* obj, const QJsonObject& json);

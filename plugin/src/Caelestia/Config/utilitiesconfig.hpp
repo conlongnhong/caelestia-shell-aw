@@ -52,6 +52,8 @@ class UtilitiesConfig : public ConfigObject {
     CONFIG_PROPERTY(int, maxToasts, 4)
     CONFIG_SUBOBJECT(UtilitiesToasts, toasts)
     CONFIG_SUBOBJECT(UtilitiesVpn, vpn)
+    CONFIG_PROPERTY(QString, quickToggleStyle, u"android"_s)
+    CONFIG_PROPERTY(int, quickToggleColumns, 5)
     CONFIG_PROPERTY(QVariantList, quickToggles,
         {
             vmap({ { u"id"_s, u"wifi"_s }, { u"enabled"_s, true } }),
@@ -67,7 +69,12 @@ public:
     explicit UtilitiesConfig(QObject* parent = nullptr)
         : ConfigObject(parent)
         , m_toasts(new UtilitiesToasts(this))
-        , m_vpn(new UtilitiesVpn(this)) {}
+        , m_vpn(new UtilitiesVpn(this)) {
+        addRangeConstraint(QStringLiteral("maxToasts"), 1, 50);
+        addEnumConstraint(
+            QStringLiteral("quickToggleStyle"), { QStringLiteral("classic"), QStringLiteral("android") });
+        addRangeConstraint(QStringLiteral("quickToggleColumns"), 1, 12);
+    }
 };
 
 } // namespace caelestia::config

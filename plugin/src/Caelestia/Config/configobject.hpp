@@ -1,12 +1,15 @@
 #pragma once
 
+#include <functional>
 #include <qjsonobject.h>
 #include <qloggingcategory.h>
 #include <qmap.h>
 #include <qmetaobject.h>
 #include <qobject.h>
+#include <qregularexpression.h>
 #include <qqmlintegration.h>
 #include <qset.h>
+#include <qstringlist.h>
 #include <qtimer.h>
 #include <qvariant.h>
 
@@ -30,6 +33,11 @@ public:                                                                         
         return m_##name;                                                                                               \
     }                                                                                                                  \
     void set_##name(const Type& val) {                                                                                 \
+        const auto validationError = validatePropertyValue(QStringLiteral(#name), QVariant::fromValue(val));           \
+        if (!validationError.isEmpty()) {                                                                              \
+            qCWarning(caelestia::config::lcConfig, "%s", qUtf8Printable(validationError));                            \
+            return;                                                                                                    \
+        }                                                                                                              \
         if (caelestia::config::ConfigObject::updateMember(m_##name, val)) {                                            \
             const bool inherited = isApplyingInheritedValue();                                                        \
             if (!inherited)                                                                                            \
@@ -68,6 +76,11 @@ public:                                                                         
         if (isOverlay() && !isApplyingInheritedValue()) {                                                             \
             qCWarning(caelestia::config::lcConfig, "Writing global-only option '%s' on per-monitor overlay",           \
                 qUtf8Printable(propertyPath(QStringLiteral(#name))));                                                  \
+            return;                                                                                                    \
+        }                                                                                                              \
+        const auto validationError = validatePropertyValue(QStringLiteral(#name), QVariant::fromValue(val));           \
+        if (!validationError.isEmpty()) {                                                                              \
+            qCWarning(caelestia::config::lcConfig, "%s", qUtf8Printable(validationError));                            \
             return;                                                                                                    \
         }                                                                                                              \
         if (caelestia::config::ConfigObject::updateMember(m_##name, val)) {                                            \
@@ -141,9 +154,16 @@ signals:
     void propertiesChanged(const QMap<QString, QVariant>& changed);
 
 protected:
+    using ValueValidator = std::function<QString(const QVariant&)>;
+
     void markPropertyLoaded(const QString& name);
     void markGlobalOnly(const QString& name);
     void notifyPropertyChanged(const QString& name, const QVariant& value);
+    void addValidator(const QString& name, ValueValidator validator);
+    void addRangeConstraint(const QString& name, qreal minimum, qreal maximum);
+    void addEnumConstraint(const QString& name, const QStringList& values);
+    void addRegexConstraint(const QString& name, const QRegularExpression& expression, const QString& description);
+    [[nodiscard]] QString validatePropertyValue(const QString& name, const QVariant& value) const;
 
 private:
     bool writeInheritedProperty(const QMetaProperty& property, const QVariant& value);
@@ -156,6 +176,7 @@ private:
     bool m_applyingInheritedValue = false;
     QSet<QString> m_loadedKeys;
     QSet<QString> m_globalOnlyKeys;
+    QMap<QString, ValueValidator> m_validators;
     QMap<QString, QVariant> m_pendingChanges;
     QTimer* m_batchTimer = nullptr;
 };

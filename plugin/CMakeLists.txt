@@ -16,3 +16,8 @@ include(cmake/pch.cmake)
 include(cmake/qml-module.cmake)
 
 add_subdirectory(src/Caelestia)
+
+if(BUILD_TESTING)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_subdirectory(tests)
+endif()

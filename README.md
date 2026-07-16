@@ -477,7 +477,18 @@ Ví dụ cấu hình gọn:
     "showWeather": true,
     "showPerformance": true
   },
+  "general": {
+    "battery": {
+      "autoHibernate": true,
+      "criticalLevel": 3,
+      "hibernateDelay": 5
+    }
+  },
   "services": {
+    "audioProtection": {
+      "enabled": false,
+      "maxIncrease": 0.1
+    },
     "weatherLocation": "Ha Noi",
     "useFahrenheit": false,
     "useTwelveHourClock": false
@@ -505,6 +516,13 @@ Các nhóm cấu hình thường dùng:
 | `utilities` | Toast, VPN và quick toggles |
 | `paths` | Thư mục hình nền, lời bài hát và tài nguyên tùy chỉnh |
 
+Các tùy chọn đáng chú ý:
+
+- `services.audioProtection.enabled` chặn mức tăng âm lượng đầu ra bất thường từ ứng dụng bên ngoài. `maxIncrease` dùng tỷ lệ từ `0.0` đến `1.0`; giới hạn tuyệt đối vẫn là `services.maxVolume`.
+- `general.battery.autoHibernate` cho phép tắt hành vi ngủ đông tự động. `criticalLevel` là phần trăm pin và `hibernateDelay` là số giây đếm ngược.
+- `bar.entries` điều khiển thứ tự và trạng thái bật/tắt của các thành phần bar. Nexus giữ nguyên cả entry không nhận diện được khi sắp xếp.
+- `utilities.quickToggles` điều khiển thứ tự và trạng thái các nút bật/tắt nhanh.
+
 ### Cấu hình theo màn hình
 
 Tạo tệp theo tên màn hình:
@@ -529,7 +547,7 @@ Giá trị trong tệp theo màn hình sẽ ghi đè cấu hình toàn cục khi
 <summary>Các nhóm chỉ đọc từ cấu hình toàn cục</summary>
 
 - `appearance`: animation và transparency.
-- `general`: logo, ứng dụng mặc định, idle và cảnh báo pin.
+- `general`: logo, ứng dụng mặc định, idle và pin.
 - `bar.workspaces`: `perMonitorWorkspaces`, `specialWorkspaceIcons`, `windowIcons`; `bar.tray`: `iconSubs`, `hiddenIcons`.
 - `dashboard`: chu kỳ cập nhật media và tài nguyên.
 - `launcher`: prefix, fuzzy search, danh sách ứng dụng và action.
@@ -556,6 +574,15 @@ Trong trang **Wallpaper & style**, bạn có thể chọn hình nền, phông ch
 
 - Tạm dừng hình nền động khi dùng pin.
 - Tạm dừng hình nền động khi bị cửa sổ che.
+
+Các trang cấu hình mở rộng trong Nexus:
+
+- **Wallpaper & style → Tinh chỉnh giao diện:** tỷ lệ bo góc, khoảng cách, phần đệm, phông chữ, animation, độ trong suốt và viền shell.
+- **Wallpaper & style → Desktop & hiệu ứng nền:** desktop clock, visualiser, thư mục hình nền và số ảnh mỗi hàng.
+- **Panels → Taskbar → Bố cục:** bật/tắt, sắp xếp entry và loại trừ bar theo màn hình.
+- **Panels → Sidebar → Bật/tắt nhanh:** bật/tắt và sắp xếp quick toggles.
+- **Hành vi shell:** pin, màn hình khóa, OSD và hành vi toàn màn hình.
+- **Services:** bảo vệ tăng âm lượng đột ngột.
 
 ### Ảnh đại diện và hình nền
 

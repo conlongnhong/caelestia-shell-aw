@@ -140,6 +140,13 @@ Scope {
             WindowFactory.create(ShellState.forActive()?.modelData);
         }
 
+        function openPage(pageId: string, subPage: int): void {
+            WindowFactory.create(ShellState.forActive()?.modelData, null, {
+                initialPageId: pageId,
+                initialSubPage: subPage
+            });
+        }
+
         target: "nexus"
     }
 

@@ -36,11 +36,39 @@ PageBase {
         }
 
         ToggleRow {
-            last: true
             text: qsTr("Hiện bảng bật ra khi rê chuột")
             subtext: qsTr("Hiện bảng khay hệ thống khi rê chuột")
             checked: Config.bar.popouts.tray
             onToggled: GlobalConfig.bar.popouts.tray = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Hiện ID mục")
+            subtext: qsTr("Hiện định danh của biểu tượng khi rê chuột")
+            checked: Config.bar.tray.showItemId
+            onToggled: GlobalConfig.bar.tray.showItemId = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Đảo danh sách ghim")
+            subtext: qsTr("Lưu quy tắc whitelist/blacklist tương thích end4")
+            checked: Config.bar.tray.invertPinnedItems
+            onToggled: GlobalConfig.bar.tray.invertPinnedItems = checked
+        }
+
+        TextFieldRow {
+            label: qsTr("Mục ghim")
+            subtext: qsTr("ID cách nhau bằng dấu phẩy")
+            value: Config.bar.tray.pinnedItems.join(", ")
+            placeholder: "Fcitx"
+            onCommitted: value => GlobalConfig.bar.tray.pinnedItems = value.split(",").map(item => item.trim()).filter(item => item)
+        }
+
+        ToggleRow {
+            last: true
+            text: qsTr("Lọc mục thụ động")
+            checked: Config.bar.tray.filterPassive
+            onToggled: GlobalConfig.bar.tray.filterPassive = checked
         }
     }
 }

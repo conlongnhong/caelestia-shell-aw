@@ -164,6 +164,22 @@ ColumnLayout {
                 }
             }
             DelegateChoice {
+                roleValue: "resources"
+                delegate: EntryWrapper {
+                    ResourceUsage {
+                        objectName: "taskbarResources"
+                    }
+                }
+            }
+            DelegateChoice {
+                roleValue: "weather"
+                delegate: EntryWrapper {
+                    WeatherEntry {
+                        objectName: "taskbarWeather"
+                    }
+                }
+            }
+            DelegateChoice {
                 roleValue: "statusIcons"
                 delegate: EntryWrapper {
                     StatusIcons {

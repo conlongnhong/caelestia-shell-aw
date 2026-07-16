@@ -22,12 +22,14 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
         Layout.topMargin: Tokens.padding.large
         centerScale: root.centerScale
+        visible: Config.lock.centerClock
     }
 
     StyledText {
         Layout.alignment: Qt.AlignHCenter
 
         text: Time.format("dddd • d MMM").toUpperCase()
+        visible: Config.lock.centerClock
         color: Colours.palette.m3onSurface
         font: Tokens.font.title.builders.medium.weight(Font.DemiBold).build()
     }

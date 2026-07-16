@@ -31,7 +31,8 @@ Singleton {
     }
 
     function reload(): void {
-        const configLocation = GlobalConfig.services.weatherLocation;
+        const barWeather = GlobalConfig.bar.weather;
+        const configLocation = barWeather.enable ? (barWeather.enableGPS ? "" : barWeather.city) : GlobalConfig.services.weatherLocation;
 
         if (configLocation) {
             if (configLocation.indexOf(",") !== -1 && !isNaN(parseFloat(configLocation.split(",")[0]))) {
@@ -269,8 +270,24 @@ Singleton {
         target: GlobalConfig.services
     }
 
+    Connections {
+        function onEnableChanged(): void {
+            root.reload();
+        }
+
+        function onEnableGPSChanged(): void {
+            root.reload();
+        }
+
+        function onCityChanged(): void {
+            root.reload();
+        }
+
+        target: GlobalConfig.bar.weather
+    }
+
     Timer {
-        interval: 3600000 // 1 hour
+        interval: GlobalConfig.bar.weather.enable ? GlobalConfig.bar.weather.fetchInterval * 60000 : 3600000
         running: true
         repeat: true
         onTriggered: fetchWeatherData()

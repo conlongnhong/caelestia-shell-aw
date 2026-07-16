@@ -15,6 +15,7 @@ Singleton {
     property bool showPreview
     property string scheme
     property string flavour
+    property string variant
     readonly property bool light: showPreview ? previewLight : currentLight
     property bool currentLight
     property bool previewLight
@@ -28,6 +29,21 @@ Singleton {
     property bool cooldownPending
     property real lastBaseTransparency
 
+    signal schemeLoaded
+
+    function clamp(value: real, minimum: real = 0, maximum: real = 1): real {
+        return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    function mix(first: color, second: color, amount: real): color {
+        const factor = clamp(amount);
+        return Qt.rgba(first.r + (second.r - first.r) * factor, first.g + (second.g - first.g) * factor, first.b + (second.b - first.b) * factor, first.a + (second.a - first.a) * factor);
+    }
+
+    function baseSurface(colour: color): color {
+        return GlobalConfig.appearance.extraBackgroundTint ? mix(colour, palette.m3primary, 0.01) : colour;
+    }
+
     function getLuminance(c: color): real {
         if (c.r == 0 && c.g == 0 && c.b == 0)
             return 0;
@@ -36,6 +52,8 @@ Singleton {
 
     function alterColour(c: color, a: real, layer: int): color {
         const luminance = getLuminance(c);
+        if (luminance <= 0)
+            return Qt.rgba(c.r, c.g, c.b, a);
 
         const offset = (!light || layer == 1 ? 1 : -layer / 2) * (light ? 0.2 : 0.3) * (1 - transparency.base) * (1 + wallLuminance * (light ? (layer == 1 ? 3 : 1) : 2.5));
         const scale = (luminance + offset) / luminance;
@@ -59,6 +77,29 @@ Singleton {
         return Qt.hsla(c.hslHue, c.hslSaturation, 0.1, 1);
     }
 
+    function applyAccent(colours: M3Palette, isPreview: bool): void {
+        const value = GlobalConfig.appearance.palette.accentColor.trim();
+        if (!value)
+            return;
+
+        const accent = value;
+        const useLight = isPreview ? previewLight : currentLight;
+        const container = mix(colours.m3surface, accent, useLight ? 0.18 : 0.3);
+        const fixed = mix(accent, "#ffffff", useLight ? 0.68 : 0.78);
+
+        colours.m3primary_paletteKeyColor = accent;
+        colours.m3surfaceTint = accent;
+        colours.m3primary = accent;
+        colours.m3onPrimary = on(accent);
+        colours.m3primaryContainer = container;
+        colours.m3onPrimaryContainer = on(container);
+        colours.m3inversePrimary = mix(accent, colours.m3inverseSurface, 0.35);
+        colours.m3primaryFixed = fixed;
+        colours.m3primaryFixedDim = mix(accent, fixed, 0.55);
+        colours.m3onPrimaryFixed = on(fixed);
+        colours.m3onPrimaryFixedVariant = on(colours.m3primaryFixedDim);
+    }
+
     function load(data: string, isPreview: bool): void {
         const colours = isPreview ? preview : current;
         const scheme = JSON.parse(data);
@@ -66,6 +107,7 @@ Singleton {
         if (!isPreview) {
             root.scheme = scheme.name;
             flavour = scheme.flavour;
+            variant = scheme.variant ?? "";
             currentLight = scheme.mode === "light";
         } else {
             previewLight = scheme.mode === "light";
@@ -76,6 +118,10 @@ Singleton {
             if (colours.hasOwnProperty(propName))
                 colours[propName] = `#${colour}`;
         }
+
+        applyAccent(colours, isPreview);
+        if (!isPreview)
+            schemeLoaded();
     }
 
     function setMode(mode: string): void {
@@ -117,6 +163,15 @@ Singleton {
     Component.onCompleted: root.requestReloadHyprRules()
 
     Connections {
+        function onAccentColorChanged(): void {
+            root.showPreview = false;
+            schemeFile.reload();
+        }
+
+        target: GlobalConfig.appearance.palette
+    }
+
+    Connections {
         function onConfigReloaded(): void {
             root.requestReloadHyprRules();
         }
@@ -130,6 +185,8 @@ Singleton {
     }
 
     FileView {
+        id: schemeFile
+
         path: `${Paths.state}/scheme.json`
         watchChanges: true
         onFileChanged: reload()
@@ -167,8 +224,14 @@ Singleton {
 
     component Transparency: QtObject {
         readonly property bool enabled: Tokens.transparency.enabled
-        readonly property real base: Math.max(0, Math.min(1, Tokens.transparency.base - (root.light ? 0.1 : 0)))
-        readonly property real layers: Math.max(0, Math.min(1, Tokens.transparency.layers))
+        readonly property bool automatic: Tokens.transparency.automatic
+        readonly property real automaticAmount: {
+            const x = root.clamp(root.wallLuminance);
+            const raw = 0.5768 * x * x - 0.759 * x + 0.2896 - (root.light ? 0.12 : 0);
+            return root.clamp(raw, 0, 0.22);
+        }
+        readonly property real base: automatic ? 1 - automaticAmount : root.clamp(Tokens.transparency.base - (root.light ? 0.1 : 0))
+        readonly property real layers: automatic ? 0.1 : root.clamp(Tokens.transparency.layers)
 
         onEnabledChanged: {
             if (enabled)
@@ -191,9 +254,9 @@ Singleton {
         readonly property color m3tertiary_paletteKeyColor: root.layer(root.palette.m3tertiary_paletteKeyColor)
         readonly property color m3neutral_paletteKeyColor: root.layer(root.palette.m3neutral_paletteKeyColor)
         readonly property color m3neutral_variant_paletteKeyColor: root.layer(root.palette.m3neutral_variant_paletteKeyColor)
-        readonly property color m3background: root.layer(root.palette.m3background, 0)
+        readonly property color m3background: root.layer(root.baseSurface(root.palette.m3background), 0)
         readonly property color m3onBackground: root.layer(root.palette.m3onBackground)
-        readonly property color m3surface: root.layer(root.palette.m3surface, 0)
+        readonly property color m3surface: root.layer(root.baseSurface(root.palette.m3surface), 0)
         readonly property color m3surfaceDim: root.layer(root.palette.m3surfaceDim, 0)
         readonly property color m3surfaceBright: root.layer(root.palette.m3surfaceBright, 0)
         readonly property color m3surfaceContainerLowest: root.layer(root.palette.m3surfaceContainerLowest)

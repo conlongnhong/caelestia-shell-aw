@@ -34,6 +34,18 @@ QtObject {
             Component {
                 ColourSelect {}
             }
+            Component {
+                InterfaceTuning {}
+            }
+            Component {
+                DesktopEffects {}
+            }
+            Component {
+                WallpaperOptions {}
+            }
+            Component {
+                CaptureAndOverview {}
+            }
         }
     }
 
@@ -87,6 +99,18 @@ QtObject {
         }
     }
 
+    readonly property Component updatesComp: Component {
+        PlaceholderComp {}
+    }
+
+    readonly property Component behaviourComp: Component {
+        StackPage {
+            Component {
+                ShellBehaviour {}
+            }
+        }
+    }
+
     readonly property Component panelsComp: Component {
         StackPage {
             Component {
@@ -120,6 +144,15 @@ QtObject {
             }
             Component {
                 BarClock {}
+            }
+            Component {
+                BarLayout {}
+            }
+            Component {
+                QuickToggles {}
+            }
+            Component {
+                BarExtras {}
             }
         }
     }
@@ -174,7 +207,9 @@ QtObject {
             "network": networkComp,
             "bluetooth": bluetoothComp,
             "audio": audioComp,
+            "updates": updatesComp,
             "hyprland": hyprlandComp,
+            "behaviour": behaviourComp,
             "addons": placeholderComp,
             "panels": panelsComp,
             "apps": appsComp,

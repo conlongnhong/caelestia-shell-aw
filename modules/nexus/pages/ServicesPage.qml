@@ -191,6 +191,31 @@ PageBase {
             onMoved: v => GlobalConfig.services.maxVolume = v / 100
         }
 
+        SectionHeader {
+            text: qsTr("Bảo vệ âm lượng")
+        }
+
+        ToggleRow {
+            first: true
+            text: qsTr("Chặn tăng âm lượng đột ngột")
+            subtext: qsTr("Theo dõi thay đổi từ ứng dụng bên ngoài; thao tác chủ động trong Caelestia vẫn được phép")
+            checked: GlobalConfig.services.audioProtection.enabled
+            onToggled: GlobalConfig.services.audioProtection.enabled = checked
+        }
+
+        StepperRow {
+            enabled: GlobalConfig.services.audioProtection.enabled
+            opacity: enabled ? 1 : 0.55
+            last: true
+            label: qsTr("Mức tăng tối đa mỗi lần")
+            subtext: qsTr("Chặn thay đổi đầu ra lớn hơn tỷ lệ này (%)")
+            value: Math.round(GlobalConfig.services.audioProtection.maxIncrease * 100)
+            from: 0
+            to: 100
+            stepSize: 1
+            onMoved: v => GlobalConfig.services.audioProtection.maxIncrease = v / 100
+        }
+
         // Service tuning
         SectionHeader {
             text: qsTr("Tinh chỉnh dịch vụ")

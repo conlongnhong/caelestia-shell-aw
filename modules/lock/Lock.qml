@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Caelestia.Config
 import qs.components.misc
 
 Scope {
@@ -18,6 +19,11 @@ Scope {
             lock: lock
             pam: pam
         }
+    }
+
+    Component.onCompleted: {
+        if (GlobalConfig.lock.launchOnStartup && !GlobalConfig.lock.useHyprlock)
+            Qt.callLater(() => lock.locked = true);
     }
 
     Pam {
