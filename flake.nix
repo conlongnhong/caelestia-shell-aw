@@ -1,5 +1,5 @@
 {
-  description = "Desktop shell for Caelestia dots";
+  description = "Caelestia Shell AW fork/mod for Hyprland";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";

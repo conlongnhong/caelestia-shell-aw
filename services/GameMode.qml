@@ -12,35 +12,58 @@ Singleton {
 
     property alias enabled: props.enabled
 
+    function applyOverrides(): bool {
+        if (!HyprControl.providerReady)
+            return false;
+
+        if (!props.snapshotJson) {
+            const snapshot = HyprControl.snapshotGameModeOptions();
+            if (Object.keys(snapshot).length === 0)
+                return false;
+            props.snapshotJson = JSON.stringify(snapshot);
+        }
+
+        HyprControl.applyGameModeOverrides();
+        return true;
+    }
+
+    function restoreSnapshot(): bool {
+        if (!props.snapshotJson)
+            return true;
+        if (!HyprControl.providerReady)
+            return false;
+
+        try {
+            HyprControl.restoreGameModeOptions(JSON.parse(props.snapshotJson));
+        } catch (error) {
+            console.warn("GameMode: unable to restore Hyprland snapshot:", error);
+        }
+
+        props.snapshotJson = "";
+        return true;
+    }
+
     function setDynamicConfs(): void {
-        Hypr.extras.applyOptions({
-            "animations:enabled": 0,
-            "decoration:shadow:enabled": 0,
-            "decoration:blur:enabled": 0,
-            "general:gaps_in": 0,
-            "general:gaps_out": 0,
-            "general:border_size": 1,
-            "decoration:rounding": 0,
-            "general:allow_tearing": 1
-        });
+        applyOverrides();
     }
 
     onEnabledChanged: {
         if (enabled) {
-            setDynamicConfs();
+            const applied = applyOverrides();
             if (GlobalConfig.utilities.toasts.gameModeChanged)
-                Toaster.toast(qsTr("Đã bật chế độ trò chơi"), qsTr("Đã tắt hiệu ứng động, làm mờ, khoảng cách và bóng đổ của Hyprland"), "gamepad");
+                Toaster.toast(qsTr("Đã bật chế độ trò chơi"), applied ? qsTr("Đã tắt hiệu ứng động, làm mờ, khoảng cách và bóng đổ của Hyprland") : qsTr("Đang chờ Hyprland sẵn sàng để áp dụng"), "gamepad");
         } else {
-            Hypr.extras.message("reload");
+            const restored = restoreSnapshot();
             if (GlobalConfig.utilities.toasts.gameModeChanged)
-                Toaster.toast(qsTr("Đã tắt chế độ trò chơi"), qsTr("Đã khôi phục cài đặt Hyprland"), "gamepad");
+                Toaster.toast(qsTr("Đã tắt chế độ trò chơi"), restored ? qsTr("Đã khôi phục cài đặt Hyprland") : qsTr("Sẽ khôi phục khi Hyprland sẵn sàng"), "gamepad");
         }
     }
 
     PersistentProperties {
         id: props
 
-        property bool enabled: Hypr.options["animations:enabled"] === 0 // qmllint disable missing-property
+        property bool enabled: false
+        property string snapshotJson
 
         reloadableId: "gameMode"
     }
@@ -48,10 +71,34 @@ Singleton {
     Connections {
         function onConfigReloaded(): void {
             if (props.enabled)
-                root.setDynamicConfs();
+                reapplyTimer.restart();
         }
 
         target: Hypr
+    }
+
+    Connections {
+        function onProviderReadyChanged(): void {
+            if (!HyprControl.providerReady)
+                return;
+
+            if (props.enabled)
+                root.applyOverrides();
+            else
+                root.restoreSnapshot();
+        }
+
+        target: HyprControl
+    }
+
+    Timer {
+        id: reapplyTimer
+
+        interval: 150
+        onTriggered: {
+            if (props.enabled)
+                root.applyOverrides();
+        }
     }
 
     IpcHandler {

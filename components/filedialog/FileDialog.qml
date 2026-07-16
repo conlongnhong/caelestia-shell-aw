@@ -13,6 +13,8 @@ LazyLoader {
     property string filterLabel: qsTr("Tất cả tệp")
     property list<string> filters: ["*"]
     property string title: qsTr("Chọn tệp")
+    property ShellScreen targetScreen
+    property var parentWindow
 
     signal accepted(path: string)
     signal rejected
@@ -62,6 +64,9 @@ LazyLoader {
             };
             return names[name] ?? name;
         }
+
+        screen: loader.targetScreen ?? ShellState.forActive()?.modelData ?? Quickshell.screens[0]
+        parentWindow: loader.parentWindow
 
         implicitWidth: 1000
         implicitHeight: 600

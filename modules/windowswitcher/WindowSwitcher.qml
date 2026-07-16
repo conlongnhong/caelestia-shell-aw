@@ -19,9 +19,9 @@ Scope {
     property var clients: []
     property var mruAddresses: []
     property int selectedIndex: -1
-    property string originWorkspace: ""
     property string targetScreen: ""
     property bool switching
+    property bool sticky
     property bool overlayVisible
     property bool presented
     property double openedAtMs
@@ -109,23 +109,16 @@ Scope {
         });
     }
 
-    function currentNormalWorkspace(): string {
-        let name = String(Hypr.focusedWorkspace?.name ?? "");
-        if (!name || name.startsWith("special:"))
-            name = String(Hypr.focusedMonitor?.activeWorkspace?.name ?? "");
-        if (!name || name.startsWith("special:"))
-            name = String(Hypr.activeWsId);
-        return name;
-    }
-
     function screenForActiveMonitor(): string {
         const monitor = Hypr.focusedMonitor;
         const screen = Screens.screens.find(s => Hypr.monitorFor(s) === monitor);
         return screen?.name ?? Screens.screens[0]?.name ?? "";
     }
 
-    function start(direction: int): void {
+    function start(direction: int, stayOpen: bool): void {
         if (switching) {
+            if (stayOpen)
+                sticky = true;
             step(direction);
             return;
         }
@@ -138,9 +131,9 @@ Scope {
         const activeIndex = available.findIndex(client => normaliseAddress(client) === activeAddress);
         closeTimer.stop();
         clients = available;
-        originWorkspace = currentNormalWorkspace();
         targetScreen = screenForActiveMonitor();
         switching = true;
+        sticky = stayOpen;
         overlayVisible = true;
         openedAtMs = Date.now();
         selectedIndex = activeIndex >= 0 ? (activeIndex + direction + available.length) % available.length : direction >= 0 ? 0 : available.length - 1;
@@ -153,7 +146,7 @@ Scope {
 
     function step(direction: int): void {
         if (!switching) {
-            start(direction);
+            start(direction, false);
             return;
         }
         if (clients.length === 0) {
@@ -190,17 +183,9 @@ Scope {
             return;
 
         if (String(client.workspace?.name ?? "") === "special:minimized") {
-            let moveRequest;
-            if (Hypr.usingLua) {
-                const windowArg = luaEscape(selector);
-                const workspaceArg = luaEscape(originWorkspace);
-                moveRequest = `hl.dsp.window.move({ window = "${windowArg}", workspace = "${workspaceArg}", follow = true })`;
-            } else {
-                moveRequest = `movetoworkspace ${originWorkspace},${selector}`;
-            }
-
-            const focusRequest = Hypr.usingLua ? `hl.dsp.focus({ window = "${luaEscape(selector)}" })` : `focuswindow ${selector}`;
-            Hypr.extras.batchMessage([`dispatch ${moveRequest}`, `dispatch ${focusRequest}`]);
+            const address = `0x${normaliseAddress(client)}`;
+            const controller = `${Quickshell.env("HOME")}/.config/hypr/scripts/window-control.sh`;
+            Quickshell.execDetached([controller, "restore-address", "--address", address]);
             return;
         }
 
@@ -216,6 +201,7 @@ Scope {
 
         const selected = selectedIndex >= 0 && selectedIndex < clients.length ? clients[selectedIndex] : null;
         switching = false;
+        sticky = false;
         presented = false;
         closeTimer.restart();
 
@@ -225,6 +211,11 @@ Scope {
 
     function commit(): void {
         finish(true);
+    }
+
+    function commitFromModifier(): void {
+        if (!sticky)
+            commit();
     }
 
     function cancel(): void {
@@ -278,7 +269,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "windowSwitcherNext"
         description: qsTr("Chuyển tới cửa sổ tiếp theo")
-        onPressed: root.start(1)
+        onPressed: root.start(1, false)
     }
 
     // qmllint disable unresolved-type
@@ -286,7 +277,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "windowSwitcherPrev"
         description: qsTr("Chuyển tới cửa sổ trước")
-        onPressed: root.start(-1)
+        onPressed: root.start(-1, false)
     }
 
     // qmllint disable unresolved-type
@@ -294,16 +285,40 @@ Scope {
         // qmllint enable unresolved-type
         name: "windowSwitcherCommit"
         description: qsTr("Mở cửa sổ đã chọn")
-        onReleased: root.commit()
+        onReleased: root.commitFromModifier()
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "windowSwitcherStickyNext"
+        description: qsTr("Mở bộ chuyển cửa sổ và giữ lại")
+        onPressed: root.start(1, true)
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "windowSwitcherStickyPrev"
+        description: qsTr("Mở bộ chuyển cửa sổ ngược và giữ lại")
+        onPressed: root.start(-1, true)
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "windowSwitcherTaskView"
+        description: qsTr("Mở Task View")
+        onPressed: root.start(0, true)
     }
 
     IpcHandler {
         function next(): void {
-            root.start(1);
+            root.start(1, false);
         }
 
         function previous(): void {
-            root.start(-1);
+            root.start(-1, false);
         }
 
         function commit(): void {
@@ -319,7 +334,8 @@ Scope {
                 switching: root.switching,
                 selectedIndex: root.selectedIndex,
                 selectedAddress: root.normaliseAddress(root.clients[root.selectedIndex]),
-                count: root.clients.length
+                count: root.clients.length,
+                sticky: root.sticky
             });
         }
 
@@ -376,12 +392,18 @@ Scope {
                         if (Date.now() - root.openedAtMs >= 90)
                             root.step(event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1);
                         event.accepted = true;
+                    } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
+                        root.step(-1);
+                        event.accepted = true;
+                    } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) {
+                        root.step(1);
+                        event.accepted = true;
                     }
                 }
 
                 Keys.onReleased: event => {
                     if (event.key === Qt.Key_Alt || event.key === Qt.Key_AltGr) {
-                        root.commit();
+                        root.commitFromModifier();
                         event.accepted = true;
                     }
                 }
@@ -620,7 +642,9 @@ Scope {
 
                         StyledText {
                             width: parent.width
-                            text: qsTr("Giữ Alt và nhấn Tab để chọn • Thả Alt để mở • Esc để hủy")
+                            text: root.sticky
+                                ? qsTr("Tab/phím mũi tên để chọn • Enter để mở • Esc để hủy")
+                                : qsTr("Giữ Alt và nhấn Tab để chọn • Thả Alt để mở • Esc để hủy")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.medium
                             horizontalAlignment: Text.AlignHCenter

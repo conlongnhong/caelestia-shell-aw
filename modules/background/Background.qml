@@ -22,6 +22,7 @@ Variants {
         WlrLayershell.layer: contentItem.Config.background.wallpaperEnabled ? WlrLayer.Background : WlrLayer.Bottom
         color: contentItem.Config.background.wallpaperEnabled ? "black" : "transparent"
         surfaceFormat.opaque: false
+        mask: homeMask
 
         anchors.top: true
         anchors.bottom: true
@@ -32,6 +33,38 @@ Variants {
             screen: win.screen
             slot: "background"
             component: win
+        }
+
+        Region {
+            id: homeMask
+
+            Region {
+                x: desktopHome.canvasX + Math.max(76, desktopHome.safeLeft / Math.max(desktopHome.designScale, 0.01) + 18) * desktopHome.designScale
+                y: desktopHome.canvasY + 350 * desktopHome.designScale
+                width: 440 * desktopHome.designScale
+                height: 338 * desktopHome.designScale
+            }
+
+            Region {
+                x: desktopHome.canvasX + 1164 * desktopHome.designScale
+                y: desktopHome.canvasY + 32 * desktopHome.designScale
+                width: 282 * desktopHome.designScale
+                height: 252 * desktopHome.designScale
+            }
+
+            Region {
+                x: desktopHome.canvasX + 1462 * desktopHome.designScale
+                y: desktopHome.canvasY + 310 * desktopHome.designScale
+                width: 286 * desktopHome.designScale
+                height: 218 * desktopHome.designScale
+            }
+
+            Region {
+                x: desktopHome.canvasX + 1462 * desktopHome.designScale
+                y: desktopHome.canvasY + 552 * desktopHome.designScale
+                width: 286 * desktopHome.designScale
+                height: 268 * desktopHome.designScale
+            }
         }
 
         Item {
@@ -55,6 +88,13 @@ Variants {
                 screen: win.modelData
                 wallpaper: wallpaper
             }
+        }
+
+        DesktopHome {
+            id: desktopHome
+
+            anchors.fill: parent
+            screen: win.modelData
         }
 
         Loader {

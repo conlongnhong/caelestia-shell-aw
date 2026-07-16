@@ -60,12 +60,6 @@ Item {
 
         placeholderText: qsTr("Nhập \"%1\" để dùng lệnh").arg(GlobalConfig.launcher.actionPrefix)
 
-        onTextChanged: {
-            if (text === `${GlobalConfig.launcher.actionPrefix}wallpaper `) {
-                Wallpapers.updateWallpapers();
-            }
-        }
-
         onAccepted: {
             const currentItem = list.currentList?.currentItem;
             if (!currentItem)

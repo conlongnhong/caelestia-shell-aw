@@ -27,7 +27,7 @@ PageBase {
 
         Repeater {
             model: {
-                const walls = Wallpapers.list.filter(w => Wallpapers.getCategoryFor(w) === root.nState.selectedWallpaperCategory).sort((a, b) => a.name.localeCompare(b.name));
+                const walls = Wallpapers.allWallpapers.filter(w => Wallpapers.getCategoryFor(w) === root.nState.selectedWallpaperCategory).sort((a, b) => a.name.localeCompare(b.name));
                 while (walls.length < Config.nexus.wallpapersPerRow)
                     walls.push(null);
                 return walls;

@@ -12,24 +12,43 @@ Item {
     property alias mediaStatus: root._activeMediaStatus
     property alias error: root._activeError
     property alias errorString: root._activeErrorString
+    property bool hasRenderedFrame: false
 
     // Internal: track which player is active (true = A, false = B)
     property bool _usePlayerA: true
     property int _activePlaybackState: _usePlayerA ? playerA.playbackState : playerB.playbackState
     property int _activeMediaStatus: _usePlayerA ? playerA.mediaStatus : playerB.mediaStatus
-    property int _activeError: _usePlayerA ? playerA.error : playerB.error
+    property var _activeError: _usePlayerA ? playerA.error : playerB.error
     property string _activeErrorString: _usePlayerA ? playerA.errorString : playerB.errorString
 
     // Prevent re-entrant swaps during load
     property bool _swapping: false
     property bool forceFrameRenderA: false
     property bool forceFrameRenderB: false
+    property int _requestId: 0
+    property int _pendingSwapRequestId: 0
+
+    function sourceText(source): string {
+        return source ? source.toString() : "";
+    }
+
+    function hasVideoSource(): bool {
+        return sourceText(videoSource) !== "";
+    }
+
+    function sourceIsEmpty(player): bool {
+        return sourceText(player.source) === "";
+    }
+
+    function sourceMatches(player): bool {
+        return sourceText(player.source) === sourceText(videoSource);
+    }
 
     function play() {
         // Note: _swapping selects the incoming player. If play() is called during a swap,
         // it acts on the incoming video.
         const active = _swapping ? (_pendingSwapToA ? playerA : playerB) : (_usePlayerA ? playerA : playerB);
-        if (videoSource != "" && videoSource.toString() !== "")
+        if (hasVideoSource())
             active.play();
     }
 
@@ -74,6 +93,11 @@ Item {
                 console.warn("VideoPlayer A: error:", errorString);
         }
 
+        onPlaybackStateChanged: {
+            if (playbackState === MediaPlayer.PlayingState)
+                root.hasRenderedFrame = true;
+        }
+
         onPositionChanged: {
             if (root.forceFrameRenderA && position > 0) {
                 root.forceFrameRenderA = false;
@@ -86,12 +110,12 @@ Item {
                 console.warn("VideoPlayer A: invalid media:", playerA.source, playerA.errorString);
 
             // If this is the INCOMING player and it's ready, perform the swap
-            if (!root._usePlayerA && !root._swapping && mediaStatus === MediaPlayer.LoadedMedia) {
+            if (!root._usePlayerA && !root._swapping && mediaStatus === MediaPlayer.LoadedMedia && root.sourceMatches(playerA)) {
                 root._performSwap(true);
             }
 
             // First load: player A loaded and is already the active player
-            if (root._usePlayerA && mediaStatus === MediaPlayer.LoadedMedia && playerB.source == "" && !root._swapping) {
+            if (root._usePlayerA && mediaStatus === MediaPlayer.LoadedMedia && root.sourceIsEmpty(playerB) && !root._swapping && root.sourceMatches(playerA)) {
                 if (root.autoStart) {
                     playerA.play();
                 } else {
@@ -130,6 +154,11 @@ Item {
                 console.warn("VideoPlayer B: error:", errorString);
         }
 
+        onPlaybackStateChanged: {
+            if (playbackState === MediaPlayer.PlayingState)
+                root.hasRenderedFrame = true;
+        }
+
         onPositionChanged: {
             if (root.forceFrameRenderB && position > 0) {
                 root.forceFrameRenderB = false;
@@ -142,7 +171,7 @@ Item {
                 console.warn("VideoPlayer B: invalid media:", playerB.source, playerB.errorString);
 
             // If this is the INCOMING player and it's ready, perform the swap
-            if (root._usePlayerA && !root._swapping && mediaStatus === MediaPlayer.LoadedMedia) {
+            if (root._usePlayerA && !root._swapping && mediaStatus === MediaPlayer.LoadedMedia && root.sourceMatches(playerB)) {
                 root._performSwap(false);
             }
         }
@@ -161,8 +190,13 @@ Item {
     }
 
     function _performSwap(swapToA) {
+        const newPlayer = swapToA ? playerA : playerB;
+        if (!sourceMatches(newPlayer))
+            return;
+
         _swapping = true;
         _pendingSwapToA = swapToA;
+        _pendingSwapRequestId = _requestId;
 
         // Pause old player immediately (frees Vulkan resources, <1ms)
         const oldPlayer = swapToA ? playerB : playerA;
@@ -173,9 +207,15 @@ Item {
     }
 
     function _executeDeferredSwap() {
+        const requestId = _pendingSwapRequestId;
         const swapToA = _pendingSwapToA;
         const newPlayer = swapToA ? playerA : playerB;
         const oldPlayer = swapToA ? playerB : playerA;
+
+        if (requestId !== _requestId || !sourceMatches(newPlayer)) {
+            _swapping = false;
+            return;
+        }
 
         if (root.autoStart) {
             newPlayer.play();
@@ -191,20 +231,37 @@ Item {
         root._usePlayerA = swapToA;
 
         // Clean up old player source asynchronously
+        const oldSource = sourceText(oldPlayer.source);
         Qt.callLater(() => {
-            oldPlayer.source = "";
+            if (requestId !== root._requestId)
+                return;
+            if (root.sourceText(oldPlayer.source) === oldSource)
+                oldPlayer.source = "";
             root._swapping = false;
         });
     }
 
     onVideoSourceChanged: {
-        if (videoSource == "" || videoSource.toString() === "") {
+        _requestId++;
+        hasRenderedFrame = false;
+        deferredPlayTimer.stop();
+        _swapping = false;
+
+        if (!hasVideoSource()) {
             playerA.source = "";
             playerB.source = "";
             return;
         }
 
-        if (playerA.source == "" && playerB.source == "") {
+        const activePlayer = _usePlayerA ? playerA : playerB;
+        if (sourceMatches(activePlayer)) {
+            hasRenderedFrame = activePlayer.playbackState === MediaPlayer.PlayingState;
+            if (root.autoStart)
+                activePlayer.play();
+            return;
+        }
+
+        if (sourceIsEmpty(playerA) && sourceIsEmpty(playerB)) {
             playerA.source = videoSource;
             _usePlayerA = true;
             return;
@@ -215,7 +272,7 @@ Item {
     }
 
     Component.onCompleted: {
-        if (videoSource != "" && videoSource.toString() !== "") {
+        if (hasVideoSource() && sourceIsEmpty(playerA) && sourceIsEmpty(playerB)) {
             playerA.source = videoSource;
             _usePlayerA = true;
         }

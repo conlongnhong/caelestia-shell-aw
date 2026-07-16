@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <qfilesystemwatcher.h>
+#include <qjsonobject.h>
 #include <qtimer.h>
 
 namespace caelestia::config {
@@ -33,14 +34,18 @@ signals:
     void saveFailed(const QString& error, const QString& screen);
     void unknownOption(const QString& key, const QString& screen);
 
+protected:
+    void setDefaults(ConfigObject* defaults);
+
 private:
     static QStringList collectUnknownKeys(const ConfigObject* obj, const QJsonObject& json);
-    static void mergeUnknownKeys(const ConfigObject* obj, const QJsonObject& source, QJsonObject& target);
+    static QJsonObject mergePreservingUnknown(
+        const ConfigObject* obj, const QJsonObject& original, const QJsonObject& serialized);
     void emitLoadSignals(const std::optional<QString>& result, bool emitLoaded = true);
     void updateWatch();
     void onWatcherEvent();
-    // Signature of the target file (existence + size + mtime) used to ignore
-    // directory events caused by unrelated sibling files.
+    // Content signature of the target file used both to ignore unrelated
+    // directory events and to detect concurrent edits before an atomic save.
     [[nodiscard]] QString fileSignature() const;
 
     void connectAutoSave(ConfigObject* obj);
@@ -59,7 +64,6 @@ private:
     QTimer* m_reloadDebounce = nullptr;
     int m_parseRetries = 0;
     QStringList m_lastUnknownKeys;
-    QJsonObject m_lastLoadedJson;
 };
 
 } // namespace caelestia::config

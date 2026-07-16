@@ -46,12 +46,13 @@ https://github.com/user-attachments/assets/0840f496-575c-4ca6-83a8-87bb01a85c5f
 - [Yêu cầu hệ thống](#yeu-cau-he-thong)
 - [Cài đặt](#cai-dat)
   - [Nix và NixOS](#nix-va-nixos)
-  - [Arch Linux và AUR](#arch-linux-va-aur)
+  - [Arch Linux và CachyOS](#arch-linux-va-aur)
   - [Cài đặt thủ công](#cai-dat-thu-cong)
 - [Khởi chạy và tự khởi động](#khoi-chay-va-tu-khoi-dong)
 - [Phím tắt và IPC](#phim-tat-va-ipc)
 - [Cấu hình và cá nhân hóa](#cau-hinh-va-ca-nhan-hoa)
 - [Cập nhật](#cap-nhat)
+- [Gỡ cài đặt](#go-cai-dat)
 - [Cấu trúc dự án](#cau-truc-du-an)
 - [Khắc phục sự cố](#khac-phuc-su-co)
 - [Phát triển và đóng góp](#phat-trien-va-dong-gop)
@@ -125,9 +126,9 @@ nix run github:conlongnhong/caelestia-shell-aw#with-cli
 
 - Hyprland và một phiên Wayland hoạt động bình thường.
 - [`quickshell-git`](https://quickshell.outfoxxed.me); bản Git là yêu cầu quan trọng, bản phát hành cũ có thể thiếu API cần thiết.
-- Qt 6.9 trở lên: tối thiểu `qt6-base`, `qt6-declarative` và `qt6-shadertools`.
+- Qt 6.9 trở lên: `qt6-base`, `qt6-declarative`, `qt6-shadertools`, `qt6-imageformats` và `qt6-multimedia`.
 - `caelestia-cli` nếu muốn dùng đầy đủ lệnh quản lý shell, hình nền, bảng màu và ghi màn hình.
-- NetworkManager, PipeWire, `ddcutil`, `brightnessctl`, `lm-sensors`, `fish`, `bash`, `swappy`, `wl-clipboard` và `libqalculate`.
+- NetworkManager, PipeWire, `ddcutil`, `brightnessctl`, `lm-sensors`, `fish`, `bash`, `swappy`, `wl-clipboard`, `libnotify`, FFmpeg, `libxml2`, `power-profiles-daemon` và `libqalculate`.
 - `libcava`, `aubio`, FFTW, `xkeyboard-config` và các thư viện C/C++ tiêu chuẩn để build plugin.
 - Phông Material Symbols, Rubik và Caskaydia Cove Nerd Font để biểu tượng và bố cục hiển thị đúng.
 
@@ -244,22 +245,30 @@ Mô-đun có thể tạo `~/.config/caelestia/shell.json`, cài shell/CLI và kh
 
 <a id="arch-linux-va-aur"></a>
 
-### Arch Linux và AUR
+### Arch Linux và CachyOS
 
-Upstream cung cấp hai gói AUR:
+Cách được hỗ trợ cho bản AW là clone đúng fork này và chạy installer bằng user thường:
 
 ```sh
-# Bản ổn định của upstream
-yay -S caelestia-shell
+git clone https://github.com/conlongnhong/caelestia-shell-aw.git
+cd caelestia-shell-aw
+./install.sh
+```
 
-# Bản theo commit mới nhất của upstream, có thể kém ổn định hơn
-yay -S caelestia-shell-git
+Installer cài các dependency còn thiếu bằng `pacman` và `paru`/`yay`, build trong thư mục tạm, kiểm tra xung đột với package upstream, stage kết quả trước khi đưa vào hệ thống và ghi manifest để gỡ cài đặt an toàn. Quyền `sudo` chỉ được yêu cầu cho package và tệp hệ thống.
+
+Các tùy chọn thường dùng:
+
+```sh
+./install.sh --help
+./install.sh --skip-deps    # Dependency đã được cài đầy đủ
+./install.sh --no-hyprland  # Không tạo đoạn cấu hình Hyprland do fork quản lý
 ```
 
 > [!WARNING]
-> Hai gói trên cài `caelestia-dots/shell`, không đảm bảo chứa các thay đổi của `caelestia-shell-aw`. Nếu cần đúng bản AW, hãy dùng Nix hoặc cài thủ công từ kho này.
+> Không cài đồng thời `caelestia-shell` hoặc `caelestia-shell-git` từ AUR. Hai package đó thuộc upstream và ghi vào cùng đường dẫn hệ thống; installer AW sẽ chủ động từ chối nếu phát hiện xung đột.
 
-Không chỉnh trực tiếp các tệp do gói AUR cài vào hệ thống vì chúng sẽ bị ghi đè khi cập nhật. Muốn phát triển hoặc tùy biến mã nguồn, hãy dùng phương thức thủ công ở phần tiếp theo.
+Installer tự động hiện chỉ hỗ trợ Arch Linux và CachyOS. Các distro khác có thể dùng Nix hoặc quy trình thủ công ở phần tiếp theo.
 
 <a id="cai-dat-thu-cong"></a>
 
@@ -276,6 +285,7 @@ cd "$HOME/src/caelestia-shell-aw"
 
 cmake -S . -B build -G Ninja \
   -DVERSION=1.0.0 \
+  -DGIT_REVISION="$(git rev-parse HEAD)" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=/
 
@@ -341,6 +351,10 @@ Nếu dùng toàn bộ Caelestia Dots, shell thường đã được tự khởi
 
 ```conf
 exec-once = caelestia shell -d
+
+# FloatingWindow của fork: luật float phải đứng trước luật center.
+windowrule = float true, match:class ^io\.github\.conlongnhong\.caelestia-shell-aw$
+windowrule = center true, match:class ^io\.github\.conlongnhong\.caelestia-shell-aw$
 ```
 
 Người dùng Home Manager đã bật `programs.caelestia.systemd.enable` không cần thêm `exec-once`. Có thể theo dõi service bằng:
@@ -580,7 +594,15 @@ sudo nixos-rebuild switch --flake .
 
 Nếu dùng Home Manager độc lập, thay lệnh rebuild bằng lệnh Home Manager phù hợp với cấu hình của bạn.
 
-### Cài thủ công
+### Cài bằng installer trên Arch Linux/CachyOS
+
+```sh
+cd "$HOME/src/caelestia-shell-aw"
+git pull --ff-only
+./install.sh --skip-deps
+```
+
+### Cài thủ công bằng CMake
 
 Sau khi pull, nên build lại vì thay đổi có thể nằm trong plugin C++ chứ không chỉ ở QML:
 
@@ -590,6 +612,7 @@ git pull --ff-only
 
 cmake -S . -B build -G Ninja \
   -DVERSION=1.0.0 \
+  -DGIT_REVISION="$(git rev-parse HEAD)" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=/
 
@@ -598,13 +621,19 @@ sudo cmake --install build
 caelestia shell -d
 ```
 
-### AUR upstream
+Không dùng package AUR upstream để cập nhật bản AW.
+
+<a id="go-cai-dat"></a>
+
+## Gỡ cài đặt
+
+Chạy uninstaller từ chính clone đã dùng để cài:
 
 ```sh
-yay -Syu
+./uninstall.sh
 ```
 
-Nhắc lại: cập nhật AUR chỉ cập nhật bản upstream, không chuyển sang bản AW.
+Script chỉ xóa các đường dẫn có trong manifest và đoạn Hyprland do fork quản lý. Dependency, `~/.config/caelestia`, hình nền và cấu hình Hyprland không liên quan sẽ được giữ nguyên. Dùng `./uninstall.sh --no-hyprland` nếu muốn giữ cả đoạn tích hợp Hyprland.
 
 <a id="cau-truc-du-an"></a>
 

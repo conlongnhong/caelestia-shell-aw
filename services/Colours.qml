@@ -95,9 +95,15 @@ Singleton {
     }
 
     function requestReloadHyprRules(): void {
+        if (!Hypr.providerReady) {
+            root.cooldownPending = true;
+            return;
+        }
+
         if (cooldownTimer.running) {
             root.cooldownPending = true;
         } else {
+            root.cooldownPending = false;
             root.reloadHyprRules();
             cooldownTimer.restart();
         }
@@ -107,7 +113,12 @@ Singleton {
 
     Connections {
         function onConfigReloaded(): void {
-            root.reloadHyprRules();
+            root.requestReloadHyprRules();
+        }
+
+        function onProviderReadyChanged(): void {
+            if (Hypr.providerReady)
+                root.requestReloadHyprRules();
         }
 
         target: Hypr

@@ -23,6 +23,7 @@ Searcher {
     property bool pendingPreviewClear
 
     readonly property list<string> validVideoExtensions: ["mp4", "webm", "mkv"]
+    readonly property var allWallpapers: staticWallpapers.entries.concat(animatedWallpapers.entries)
     property string wallpaperMode: "static"
     property string cacheBuster: ""
 
@@ -39,6 +40,10 @@ Searcher {
         if (clean.indexOf("file://") === 0) clean = clean.substring(7);
         let b = buster !== undefined ? buster : cacheBuster;
         return "file://" + Paths.cache + "/videothumbs/" + djb2_hash(clean) + ".jpg" + (b ? "?v=" + b : "");
+    }
+
+    function getPreviewSource(path, buster) {
+        return isVideo(path) ? getWallpaperThumb(path, buster) : path;
     }
 
     function setWallpaperMode(mode) {
@@ -66,7 +71,6 @@ Searcher {
     function setWallpaper(path: string): void {
         let clean = String(path || "").split(/[?#]/)[0];
         if (clean.indexOf("file://") === 0) clean = clean.substring(7);
-        actualCurrent = clean;
         if (isVideo(clean)) {
             previewColourLock = false;
             stopPreview();
@@ -135,6 +139,7 @@ Searcher {
             root.previewColourLock = false;
             if (root.isVideo(root.actualCurrent)) {
                 root.wallpaperMode = "animated";
+                root.cacheBuster = Date.now().toString();
             } else {
                 root.wallpaperMode = "static";
             }

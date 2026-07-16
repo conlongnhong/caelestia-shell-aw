@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import Caelestia.Config
 import qs.components
 import qs.components.filedialog
@@ -36,6 +37,14 @@ Item {
         return Qt.resolvedUrl(clean);
     }
 
+    function updateVideoPreview(): void {
+        if (!sourceIsVideo)
+            return;
+
+        const preview = current === one ? two : one;
+        preview.update();
+    }
+
     Timer {
         id: videoUpdateTimer
         interval: 50
@@ -63,6 +72,18 @@ Item {
         }
     }
 
+    Connections {
+        target: Wallpapers
+
+        function onCacheBusterChanged() {
+            root.updateVideoPreview();
+        }
+
+        function onItemBustersChanged() {
+            root.updateVideoPreview();
+        }
+    }
+
     onSourceChanged: {
         if (sourceIsVideo) {
             current = null;
@@ -82,6 +103,7 @@ Item {
 
     Component.onCompleted: {
         if (sourceIsVideo) {
+            one.update();
             completed = true;
         } else if (source) {
             Qt.callLater(() => {
@@ -130,9 +152,10 @@ Item {
                         FileDialog {
                             id: dialog
 
+                            targetScreen: (root.QsWindow.window as QsWindow)?.screen
                             title: qsTr("Chọn hình nền")
-                            filterLabel: qsTr("Tệp hình ảnh")
-                            filters: Images.validImageExtensions
+                            filterLabel: qsTr("Tệp hình nền")
+                            filters: Images.validImageExtensions.concat(Wallpapers.validVideoExtensions)
                             onAccepted: path => Wallpapers.setWallpaper(path)
                         }
 
@@ -183,7 +206,8 @@ Item {
         id: img
 
         function update(): void {
-            const newPath = root.sourceIsVideo ? Wallpapers.getWallpaperThumb(root.source, Wallpapers.cacheBuster) : root.source;
+            const thumbnailBuster = Wallpapers.itemBusters[root.source] || Wallpapers.cacheBuster;
+            const newPath = root.sourceIsVideo ? Wallpapers.getWallpaperThumb(root.source, thumbnailBuster) : root.source;
             
             if (!root.sourceIsVideo && path === root.source) {
                 root.current = this;
@@ -201,7 +225,7 @@ Item {
 
         anchors.fill: parent
 
-        visible: !root.sourceIsVideo || (videoLoader.item && videoLoader.item.mediaStatus < 2)
+        visible: !root.sourceIsVideo || !videoLoader.item || !videoLoader.item.hasRenderedFrame
         opacity: 0
         scale: Wallpapers.showPreview ? 1 : 0.8
 

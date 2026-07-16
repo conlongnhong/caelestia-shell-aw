@@ -1,26 +1,30 @@
 cmake_minimum_required(VERSION 3.19)
 
-if(NOT DEFINED VERSION)
+if(NOT DEFINED VERSION OR "${VERSION}" STREQUAL "")
     execute_process(COMMAND git describe --tags --abbrev=0
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
         OUTPUT_VARIABLE VERSION
+        ERROR_QUIET
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 
     if("${VERSION}" STREQUAL "")
-        message(FATAL_ERROR "VERSION is not set and failed to get from git")
+        set(VERSION "0.0.0")
+        message(WARNING "No release tag found; using development version ${VERSION}")
     endif()
 endif()
 
-if(NOT DEFINED GIT_REVISION)
+if(NOT DEFINED GIT_REVISION OR "${GIT_REVISION}" STREQUAL "")
     execute_process(COMMAND git rev-parse HEAD
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
         OUTPUT_VARIABLE GIT_REVISION
+        ERROR_QUIET
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 
     if("${GIT_REVISION}" STREQUAL "")
-        message(FATAL_ERROR "GIT_REVISION is not set and failed to get from git")
+        set(GIT_REVISION "unknown")
+        message(WARNING "Git revision is unavailable; using ${GIT_REVISION}")
     endif()
 endif()
 

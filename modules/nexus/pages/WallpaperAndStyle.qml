@@ -27,6 +27,7 @@ PageBase {
         "auto": 0, "none": 1, "vaapi": 2, "vdpau": 3,
         "cuda": 4, "vulkan": 5, "drm": 6
     })
+    readonly property url wallpaperPreview: Wallpapers.getPreviewSource(Wallpapers.current, Wallpapers.cacheBuster)
 
     function hwDecoderToIndex(val: string): int {
         const v = (val ?? "none").toLowerCase();
@@ -145,7 +146,7 @@ PageBase {
                     id: wallImg
 
                     anchors.fill: parent
-                    source: Wallpapers.current
+                    source: root.wallpaperPreview
                     preventInit: wallIndicatorLoader.opacity > 0
                     fadeOutAnim: Anim.DefaultEffects
                     fadeInAnim: Anim.SlowEffects

@@ -19,16 +19,17 @@ TokenConfig::TokenConfig(QObject* parent)
     , m_appearance(new AppearanceTokens(this))
     , m_sizes(new SizeTokens(this)) {
     setupFileBackend(configDir() + QStringLiteral("shell-tokens.json"));
+    setDefaults(defaults());
 }
 
 TokenConfig::TokenConfig(TokenConfig* fallback, const QString& filePath, const QString& screen, QObject* parent)
     : RootConfig(parent)
     , m_appearance(new AppearanceTokens(this))
     , m_sizes(new SizeTokens(this)) {
-    if (!filePath.isEmpty())
-        setupFileBackend(filePath, screen);
     if (fallback)
         syncFromGlobal(fallback);
+    if (!filePath.isEmpty())
+        setupFileBackend(filePath, screen);
 }
 
 TokenConfig* TokenConfig::instance() {

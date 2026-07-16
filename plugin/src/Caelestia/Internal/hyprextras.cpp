@@ -5,11 +5,94 @@
 #include <qjsonarray.h>
 #include <qlocalsocket.h>
 #include <qloggingcategory.h>
+#include <qregularexpression.h>
 #include <qvariant.h>
+
+#include <cmath>
+#include <optional>
 
 Q_LOGGING_CATEGORY(lcHypr, "caelestia.internal.hypr", QtInfoMsg)
 
 namespace caelestia::internal::hypr {
+
+namespace {
+
+const QRegularExpression optionKeyPattern(
+    QStringLiteral(R"(^[A-Za-z0-9_.-]+(?::[A-Za-z0-9_.-]+)*$)"));
+const QRegularExpression numericTuplePattern(QStringLiteral(R"(^-?[0-9]+(?:\s+-?[0-9]+){0,3}$)"));
+
+QString cssGapsLuaTable(const QString& tuple) {
+    const auto values = tuple.split(QLatin1Char(' '));
+    QString top;
+    QString right;
+    QString bottom;
+    QString left;
+
+    switch (values.size()) {
+    case 1:
+        top = right = bottom = left = values.at(0);
+        break;
+    case 2:
+        top = bottom = values.at(0);
+        right = left = values.at(1);
+        break;
+    case 3:
+        top = values.at(0);
+        right = left = values.at(1);
+        bottom = values.at(2);
+        break;
+    case 4:
+        top = values.at(0);
+        right = values.at(1);
+        bottom = values.at(2);
+        left = values.at(3);
+        break;
+    default:
+        return {};
+    }
+
+    return QStringLiteral("{ top = %1, right = %2, bottom = %3, left = %4 }")
+        .arg(top, right, bottom, left);
+}
+
+std::optional<QString> optionLiteral(const QVariant& value, bool usingLua) {
+    switch (value.metaType().id()) {
+    case QMetaType::Bool:
+        return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
+    case QMetaType::Char:
+    case QMetaType::SChar:
+    case QMetaType::Short:
+    case QMetaType::Int:
+    case QMetaType::Long:
+    case QMetaType::LongLong:
+        return QString::number(value.toLongLong());
+    case QMetaType::UChar:
+    case QMetaType::UShort:
+    case QMetaType::UInt:
+    case QMetaType::ULong:
+    case QMetaType::ULongLong:
+        return QString::number(value.toULongLong());
+    case QMetaType::Float:
+    case QMetaType::Double: {
+        const auto number = value.toDouble();
+        if (!std::isfinite(number))
+            return std::nullopt;
+        return QString::number(number, 'g', 17);
+    }
+    case QMetaType::QString: {
+        // Hyprland exposes custom gap values as one-to-four space-separated integers.
+        // This deliberately rejects arbitrary strings so QML cannot inject socket commands or Lua.
+        const auto tuple = value.toString().simplified();
+        if (!numericTuplePattern.match(tuple).hasMatch())
+            return std::nullopt;
+        return usingLua ? cssGapsLuaTable(tuple) : tuple;
+    }
+    default:
+        return std::nullopt;
+    }
+}
+
+} // namespace
 
 HyprExtras::HyprExtras(QObject* parent)
     : QObject(parent)
@@ -90,15 +173,33 @@ void HyprExtras::applyOptions(const QVariantHash& options) {
     request.reserve(12 + options.size() * 40);
     request += QLatin1String("[[BATCH]]");
     for (auto it = options.constBegin(); it != options.constEnd(); ++it) {
+        if (!optionKeyPattern.match(it.key()).hasMatch()) {
+            qCWarning(lcHypr) << "applyOptions: rejected invalid option key:" << it.key();
+            continue;
+        }
+        if (it.value().metaType().id() == QMetaType::QString && it.key() != QLatin1String("general:gaps_in") &&
+            it.key() != QLatin1String("general:gaps_out")) {
+            qCWarning(lcHypr) << "applyOptions: string values are only supported for CSS gap options";
+            continue;
+        }
+
+        const auto literal = optionLiteral(it.value(), m_usingLua);
+        if (!literal) {
+            qCWarning(lcHypr) << "applyOptions: rejected unsafe value for" << it.key();
+            continue;
+        }
+
         if (!m_usingLua) {
-            request +=
-                QLatin1String("keyword ") + it.key() + QLatin1Char(' ') + it.value().toString() + QLatin1Char(';');
+            request += QLatin1String("keyword ") + it.key() + QLatin1Char(' ') + *literal + QLatin1Char(';');
         } else {
             auto parts = it.key().split(':');
-            request += "eval hl.config({ " + parts.join(" = { ") + " = " + it.value().toString() +
+            request += "eval hl.config({ " + parts.join(" = { ") + " = " + *literal +
                        QString(" }").repeated(parts.size() - 1) + " });";
         }
     }
+
+    if (request == QLatin1String("[[BATCH]]"))
+        return;
 
     makeRequest(request, [this](bool success, const QByteArray& res) {
         if (success) {

@@ -10,8 +10,14 @@ import qs.modules.nexus
 Singleton {
     id: root
 
-    function create(parent: Item, props: var): void {
-        nexusComp.createObject(parent ?? dummy, props);
+    function create(targetScreen: ShellScreen, parent = null, props = null): void {
+        const screen = targetScreen ?? ShellState.forActive()?.modelData ?? Quickshell.screens[0];
+        if (!screen)
+            return;
+
+        const properties = Object.assign({}, props ?? {});
+        properties.screen = screen;
+        nexusComp.createObject(parent ?? dummy, properties);
     }
 
     QtObject {
