@@ -16,8 +16,10 @@ StyledRect {
     id: root
 
     required property NotifData modelData
-    readonly property bool hasImage: (modelData?.image?.length ?? 0) > 0
-    readonly property bool hasAppIcon: (modelData?.appIcon?.length ?? 0) > 0
+    readonly property string imageSource: modelData?.image ?? ""
+    readonly property string appIconSource: modelData?.appIcon ?? ""
+    readonly property bool hasImage: imageSource.length > 0
+    readonly property bool hasAppIcon: appIconSource.length > 0
     readonly property int bodyTextFormat: /[<*_`#\[\]]/.test(modelData?.body ?? "") ? Text.MarkdownText : Text.PlainText
     readonly property int nonAnimHeight: summary.implicitHeight + (root.expanded ? Tokens.spacing.extraSmall * 2 + appName.height + body.height + actions.height + actions.anchors.topMargin : bodyPreview.height) + inner.anchors.margins * 2
     property bool expanded: Config.notifs.openExpanded
@@ -172,7 +174,7 @@ StyledRect {
                             anchors.fill: parent
                             source: Quickshell.iconPath(root.modelData?.appIcon ?? "")
                             colour: root.modelData?.urgency === NotificationUrgency.Critical ? Colours.palette.m3onError : root.modelData?.urgency === NotificationUrgency.Low ? Colours.palette.m3onSurface : Colours.palette.m3onSecondaryContainer
-                            layer.enabled: (root.modelData?.appIcon ?? "").endsWith("symbolic")
+                            layer.enabled: root.appIconSource.endsWith("symbolic")
                         }
                     }
 
@@ -473,7 +475,7 @@ StyledRect {
                 IconButton {
                     isRound: true
                     shapeMorph: true
-                    fillWidth: (root.modelData?.actions?.length ?? 0) === 0
+                    fillWidth: (root.modelData?.actions.length ?? 0) === 0
                     inactiveColour: root.modelData?.urgency === NotificationUrgency.Critical ? Colours.palette.m3secondary : Colours.layer(Colours.palette.m3surfaceContainerHighest, 2)
                     inactiveOnColour: root.modelData?.urgency === NotificationUrgency.Critical ? Colours.palette.m3onSecondary : Colours.palette.m3onSurfaceVariant
                     icon: "close"
@@ -508,7 +510,7 @@ StyledRect {
                 IconButton {
                     isRound: true
                     shapeMorph: true
-                    fillWidth: (root.modelData?.actions?.length ?? 0) === 0
+                    fillWidth: (root.modelData?.actions.length ?? 0) === 0
                     inactiveColour: root.modelData?.urgency === NotificationUrgency.Critical ? Colours.palette.m3secondary : Colours.layer(Colours.palette.m3surfaceContainerHighest, 2)
                     inactiveOnColour: root.modelData?.urgency === NotificationUrgency.Critical ? Colours.palette.m3onSecondary : Colours.palette.m3onSurfaceVariant
                     icon: copyTimer.running ? "inventory" : "content_copy"

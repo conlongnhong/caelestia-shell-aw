@@ -17,7 +17,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "nexus"
         description: "Mở Nexus"
-        onPressed: WindowFactory.create()
+        onPressed: WindowFactory.create(ShellState.forActive()?.modelData)
     }
 
     // qmllint disable unresolved-type
@@ -137,7 +137,7 @@ Scope {
 
     IpcHandler {
         function open(): void {
-            WindowFactory.create();
+            WindowFactory.create(ShellState.forActive()?.modelData);
         }
 
         target: "nexus"

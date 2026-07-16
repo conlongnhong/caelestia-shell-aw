@@ -50,6 +50,8 @@ private:
 
     SocketPtr m_optionsRefresh;
     SocketPtr m_devicesRefresh;
+    quint64 m_optionsRefreshGeneration = 0;
+    quint64 m_devicesRefreshGeneration = 0;
 
     void socketError(QLocalSocket::LocalSocketError error) const;
     void socketStateChanged(QLocalSocket::LocalSocketState state);

@@ -60,12 +60,6 @@ Item {
 
         placeholderText: qsTr("Nhập \"%1\" để dùng lệnh").arg(GlobalConfig.launcher.actionPrefix)
 
-        onTextChanged: {
-            if (text === `${GlobalConfig.launcher.actionPrefix}wallpaper `) {
-                Wallpapers.updateWallpapers();
-            }
-        }
-
         onAccepted: {
             const currentItem = list.currentList?.currentItem;
             if (!currentItem)
@@ -96,16 +90,16 @@ Item {
         Keys.onEscapePressed: root.screenState.launcher = false
 
         Keys.onPressed: event => {
-        // Ctrl + Tab now switches between static and animated tabs.
-        if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_Tab) {
-        if (Wallpapers.wallpaperMode === "static") {
-        Wallpapers.setWallpaperMode("animated");
-        } else {
-        Wallpapers.setWallpaperMode("static");
-        }
-        event.accepted = true;
-        return;
-        }
+            // Ctrl + Tab now switches between static and animated tabs.
+            if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_Tab) {
+                if (Wallpapers.wallpaperMode === "static") {
+                    Wallpapers.setWallpaperMode("animated");
+                } else {
+                    Wallpapers.setWallpaperMode("static");
+                }
+                event.accepted = true;
+                return;
+            }
 
             if (!GlobalConfig.launcher.vimKeybinds)
                 return;

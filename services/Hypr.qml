@@ -16,6 +16,8 @@ Singleton {
     readonly property var workspaces: Hyprland.workspaces
     readonly property var monitors: Hyprland.monitors
     readonly property bool usingLua: Hyprland.usingLua
+    // Quickshell requests monitor data only after its Standard/Lua provider probe completes.
+    readonly property bool providerReady: monitors.values.length > 0
 
     readonly property HyprlandToplevel activeToplevel: {
         const t = Hyprland.activeToplevel;
@@ -94,6 +96,9 @@ Singleton {
     }
 
     function reloadDynamicConfs(): void {
+        if (!providerReady)
+            return;
+
         if (usingLua) {
             extras.batchMessage(['eval hl.unbind("Caps_Lock")', 'eval hl.unbind("Num_Lock")', 'eval hl.bind("Caps_Lock", hl.dsp.global("caelestia:refreshDevices"), { locked = true, non_consuming = true, ignore_mods = true, release = true })', 'eval hl.bind("Num_Lock", hl.dsp.global("caelestia:refreshDevices"), { locked = true, non_consuming = true, ignore_mods = true, release = true })']);
         } else {
@@ -101,7 +106,13 @@ Singleton {
         }
     }
 
-    Component.onCompleted: reloadDynamicConfs()
+    function requestReloadDynamicConfs(): void {
+        if (providerReady)
+            dynamicConfsTimer.restart();
+    }
+
+    Component.onCompleted: requestReloadDynamicConfs()
+    onProviderReadyChanged: requestReloadDynamicConfs()
 
     onCapsLockChanged: {
         if (!GlobalConfig.utilities.toasts.capsLockChanged)
@@ -138,7 +149,7 @@ Singleton {
 
             if (n === "configreloaded") {
                 root.configReloaded();
-                root.reloadDynamicConfs();
+                root.requestReloadDynamicConfs();
             } else if (["workspace", "moveworkspace", "activespecial", "focusedmon"].includes(n)) {
                 Hyprland.refreshWorkspaces();
                 Hyprland.refreshMonitors();
@@ -225,6 +236,13 @@ Singleton {
         description: qsTr("Tải lại thiết bị")
         onPressed: extras.refreshDevices()
         onReleased: extras.refreshDevices()
+    }
+
+    Timer {
+        id: dynamicConfsTimer
+
+        interval: 0
+        onTriggered: root.reloadDynamicConfs()
     }
 
     HyprExtras {

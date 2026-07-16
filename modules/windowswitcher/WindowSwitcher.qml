@@ -18,50 +18,41 @@ Scope {
 
     property var clients: []
     property var mruAddresses: []
-    property int selectedIndex: -1
+    property double openedAtMs
     property string originWorkspace: ""
-    property string targetScreen: ""
-    property bool switching
     property bool overlayVisible
     property bool presented
-    property double openedAtMs
+    property int selectedIndex: -1
+    property bool sticky
+    property bool switching
+    property string targetScreen: ""
 
-    function normaliseAddress(client: var): string {
-        const address = String(client?.address ?? "");
-        return address.startsWith("0x") ? address.slice(2) : address;
-    }
-
-    function selectorFor(client: var): string {
-        const address = normaliseAddress(client);
-        return address ? `address:0x${address}` : "";
-    }
-
-    function rememberActive(client: var): void {
-        if (switching || !client)
+    function activate(client: var): void {
+        const selector = selectorFor(client);
+        if (!selector)
             return;
 
-        const address = normaliseAddress(client);
-        if (!address)
+        if (String(client.workspace?.name ?? "") === "special:minimized") {
+            let moveRequest;
+            if (Hypr.usingLua) {
+                const windowArg = luaEscape(selector);
+                const workspaceArg = luaEscape(originWorkspace);
+                moveRequest = `hl.dsp.window.move({ window = "${windowArg}", workspace = "${workspaceArg}", follow = true })`;
+            } else {
+                moveRequest = `movetoworkspace ${originWorkspace},${selector}`;
+            }
+
+            const focusRequest = Hypr.usingLua ? `hl.dsp.focus({ window = "${luaEscape(selector)}" })` : `focuswindow ${selector}`;
+            const requestPrefix = Hypr.usingLua ? "eval" : "dispatch";
+            Hypr.extras.batchMessage([`${requestPrefix} ${moveRequest}`, `${requestPrefix} ${focusRequest}`]);
             return;
+        }
 
-        const updated = mruAddresses.filter(a => a !== address);
-        updated.unshift(address);
-        mruAddresses = updated.slice(0, 128);
+        if (Hypr.usingLua)
+            Hypr.dispatch(`hl.dsp.focus({ window = "${luaEscape(selector)}" })`);
+        else
+            Hypr.dispatch(`focuswindow ${selector}`);
     }
-
-    function isSwitchable(client: var): bool {
-        if (!client || !normaliseAddress(client))
-            return false;
-
-        const ipc = client.lastIpcObject ?? {};
-        // Foreign-toplevel objects can outlive their Hyprland IPC entry briefly.
-        // Only show clients confirmed by the current `hyprctl clients` snapshot.
-        if (ipc.mapped !== true || ipc.hidden === true || ipc.noFocus === true)
-            return false;
-
-        return String(client.title ?? "").trim().length > 0 || String(ipc.class ?? "").trim().length > 0;
-    }
-
     function activeAddressFor(candidates: var): string {
         const reported = normaliseAddress(Hyprland.activeToplevel);
         if (reported && candidates.some(client => normaliseAddress(client) === reported))
@@ -74,7 +65,56 @@ Scope {
         const focused = candidates.find(client => Number(client.lastIpcObject?.focusHistoryID ?? -1) === 0);
         return normaliseAddress(focused);
     }
+    function cancel(): void {
+        finish(false);
+    }
+    function commit(): void {
+        finish(true);
+    }
+    function commitFromModifier(): void {
+        if (!sticky)
+            commit();
+    }
+    function currentNormalWorkspace(): string {
+        let name = String(Hypr.focusedWorkspace?.name ?? "");
+        if (!name || name.startsWith("special:"))
+            name = String(Hypr.focusedMonitor?.activeWorkspace?.name ?? "");
+        if (!name || name.startsWith("special:"))
+            name = String(Hypr.activeWsId);
+        return name;
+    }
+    function finish(activateSelection: bool): void {
+        if (!switching)
+            return;
 
+        const selected = selectedIndex >= 0 && selectedIndex < clients.length ? clients[selectedIndex] : null;
+        switching = false;
+        sticky = false;
+        presented = false;
+        closeTimer.restart();
+
+        if (activateSelection && selected)
+            activate(selected);
+    }
+    function isSwitchable(client: var): bool {
+        if (!client || !normaliseAddress(client))
+            return false;
+
+        const ipc = client.lastIpcObject ?? {};
+        // Foreign-toplevel objects can outlive their Hyprland IPC entry briefly.
+        // Only show clients confirmed by the current `hyprctl clients` snapshot.
+        if (ipc.mapped !== true || ipc.hidden === true || ipc.noFocus === true)
+            return false;
+
+        return String(client.title ?? "").trim().length > 0 || String(ipc.class ?? "").trim().length > 0;
+    }
+    function luaEscape(value: string): string {
+        return value.replace(/\\/g, "\\\\").replace(/\"/g, "\\\"");
+    }
+    function normaliseAddress(client: var): string {
+        const address = String(client?.address ?? "");
+        return address.startsWith("0x") ? address.slice(2) : address;
+    }
     function orderedClients(): var {
         const unique = new Map();
         for (const client of Hypr.toplevels.values) {
@@ -108,62 +148,6 @@ Scope {
             return String(a.title ?? "").localeCompare(String(b.title ?? ""));
         });
     }
-
-    function currentNormalWorkspace(): string {
-        let name = String(Hypr.focusedWorkspace?.name ?? "");
-        if (!name || name.startsWith("special:"))
-            name = String(Hypr.focusedMonitor?.activeWorkspace?.name ?? "");
-        if (!name || name.startsWith("special:"))
-            name = String(Hypr.activeWsId);
-        return name;
-    }
-
-    function screenForActiveMonitor(): string {
-        const monitor = Hypr.focusedMonitor;
-        const screen = Screens.screens.find(s => Hypr.monitorFor(s) === monitor);
-        return screen?.name ?? Screens.screens[0]?.name ?? "";
-    }
-
-    function start(direction: int): void {
-        if (switching) {
-            step(direction);
-            return;
-        }
-
-        const available = orderedClients();
-        if (available.length === 0)
-            return;
-
-        const activeAddress = activeAddressFor(available);
-        const activeIndex = available.findIndex(client => normaliseAddress(client) === activeAddress);
-        closeTimer.stop();
-        clients = available;
-        originWorkspace = currentNormalWorkspace();
-        targetScreen = screenForActiveMonitor();
-        switching = true;
-        overlayVisible = true;
-        openedAtMs = Date.now();
-        selectedIndex = activeIndex >= 0 ? (activeIndex + direction + available.length) % available.length : direction >= 0 ? 0 : available.length - 1;
-
-        Qt.callLater(() => {
-            if (root.switching)
-                root.presented = true;
-        });
-    }
-
-    function step(direction: int): void {
-        if (!switching) {
-            start(direction);
-            return;
-        }
-        if (clients.length === 0) {
-            cancel();
-            return;
-        }
-
-        selectedIndex = (selectedIndex + direction + clients.length) % clients.length;
-    }
-
     function reconcileClients(): void {
         if (!switching)
             return;
@@ -179,56 +163,67 @@ Scope {
         const newIndex = available.findIndex(client => normaliseAddress(client) === selectedAddress);
         selectedIndex = newIndex >= 0 ? newIndex : Math.min(selectedIndex, available.length - 1);
     }
-
-    function luaEscape(value: string): string {
-        return value.replace(/\\/g, "\\\\").replace(/\"/g, "\\\"");
-    }
-
-    function activate(client: var): void {
-        const selector = selectorFor(client);
-        if (!selector)
+    function rememberActive(client: var): void {
+        if (switching || !client)
             return;
 
-        if (String(client.workspace?.name ?? "") === "special:minimized") {
-            let moveRequest;
-            if (Hypr.usingLua) {
-                const windowArg = luaEscape(selector);
-                const workspaceArg = luaEscape(originWorkspace);
-                moveRequest = `hl.dsp.window.move({ window = "${windowArg}", workspace = "${workspaceArg}", follow = true })`;
-            } else {
-                moveRequest = `movetoworkspace ${originWorkspace},${selector}`;
-            }
+        const address = normaliseAddress(client);
+        if (!address)
+            return;
 
-            const focusRequest = Hypr.usingLua ? `hl.dsp.focus({ window = "${luaEscape(selector)}" })` : `focuswindow ${selector}`;
-            Hypr.extras.batchMessage([`dispatch ${moveRequest}`, `dispatch ${focusRequest}`]);
+        const updated = mruAddresses.filter(a => a !== address);
+        updated.unshift(address);
+        mruAddresses = updated.slice(0, 128);
+    }
+    function screenForActiveMonitor(): string {
+        const monitor = Hypr.focusedMonitor;
+        const screen = Screens.screens.find(s => Hypr.monitorFor(s) === monitor);
+        return screen?.name ?? Screens.screens[0]?.name ?? "";
+    }
+    function selectorFor(client: var): string {
+        const address = normaliseAddress(client);
+        return address ? `address:0x${address}` : "";
+    }
+    function start(direction: int, stayOpen: bool): void {
+        if (switching) {
+            if (stayOpen)
+                sticky = true;
+            step(direction);
             return;
         }
 
-        if (Hypr.usingLua)
-            Hypr.dispatch(`hl.dsp.focus({ window = "${luaEscape(selector)}" })`);
-        else
-            Hypr.dispatch(`focuswindow ${selector}`);
-    }
-
-    function finish(activateSelection: bool): void {
-        if (!switching)
+        const available = orderedClients();
+        if (available.length === 0)
             return;
 
-        const selected = selectedIndex >= 0 && selectedIndex < clients.length ? clients[selectedIndex] : null;
-        switching = false;
-        presented = false;
-        closeTimer.restart();
+        const activeAddress = activeAddressFor(available);
+        const activeIndex = available.findIndex(client => normaliseAddress(client) === activeAddress);
+        closeTimer.stop();
+        clients = available;
+        originWorkspace = currentNormalWorkspace();
+        targetScreen = screenForActiveMonitor();
+        switching = true;
+        sticky = stayOpen;
+        overlayVisible = true;
+        openedAtMs = Date.now();
+        selectedIndex = activeIndex >= 0 ? (activeIndex + direction + available.length) % available.length : direction >= 0 ? 0 : available.length - 1;
 
-        if (activateSelection && selected)
-            activate(selected);
+        Qt.callLater(() => {
+            if (root.switching)
+                root.presented = true;
+        });
     }
+    function step(direction: int): void {
+        if (!switching) {
+            start(direction, false);
+            return;
+        }
+        if (clients.length === 0) {
+            cancel();
+            return;
+        }
 
-    function commit(): void {
-        finish(true);
-    }
-
-    function cancel(): void {
-        finish(false);
+        selectedIndex = (selectedIndex + direction + clients.length) % clients.length;
     }
 
     Component.onCompleted: rememberActive(Hyprland.activeToplevel)
@@ -237,120 +232,140 @@ Scope {
         id: closeTimer
 
         interval: 180
+
         onTriggered: {
             root.overlayVisible = false;
             root.clients = [];
             root.selectedIndex = -1;
         }
     }
-
     Timer {
         id: reconcileTimer
 
         interval: 60
+
         onTriggered: root.reconcileClients()
     }
-
     Connections {
-        target: Hyprland
-
         function onActiveToplevelChanged(): void {
             root.rememberActive(Hyprland.activeToplevel);
         }
-
         function onRawEvent(event: HyprlandEvent): void {
             if (root.switching && ["openwindow", "closewindow", "movewindow", "movewindowv2", "minimize"].includes(event.name))
                 reconcileTimer.restart();
         }
+
+        target: Hyprland
     }
-
     Connections {
-        target: Hypr.toplevels
-
         function onValuesChanged(): void {
             if (root.switching)
                 reconcileTimer.restart();
         }
+
+        target: Hypr.toplevels
     }
 
     // qmllint disable unresolved-type
     CustomShortcut {
+        description: qsTr("Chuyển tới cửa sổ tiếp theo")
         // qmllint enable unresolved-type
         name: "windowSwitcherNext"
-        description: qsTr("Chuyển tới cửa sổ tiếp theo")
-        onPressed: root.start(1)
+
+        onPressed: root.start(1, false)
     }
 
     // qmllint disable unresolved-type
     CustomShortcut {
+        description: qsTr("Chuyển tới cửa sổ trước")
         // qmllint enable unresolved-type
         name: "windowSwitcherPrev"
-        description: qsTr("Chuyển tới cửa sổ trước")
-        onPressed: root.start(-1)
+
+        onPressed: root.start(-1, false)
     }
 
     // qmllint disable unresolved-type
     CustomShortcut {
+        description: qsTr("Mở cửa sổ đã chọn")
         // qmllint enable unresolved-type
         name: "windowSwitcherCommit"
-        description: qsTr("Mở cửa sổ đã chọn")
-        onReleased: root.commit()
+
+        onReleased: root.commitFromModifier()
     }
 
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        description: qsTr("Mở bộ chuyển cửa sổ và giữ lại")
+        // qmllint enable unresolved-type
+        name: "windowSwitcherStickyNext"
+
+        onPressed: root.start(1, true)
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        description: qsTr("Mở bộ chuyển cửa sổ ngược và giữ lại")
+        // qmllint enable unresolved-type
+        name: "windowSwitcherStickyPrev"
+
+        onPressed: root.start(-1, true)
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        description: qsTr("Mở Task View")
+        // qmllint enable unresolved-type
+        name: "windowSwitcherTaskView"
+
+        onPressed: root.start(0, true)
+    }
     IpcHandler {
-        function next(): void {
-            root.start(1);
-        }
-
-        function previous(): void {
-            root.start(-1);
-        }
-
-        function commit(): void {
-            root.commit();
-        }
-
         function cancel(): void {
             root.cancel();
         }
-
+        function commit(): void {
+            root.commit();
+        }
+        function next(): void {
+            root.start(1, false);
+        }
+        function previous(): void {
+            root.start(-1, false);
+        }
         function state(): string {
             return JSON.stringify({
                 switching: root.switching,
                 selectedIndex: root.selectedIndex,
                 selectedAddress: root.normaliseAddress(root.clients[root.selectedIndex]),
-                count: root.clients.length
+                count: root.clients.length,
+                sticky: root.sticky
             });
         }
 
         target: "windowSwitcher"
     }
-
     Variants {
         model: Screens.screens
 
         StyledWindow {
             id: win
 
-            required property ShellScreen modelData
-
-            readonly property real outerMargin: Math.max(20, Math.min(width, height) * 0.035)
-            readonly property real cardWidth: Math.min(320, Math.max(210, width * 0.22))
             readonly property real cardHeight: Math.min(cardWidth * 0.68, height * 0.42)
-
-            screen: modelData
-            name: "window-switcher"
-            visible: root.overlayVisible && root.targetScreen === modelData.name
-            color: "transparent"
+            readonly property real cardWidth: Math.min(320, Math.max(210, width * 0.22))
+            required property ShellScreen modelData
+            readonly property real outerMargin: Math.max(20, Math.min(width, height) * 0.035)
 
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
-            WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: root.switching && visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-            anchors.top: true
+            WlrLayershell.layer: WlrLayer.Overlay
             anchors.bottom: true
             anchors.left: true
             anchors.right: true
+            anchors.top: true
+            color: "transparent"
+            name: "window-switcher"
+            screen: modelData
+            visible: root.overlayVisible && root.targetScreen === modelData.name
 
             onVisibleChanged: {
                 if (visible)
@@ -376,12 +391,17 @@ Scope {
                         if (Date.now() - root.openedAtMs >= 90)
                             root.step(event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1);
                         event.accepted = true;
+                    } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
+                        root.step(-1);
+                        event.accepted = true;
+                    } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) {
+                        root.step(1);
+                        event.accepted = true;
                     }
                 }
-
                 Keys.onReleased: event => {
                     if (event.key === Qt.Key_Alt || event.key === Qt.Key_AltGr) {
-                        root.commit();
+                        root.commitFromModifier();
                         event.accepted = true;
                     }
                 }
@@ -401,30 +421,25 @@ Scope {
                         onTapped: root.cancel()
                     }
                 }
-
                 Rectangle {
                     id: panel
 
                     anchors.centerIn: parent
-
-                    width: Math.min(win.width - win.outerMargin * 2, Math.max(280, root.clients.length * win.cardWidth + Math.max(0, root.clients.length - 1) * Tokens.spacing.medium + Tokens.padding.extraLarge * 2))
-                    height: content.implicitHeight + Tokens.padding.extraLarge * 2
-
-                    color: Colours.tPalette.m3surfaceContainer
-                    radius: Tokens.rounding.extraLarge
-                    border.width: 1
                     border.color: Colours.palette.m3outlineVariant
+                    border.width: 1
                     clip: true
-
+                    color: Colours.tPalette.m3surfaceContainer
+                    height: content.implicitHeight + Tokens.padding.extraLarge * 2
                     opacity: root.presented ? 1 : 0
+                    radius: Tokens.rounding.extraLarge
                     scale: root.presented ? 1 : 0.96
+                    width: Math.min(win.width - win.outerMargin * 2, Math.max(280, root.clients.length * win.cardWidth + Math.max(0, root.clients.length - 1) * Tokens.spacing.medium + Tokens.padding.extraLarge * 2))
 
                     Behavior on opacity {
                         Anim {
                             type: Anim.FastEffects
                         }
                     }
-
                     Behavior on scale {
                         Anim {
                             type: Anim.FastSpatial
@@ -435,78 +450,64 @@ Scope {
                         id: content
 
                         anchors.left: parent.left
+                        anchors.margins: Tokens.padding.extraLarge
                         anchors.right: parent.right
                         anchors.top: parent.top
-                        anchors.margins: Tokens.padding.extraLarge
                         spacing: Tokens.spacing.medium
 
                         StyledText {
-                            width: parent.width
-                            text: qsTr("Chuyển cửa sổ")
+                            elide: Text.ElideRight
                             font: Tokens.font.title.medium
                             horizontalAlignment: Text.AlignHCenter
-                            elide: Text.ElideRight
+                            text: qsTr("Chuyển cửa sổ")
+                            width: parent.width
                         }
-
                         ListView {
                             id: list
 
-                            width: parent.width
-                            height: win.cardHeight
-
-                            orientation: ListView.Horizontal
-                            spacing: Tokens.spacing.medium
                             clip: true
-                            model: win.visible ? root.clients : []
                             currentIndex: root.selectedIndex
+                            height: win.cardHeight
                             highlightFollowsCurrentItem: true
                             highlightMoveDuration: Tokens.anim.durations.expressiveFastSpatial
+                            highlightRangeMode: ListView.ApplyRange
                             highlightResizeDuration: 0
+                            model: win.visible ? root.clients : []
+                            orientation: ListView.Horizontal
                             preferredHighlightBegin: Math.max(0, width / 2 - win.cardWidth / 2)
                             preferredHighlightEnd: Math.min(width, width / 2 + win.cardWidth / 2)
-                            highlightRangeMode: ListView.ApplyRange
-
-                            highlight: Rectangle {
-                                width: win.cardWidth
-                                height: list.height
-                                color: "transparent"
-                                radius: Tokens.rounding.large
-                                border.width: 3
-                                border.color: Colours.palette.m3primary
-                            }
+                            spacing: Tokens.spacing.medium
+                            width: parent.width
 
                             delegate: Item {
                                 id: card
 
-                                required property var modelData
                                 required property int index
-
+                                required property var modelData
                                 readonly property bool selected: index === root.selectedIndex
 
-                                width: win.cardWidth
                                 height: list.height
-                                scale: selected ? 0.97 : 0.93
                                 opacity: selected ? 1 : 0.78
-
-                                Behavior on scale {
-                                    Anim {
-                                        type: Anim.FastSpatial
-                                    }
-                                }
+                                scale: selected ? 0.97 : 0.93
+                                width: win.cardWidth
 
                                 Behavior on opacity {
                                     Anim {
                                         type: Anim.FastEffects
                                     }
                                 }
+                                Behavior on scale {
+                                    Anim {
+                                        type: Anim.FastSpatial
+                                    }
+                                }
 
                                 Rectangle {
                                     anchors.fill: parent
                                     anchors.margins: 5
-
+                                    clip: true
                                     color: card.selected ? Colours.tPalette.m3primaryContainer : Colours.tPalette.m3surfaceContainerHigh
                                     radius: Tokens.rounding.large
-                                    clip: true
 
                                     Behavior on color {
                                         CAnim {}
@@ -515,29 +516,26 @@ Scope {
                                     Rectangle {
                                         id: previewFrame
 
+                                        anchors.bottom: details.top
                                         anchors.left: parent.left
+                                        anchors.margins: Tokens.padding.small
                                         anchors.right: parent.right
                                         anchors.top: parent.top
-                                        anchors.bottom: details.top
-                                        anchors.margins: Tokens.padding.small
-
+                                        clip: true
                                         color: Colours.palette.m3surface
                                         radius: Tokens.rounding.medium
-                                        clip: true
 
                                         ScreencopyView {
                                             id: preview
 
                                             anchors.centerIn: parent
-                                            width: Math.min(parent.width, implicitWidth)
-                                            height: Math.min(parent.height, implicitHeight)
-
                                             captureSource: card.modelData?.wayland ?? null // qmllint disable unresolved-type
-                                            live: false
-                                            constraintSize.width: parent.width
                                             constraintSize.height: parent.height
+                                            constraintSize.width: parent.width
+                                            height: Math.min(parent.height, implicitHeight)
+                                            live: false
+                                            width: Math.min(parent.width, implicitWidth)
                                         }
-
                                         Column {
                                             anchors.centerIn: parent
                                             spacing: Tokens.spacing.extraSmall
@@ -545,28 +543,26 @@ Scope {
 
                                             MaterialIcon {
                                                 anchors.horizontalCenter: parent.horizontalCenter
-                                                text: "web_asset_off"
                                                 color: Colours.palette.m3outline
                                                 fontStyle: Tokens.font.icon.extraLarge
+                                                text: "web_asset_off"
                                             }
-
                                             StyledText {
                                                 anchors.horizontalCenter: parent.horizontalCenter
-                                                width: Math.min(implicitWidth, previewFrame.width - Tokens.padding.large * 2)
-                                                text: qsTr("Không có ảnh xem trước")
                                                 color: Colours.palette.m3outline
-                                                horizontalAlignment: Text.AlignHCenter
                                                 elide: Text.ElideRight
+                                                horizontalAlignment: Text.AlignHCenter
+                                                text: qsTr("Không có ảnh xem trước")
+                                                width: Math.min(implicitWidth, previewFrame.width - Tokens.padding.large * 2)
                                             }
                                         }
                                     }
-
                                     Item {
                                         id: details
 
+                                        anchors.bottom: parent.bottom
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        anchors.bottom: parent.bottom
                                         height: Math.max(icon.height, title.implicitHeight + workspace.implicitHeight) + Tokens.padding.medium * 2
 
                                         IconImage {
@@ -578,36 +574,31 @@ Scope {
                                             implicitSize: 34
                                             source: Icons.getAppIcon(card.modelData?.lastIpcObject.class ?? "", "image-missing")
                                         }
-
                                         StyledText {
                                             id: title
 
                                             anchors.left: icon.right
-                                            anchors.right: parent.right
-                                            anchors.top: parent.top
                                             anchors.leftMargin: Tokens.spacing.medium
+                                            anchors.right: parent.right
                                             anchors.rightMargin: Tokens.padding.medium
+                                            anchors.top: parent.top
                                             anchors.topMargin: Tokens.padding.medium
-
-                                            text: card.modelData?.title ?? qsTr("Cửa sổ không có tiêu đề")
-                                            font: Tokens.font.body.medium
                                             elide: Text.ElideRight
+                                            font: Tokens.font.body.medium
+                                            text: card.modelData?.title ?? qsTr("Cửa sổ không có tiêu đề")
                                         }
-
                                         StyledText {
                                             id: workspace
 
                                             anchors.left: title.left
                                             anchors.right: title.right
                                             anchors.top: title.bottom
-
-                                            text: card.modelData?.workspace?.name === "special:minimized" ? qsTr("Đã thu nhỏ") : qsTr("Không gian %1").arg(card.modelData?.workspace?.name ?? "?")
                                             color: Colours.palette.m3onSurfaceVariant
-                                            font: Tokens.font.label.small
                                             elide: Text.ElideRight
+                                            font: Tokens.font.label.small
+                                            text: card.modelData?.workspace?.name === "special:minimized" ? qsTr("Đã thu nhỏ") : qsTr("Không gian %1").arg(card.modelData?.workspace?.name ?? "?")
                                         }
                                     }
-
                                     TapHandler {
                                         onTapped: {
                                             root.selectedIndex = card.index;
@@ -616,15 +607,22 @@ Scope {
                                     }
                                 }
                             }
+                            highlight: Rectangle {
+                                border.color: Colours.palette.m3primary
+                                border.width: 3
+                                color: "transparent"
+                                height: list.height
+                                radius: Tokens.rounding.large
+                                width: win.cardWidth
+                            }
                         }
-
                         StyledText {
-                            width: parent.width
-                            text: qsTr("Giữ Alt và nhấn Tab để chọn • Thả Alt để mở • Esc để hủy")
                             color: Colours.palette.m3onSurfaceVariant
+                            elide: Text.ElideRight
                             font: Tokens.font.label.medium
                             horizontalAlignment: Text.AlignHCenter
-                            elide: Text.ElideRight
+                            text: root.sticky ? qsTr("Tab/phím mũi tên để chọn • Enter để mở • Esc để hủy") : qsTr("Giữ Alt và nhấn Tab để chọn • Thả Alt để mở • Esc để hủy")
+                            width: parent.width
                         }
                     }
                 }

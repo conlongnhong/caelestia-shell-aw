@@ -11,11 +11,13 @@ import qs.services
 Item {
     id: root
 
-    property alias source: img.source
+    property string source
     property alias text: label.text
     property alias radius: imgWrapper.radius
     property alias imgHeight: imgWrapper.implicitHeight
     property bool fillLabel: true
+    readonly property bool sourceIsVideo: Wallpapers.isVideo(source)
+    readonly property url previewSource: Wallpapers.getPreviewSource(source, Wallpapers.itemBusters[source] || Wallpapers.cacheBuster)
 
     signal clicked
 
@@ -40,7 +42,7 @@ Item {
                 anchors.centerIn: parent
 
                 opacity: img.status === Image.Ready ? 0 : 1
-                active: opacity > 0
+                active: opacity > 0 && !(root.sourceIsVideo && img.status === Image.Error)
 
                 sourceComponent: StyledRect {
                     implicitWidth: loadingIndicator.implicitSize + Tokens.padding.large * 2
@@ -71,6 +73,7 @@ Item {
                 anchors.fill: parent
                 asynchronous: true
                 fillMode: Image.PreserveAspectCrop
+                source: root.previewSource
                 sourceSize: {
                     const dpr = (QsWindow.window as QsWindow)?.devicePixelRatio ?? 1;
                     return Qt.size(width * dpr, height * dpr);
@@ -83,6 +86,14 @@ Item {
                         type: Anim.SlowEffects
                     }
                 }
+            }
+
+            MaterialIcon {
+                anchors.centerIn: parent
+                visible: root.sourceIsVideo && img.status === Image.Error
+                text: "movie"
+                color: Colours.palette.m3outline
+                fontStyle: Tokens.font.icon.builders.extraLarge.scale(1.5).build()
             }
         }
 

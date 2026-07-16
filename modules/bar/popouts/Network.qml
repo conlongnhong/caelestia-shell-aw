@@ -235,7 +235,7 @@ ColumnLayout {
         Layout.preferredHeight: visible ? implicitHeight : 0
         Layout.topMargin: visible ? Tokens.spacing.small : 0
         Layout.rightMargin: Tokens.padding.extraSmall
-        text: qsTr("Có %1 thiết bị khả dụng").arg(Nmcli.ethernetDevices.length)
+        text: qsTr("Có %1 thiết bị khả dụng").arg([...Nmcli.ethernetDevices].length)
         color: Colours.palette.m3onSurfaceVariant
         font: Tokens.font.body.small
     }

@@ -13,6 +13,8 @@ LazyLoader {
     property string filterLabel: qsTr("Tất cả tệp")
     property list<string> filters: ["*"]
     property string title: qsTr("Chọn tệp")
+    property ShellScreen targetScreen
+    property var parentWindow
 
     signal accepted(path: string)
     signal rejected
@@ -37,7 +39,7 @@ LazyLoader {
 
         readonly property bool selectionValid: {
             const file = folderContents.currentItem?.modelData;
-            return (file && !file.isDir && (filters.includes("*") || filters.includes(file.suffix))) ?? false;
+            return (file && !file.isDir && (filters.includes("*") || filters.includes(file.suffix.toLowerCase()))) ?? false;
         }
 
         function accepted(path: string): void {
@@ -62,6 +64,9 @@ LazyLoader {
             };
             return names[name] ?? name;
         }
+
+        screen: loader.targetScreen ?? ShellState.forActive()?.modelData ?? Quickshell.screens[0]
+        parentWindow: loader.parentWindow
 
         implicitWidth: 1000
         implicitHeight: 600

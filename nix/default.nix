@@ -22,6 +22,7 @@
   aubio,
   libcava,
   fftw,
+  ffmpeg,
   pipewire,
   xkeyboard-config,
   cmake,
@@ -46,6 +47,7 @@
       wl-clipboard
       libqalculate
       bash
+      ffmpeg
       hyprland
     ]
     ++ extraRuntimeDeps
@@ -134,7 +136,7 @@ in
     src = ./..;
 
     nativeBuildInputs = [cmake ninja makeWrapper qt6.wrapQtAppsHook];
-    buildInputs = [quickshell extras plugin m3shapesModule xkeyboard-config qt6.qtbase];
+    buildInputs = [quickshell extras plugin m3shapesModule xkeyboard-config qt6.qtbase qt6.qtmultimedia];
     propagatedBuildInputs = runtimeDeps;
 
     cmakeFlags =
@@ -171,7 +173,7 @@ in
 
     meta = {
       description = "A very segsy desktop shell";
-      homepage = "https://github.com/caelestia-dots/shell";
+      homepage = "https://github.com/conlongnhong/caelestia-shell-aw";
       license = lib.licenses.gpl3Only;
       mainProgram = "caelestia-shell";
     };

@@ -52,6 +52,7 @@ GlobalConfig::GlobalConfig(QObject* parent)
     , m_winfo(new WInfoConfig(this))
     , m_paths(new UserPaths(this)) {
     setupFileBackend(configDir() + QStringLiteral("shell.json"));
+    setDefaults(defaults());
 }
 
 GlobalConfig::GlobalConfig(GlobalConfig* fallback, const QString& filePath, const QString& screen, QObject* parent)
@@ -73,10 +74,10 @@ GlobalConfig::GlobalConfig(GlobalConfig* fallback, const QString& filePath, cons
     , m_utilities(new UtilitiesConfig(this))
     , m_winfo(new WInfoConfig(this))
     , m_paths(new UserPaths(this)) {
-    if (!filePath.isEmpty())
-        setupFileBackend(filePath, screen);
     if (fallback)
         syncFromGlobal(fallback);
+    if (!filePath.isEmpty())
+        setupFileBackend(filePath, screen);
 
     // Bind appearance computed properties to token base values
     bindAppearanceTokens();

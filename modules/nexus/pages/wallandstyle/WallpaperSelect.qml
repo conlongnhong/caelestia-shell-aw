@@ -43,9 +43,11 @@ PageBase {
                 FileDialog {
                     id: browseDialog
 
-                    title: qsTr("Chọn hình ảnh")
-                    filterLabel: qsTr("Tệp hình ảnh")
-                    filters: Images.validImageExtensions
+                    targetScreen: root.nState.screen
+                    parentWindow: root.nState.isWindow ? root.QsWindow.window : null
+                    title: qsTr("Chọn hình nền")
+                    filterLabel: qsTr("Tệp hình nền")
+                    filters: Images.validImageExtensions.concat(Wallpapers.validVideoExtensions)
                     onAccepted: path => {
                         Wallpapers.setWallpaper(path);
                         root.nState.closeSubPage();
@@ -99,7 +101,7 @@ PageBase {
                 id: localWalls
 
                 model: {
-                    const walls = Wallpapers.list;
+                    const walls = Wallpapers.allWallpapers;
                     const baseDir = Paths.wallsdir;
                     const categories = {};
                     const list = [];

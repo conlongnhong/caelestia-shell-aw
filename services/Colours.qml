@@ -83,6 +83,11 @@ Singleton {
     }
 
     function reloadHyprRules(): void {
+        if (!Hypr.providerReady) {
+            root.cooldownPending = true;
+            return;
+        }
+
         let rule, trEnabled;
         if (Hypr.usingLua) {
             rule = `eval hl.layer_rule({ match = { namespace = "caelestia-drawers" }, %1 = %2 })`;
@@ -95,9 +100,15 @@ Singleton {
     }
 
     function requestReloadHyprRules(): void {
+        if (!Hypr.providerReady) {
+            root.cooldownPending = true;
+            return;
+        }
+
         if (cooldownTimer.running) {
             root.cooldownPending = true;
         } else {
+            root.cooldownPending = false;
             root.reloadHyprRules();
             cooldownTimer.restart();
         }
@@ -107,7 +118,12 @@ Singleton {
 
     Connections {
         function onConfigReloaded(): void {
-            root.reloadHyprRules();
+            root.requestReloadHyprRules();
+        }
+
+        function onProviderReadyChanged(): void {
+            if (Hypr.providerReady)
+                root.requestReloadHyprRules();
         }
 
         target: Hypr
@@ -132,6 +148,9 @@ Singleton {
         interval: 30
         onTriggered: {
             if (root.cooldownPending) {
+                if (!Hypr.providerReady)
+                    return;
+
                 root.cooldownPending = false;
                 root.reloadHyprRules();
                 restart();

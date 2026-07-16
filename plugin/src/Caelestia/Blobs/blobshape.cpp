@@ -197,7 +197,7 @@ void BlobShape::updatePolish() {
 
             const QMatrix4x4& dm = other->m_deformMatrix;
             const float a = dm(0, 0), b = dm(1, 0);
-            const float c = dm(0, 1), d = dm(1, 1);
+            const float c = dm(0, 1), matrixD = dm(1, 1);
 
             BlobRectData r;
             r.cx = static_cast<float>(otherScene.x() + other->width() / 2.0);
@@ -209,21 +209,21 @@ void BlobShape::updatePolish() {
             r.offsetY = dm(1, 3);
 
             // Pre-compute inverse deformation matrix
-            const float det = a * d - c * b;
+            const float det = a * matrixD - c * b;
             const float invDet = std::abs(det) > 1e-6f ? 1.0f / det : 1.0f;
-            r.invDeform[0] = d * invDet;
+            r.invDeform[0] = matrixD * invDet;
             r.invDeform[1] = -b * invDet;
             r.invDeform[2] = -c * invDet;
             r.invDeform[3] = a * invDet;
 
             // Pre-compute minimum eigenvalue (avoids per-pixel sqrt)
-            const float halfTr = 0.5f * (a + d);
-            const float halfDiff = 0.5f * (a - d);
+            const float halfTr = 0.5f * (a + matrixD);
+            const float halfDiff = 0.5f * (a - matrixD);
             r.minEig = halfTr - std::sqrt(halfDiff * halfDiff + c * c);
 
             // Pre-compute screen-space AABB half-extents
             r.screenHalfX = std::abs(a) * r.hw + std::abs(c) * r.hh;
-            r.screenHalfY = std::abs(b) * r.hw + std::abs(d) * r.hh;
+            r.screenHalfY = std::abs(b) * r.hw + std::abs(matrixD) * r.hh;
 
             m_cachedRects.append(r);
             rectShapes.append(other);

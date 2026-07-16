@@ -13,6 +13,7 @@ Item {
 
     required property ScreenState screenState
     readonly property FileDialog facePicker: FileDialog {
+        targetScreen: root.screenState.modelData
         title: qsTr("Chọn ảnh đại diện")
         filterLabel: qsTr("Tệp hình ảnh")
         filters: Images.validImageExtensions

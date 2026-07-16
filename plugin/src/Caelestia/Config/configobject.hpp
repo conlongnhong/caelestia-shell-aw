@@ -3,6 +3,7 @@
 #include <qjsonobject.h>
 #include <qloggingcategory.h>
 #include <qmap.h>
+#include <qmetaobject.h>
 #include <qobject.h>
 #include <qqmlintegration.h>
 #include <qset.h>
@@ -30,9 +31,12 @@ public:                                                                         
     }                                                                                                                  \
     void set_##name(const Type& val) {                                                                                 \
         if (caelestia::config::ConfigObject::updateMember(m_##name, val)) {                                            \
-            markPropertyLoaded(QStringLiteral(#name));                                                                 \
+            const bool inherited = isApplyingInheritedValue();                                                        \
+            if (!inherited)                                                                                            \
+                markPropertyLoaded(QStringLiteral(#name));                                                             \
             Q_EMIT name##Changed();                                                                                    \
-            notifyPropertyChanged(QStringLiteral(#name), QVariant::fromValue(m_##name));                               \
+            if (!inherited)                                                                                            \
+                notifyPropertyChanged(QStringLiteral(#name), QVariant::fromValue(m_##name));                           \
         }                                                                                                              \
     }                                                                                                                  \
     Q_SIGNAL void name##Changed();                                                                                     \
@@ -52,25 +56,27 @@ public:                                                                         
 private:                                                                                                               \
     Type* m_##name = nullptr;
 
-// Like CONFIG_PROPERTY but warns on read/write when accessed on a per-monitor overlay.
+// Like CONFIG_PROPERTY but rejects direct writes on a per-monitor overlay.
 #define CONFIG_GLOBAL_PROPERTY(Type, name, ...)                                                                        \
     Q_PROPERTY(Type name READ name WRITE set_##name NOTIFY name##Changed)                                              \
                                                                                                                        \
 public:                                                                                                                \
     [[nodiscard]] Type name() const {                                                                                  \
-        if (isOverlay())                                                                                               \
-            qCWarning(caelestia::config::lcConfig, "Reading global-only option '%s' on per-monitor overlay",           \
-                qUtf8Printable(propertyPath(QStringLiteral(#name))));                                                  \
         return m_##name;                                                                                               \
     }                                                                                                                  \
     void set_##name(const Type& val) {                                                                                 \
-        if (isOverlay())                                                                                               \
+        if (isOverlay() && !isApplyingInheritedValue()) {                                                             \
             qCWarning(caelestia::config::lcConfig, "Writing global-only option '%s' on per-monitor overlay",           \
                 qUtf8Printable(propertyPath(QStringLiteral(#name))));                                                  \
+            return;                                                                                                    \
+        }                                                                                                              \
         if (caelestia::config::ConfigObject::updateMember(m_##name, val)) {                                            \
-            markPropertyLoaded(QStringLiteral(#name));                                                                 \
+            const bool inherited = isApplyingInheritedValue();                                                        \
+            if (!inherited)                                                                                            \
+                markPropertyLoaded(QStringLiteral(#name));                                                             \
             Q_EMIT name##Changed();                                                                                    \
-            notifyPropertyChanged(QStringLiteral(#name), QVariant::fromValue(m_##name));                               \
+            if (!inherited)                                                                                            \
+                notifyPropertyChanged(QStringLiteral(#name), QVariant::fromValue(m_##name));                           \
         }                                                                                                              \
     }                                                                                                                  \
     Q_SIGNAL void name##Changed();                                                                                     \
@@ -92,6 +98,7 @@ class ConfigObject : public QObject {
 public:
     explicit ConfigObject(QObject* parent = nullptr);
 
+    [[nodiscard]] QString validateJson(const QJsonObject& obj) const;
     void loadFromJson(const QJsonObject& obj);
     [[nodiscard]] QJsonObject toJsonObject() const;
 
@@ -99,6 +106,9 @@ public:
     void syncFromGlobal(ConfigObject* global);
     void resyncFromGlobal();
     void clearLoadedKeys();
+    void setDefaultSource(ConfigObject* defaults);
+    void restoreUnloadedValues();
+    void flushPendingChanges();
 
     [[nodiscard]] bool isPropertyLoaded(const QString& name) const;
     [[nodiscard]] QString propertyPath(const QString& name) const;
@@ -109,6 +119,7 @@ public:
     // this instead of metaObject()->propertyOffset(), which excludes inherited properties.
     [[nodiscard]] static int basePropertyOffset();
     [[nodiscard]] bool isOverlay() const;
+    [[nodiscard]] bool isApplyingInheritedValue() const;
     // Returns true only on overlays — global singleton always returns false.
     [[nodiscard]] bool isGlobalOnly(const QString& name) const;
 
@@ -135,11 +146,14 @@ protected:
     void notifyPropertyChanged(const QString& name, const QVariant& value);
 
 private:
+    bool writeInheritedProperty(const QMetaProperty& property, const QVariant& value);
     void onGlobalPropertiesChanged(const QMap<QString, QVariant>& changed);
     void emitBatchedChanges();
 
     // Per-monitor overlay state
     ConfigObject* m_global = nullptr;
+    ConfigObject* m_defaults = nullptr;
+    bool m_applyingInheritedValue = false;
     QSet<QString> m_loadedKeys;
     QSet<QString> m_globalOnlyKeys;
     QMap<QString, QVariant> m_pendingChanges;

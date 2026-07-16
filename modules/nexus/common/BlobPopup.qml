@@ -98,7 +98,8 @@ Item {
             }
         }
 
-        MouseArea { // MouseArea to catch inputs
+        MouseArea {
+            // MouseArea to catch inputs
             anchors.fill: parent
             clip: true
             children: [root.content]

@@ -5,11 +5,95 @@
 #include <qjsonarray.h>
 #include <qlocalsocket.h>
 #include <qloggingcategory.h>
+#include <qregularexpression.h>
+#include <qtimer.h>
 #include <qvariant.h>
+
+#include <cmath>
+#include <optional>
 
 Q_LOGGING_CATEGORY(lcHypr, "caelestia.internal.hypr", QtInfoMsg)
 
 namespace caelestia::internal::hypr {
+
+namespace {
+
+const QRegularExpression optionKeyPattern(
+    QStringLiteral(R"(^[A-Za-z0-9_.-]+(?::[A-Za-z0-9_.-]+)*$)"));
+const QRegularExpression numericTuplePattern(QStringLiteral(R"(^-?[0-9]+(?:\s+-?[0-9]+){0,3}$)"));
+
+QString cssGapsLuaTable(const QString& tuple) {
+    const auto values = tuple.split(QLatin1Char(' '));
+    QString top;
+    QString right;
+    QString bottom;
+    QString left;
+
+    switch (values.size()) {
+    case 1:
+        top = right = bottom = left = values.at(0);
+        break;
+    case 2:
+        top = bottom = values.at(0);
+        right = left = values.at(1);
+        break;
+    case 3:
+        top = values.at(0);
+        right = left = values.at(1);
+        bottom = values.at(2);
+        break;
+    case 4:
+        top = values.at(0);
+        right = values.at(1);
+        bottom = values.at(2);
+        left = values.at(3);
+        break;
+    default:
+        return {};
+    }
+
+    return QStringLiteral("{ top = %1, right = %2, bottom = %3, left = %4 }")
+        .arg(top, right, bottom, left);
+}
+
+std::optional<QString> optionLiteral(const QVariant& value, bool usingLua) {
+    switch (value.metaType().id()) {
+    case QMetaType::Bool:
+        return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
+    case QMetaType::Char:
+    case QMetaType::SChar:
+    case QMetaType::Short:
+    case QMetaType::Int:
+    case QMetaType::Long:
+    case QMetaType::LongLong:
+        return QString::number(value.toLongLong());
+    case QMetaType::UChar:
+    case QMetaType::UShort:
+    case QMetaType::UInt:
+    case QMetaType::ULong:
+    case QMetaType::ULongLong:
+        return QString::number(value.toULongLong());
+    case QMetaType::Float:
+    case QMetaType::Double: {
+        const auto number = value.toDouble();
+        if (!std::isfinite(number))
+            return std::nullopt;
+        return QString::number(number, 'g', 17);
+    }
+    case QMetaType::QString: {
+        // Hyprland exposes custom gap values as one-to-four space-separated integers.
+        // This deliberately rejects arbitrary strings so QML cannot inject socket commands or Lua.
+        const auto tuple = value.toString().simplified();
+        if (!numericTuplePattern.match(tuple).hasMatch())
+            return std::nullopt;
+        return usingLua ? cssGapsLuaTable(tuple) : tuple;
+    }
+    default:
+        return std::nullopt;
+    }
+}
+
+} // namespace
 
 HyprExtras::HyprExtras(QObject* parent)
     : QObject(parent)
@@ -90,15 +174,33 @@ void HyprExtras::applyOptions(const QVariantHash& options) {
     request.reserve(12 + options.size() * 40);
     request += QLatin1String("[[BATCH]]");
     for (auto it = options.constBegin(); it != options.constEnd(); ++it) {
+        if (!optionKeyPattern.match(it.key()).hasMatch()) {
+            qCWarning(lcHypr) << "applyOptions: rejected invalid option key:" << it.key();
+            continue;
+        }
+        if (it.value().metaType().id() == QMetaType::QString && it.key() != QLatin1String("general:gaps_in") &&
+            it.key() != QLatin1String("general:gaps_out")) {
+            qCWarning(lcHypr) << "applyOptions: string values are only supported for CSS gap options";
+            continue;
+        }
+
+        const auto literal = optionLiteral(it.value(), m_usingLua);
+        if (!literal) {
+            qCWarning(lcHypr) << "applyOptions: rejected unsafe value for" << it.key();
+            continue;
+        }
+
         if (!m_usingLua) {
-            request +=
-                QLatin1String("keyword ") + it.key() + QLatin1Char(' ') + it.value().toString() + QLatin1Char(';');
+            request += QLatin1String("keyword ") + it.key() + QLatin1Char(' ') + *literal + QLatin1Char(';');
         } else {
             auto parts = it.key().split(':');
-            request += "eval hl.config({ " + parts.join(" = { ") + " = " + it.value().toString() +
+            request += "eval hl.config({ " + parts.join(" = { ") + " = " + *literal +
                        QString(" }").repeated(parts.size() - 1) + " });";
         }
     }
+
+    if (request == QLatin1String("[[BATCH]]"))
+        return;
 
     makeRequest(request, [this](bool success, const QByteArray& res) {
         if (success) {
@@ -110,11 +212,16 @@ void HyprExtras::applyOptions(const QVariantHash& options) {
 }
 
 void HyprExtras::refreshOptions() {
+    const auto generation = ++m_optionsRefreshGeneration;
     if (!m_optionsRefresh.isNull()) {
-        m_optionsRefresh->close();
+        m_optionsRefresh->abort();
     }
 
-    m_optionsRefresh = makeRequestJson("descriptions", [this](bool success, const QJsonDocument& response) {
+    m_optionsRefresh = makeRequestJson("descriptions", [this, generation](bool success, const QJsonDocument& response) {
+        if (generation != m_optionsRefreshGeneration) {
+            return;
+        }
+
         m_optionsRefresh.reset();
         if (!success) {
             return;
@@ -140,11 +247,16 @@ void HyprExtras::refreshOptions() {
 }
 
 void HyprExtras::refreshDevices() {
+    const auto generation = ++m_devicesRefreshGeneration;
     if (!m_devicesRefresh.isNull()) {
-        m_devicesRefresh->close();
+        m_devicesRefresh->abort();
     }
 
-    m_devicesRefresh = makeRequestJson("devices", [this](bool success, const QJsonDocument& response) {
+    m_devicesRefresh = makeRequestJson("devices", [this, generation](bool success, const QJsonDocument& response) {
+        if (generation != m_devicesRefreshGeneration) {
+            return;
+        }
+
         m_devicesRefresh.reset();
         if (success) {
             m_devices->updateLastIpcObject(response.object());
@@ -190,8 +302,21 @@ void HyprExtras::handleEvent(const QString& event) {
 
 HyprExtras::SocketPtr HyprExtras::makeRequestJson(
     const QString& request, const std::function<void(bool, QJsonDocument)>& callback) {
-    return makeRequest("j/" + request, [callback](bool success, const QByteArray& response) {
-        callback(success, QJsonDocument::fromJson(response));
+    return makeRequest("j/" + request, [request, callback](bool success, const QByteArray& response) {
+        if (!success) {
+            callback(false, {});
+            return;
+        }
+
+        QJsonParseError error{};
+        auto document = QJsonDocument::fromJson(response, &error);
+        if (error.error != QJsonParseError::NoError || document.isNull()) {
+            qCWarning(lcHypr) << "makeRequestJson: invalid response for" << request << ':' << error.errorString();
+            callback(false, {});
+            return;
+        }
+
+        callback(true, std::move(document));
     });
 }
 
@@ -201,25 +326,60 @@ HyprExtras::SocketPtr HyprExtras::makeRequest(
         return SocketPtr();
     }
 
-    auto socket = SocketPtr::create(this);
+    // SocketPtr is the sole owner. Signal handlers keep fire-and-forget requests alive;
+    // complete() disconnects them and the timer to break those reference cycles.
+    auto socket = SocketPtr::create();
+    auto completed = QSharedPointer<bool>::create(false);
+    auto response = QSharedPointer<QByteArray>::create();
+    auto completionTimer = QSharedPointer<QTimer>::create();
+    completionTimer->setSingleShot(true);
 
-    QObject::connect(socket.data(), &QLocalSocket::connected, this, [=, this]() {
-        QObject::connect(socket.data(), &QLocalSocket::readyRead, this, [socket, callback]() {
-            const auto response = socket->readAll();
-            callback(true, std::move(response));
-            socket->close();
-        });
+    const auto complete = [socket, completionTimer, completed, callback](bool success, QByteArray responseData) {
+        if (*completed) {
+            return;
+        }
 
+        *completed = true;
+        QObject::disconnect(socket.data(), nullptr, nullptr, nullptr);
+        QObject::disconnect(completionTimer.data(), nullptr, nullptr, nullptr);
+        completionTimer->stop();
+        socket->abort();
+        callback(success, std::move(responseData));
+    };
+
+    QObject::connect(completionTimer.data(), &QTimer::timeout, this, [request, response, complete]() {
+        if (response->isEmpty())
+            qCWarning(lcHypr) << "makeRequest: timed out waiting for response | request:" << request;
+        complete(!response->isEmpty(), std::move(*response));
+    });
+
+    QObject::connect(socket.data(), &QLocalSocket::connected, this, [socket, request]() {
         socket->write(request.toUtf8());
         socket->flush();
     });
 
-    QObject::connect(socket.data(), &QLocalSocket::errorOccurred, this, [=](QLocalSocket::LocalSocketError err) {
-        qCWarning(lcHypr) << "makeRequest: error making request:" << err << "| request:" << request;
-        callback(false, {});
-        socket->close();
+    QObject::connect(socket.data(), &QLocalSocket::readyRead, this, [socket, response, completionTimer]() {
+        response->append(socket->readAll());
+        // Hyprland normally closes the request socket after replying. The short
+        // quiescence fallback also supports providers that leave it connected,
+        // while allowing split local-socket writes to be accumulated first.
+        completionTimer->start(50);
     });
 
+    QObject::connect(socket.data(), &QLocalSocket::disconnected, this, [socket, response, complete]() {
+        response->append(socket->readAll());
+        complete(!response->isEmpty(), std::move(*response));
+    });
+
+    QObject::connect(
+        socket.data(), &QLocalSocket::errorOccurred, this, [request, complete](QLocalSocket::LocalSocketError err) {
+            qCWarning(lcHypr) << "makeRequest: error making request:" << err << "| request:" << request;
+            complete(false, {});
+        });
+
+    // Bound fire-and-forget requests even if a provider neither replies nor
+    // disconnects. readyRead switches this timer to the 50 ms settle window.
+    completionTimer->start(2000);
     socket->connectToServer(m_requestSocket);
 
     return socket;

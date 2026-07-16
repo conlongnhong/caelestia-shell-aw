@@ -1,13 +1,106 @@
 #include "configobject.hpp"
 
+#include <cmath>
+#include <limits>
 #include <qjsonarray.h>
 #include <qjsonvalue.h>
+#include <qlist.h>
 #include <qloggingcategory.h>
 #include <qmetaobject.h>
+#include <qscopedvaluerollback.h>
 #include <qstringlist.h>
 #include <qvariant.h>
 
 namespace caelestia::config {
+
+namespace {
+
+bool convertJsonValue(const QMetaType& type, const QJsonValue& jsonValue, QVariant& value) {
+    const auto typeId = type.id();
+
+    if (typeId == QMetaType::QStringList) {
+        if (!jsonValue.isArray())
+            return false;
+
+        QStringList list;
+        const auto array = jsonValue.toArray();
+        list.reserve(array.size());
+        for (const auto& item : array) {
+            if (!item.isString())
+                return false;
+            list.append(item.toString());
+        }
+        value = list;
+        return true;
+    }
+
+    if (typeId == QMetaType::fromType<QList<qreal>>().id()) {
+        if (!jsonValue.isArray())
+            return false;
+
+        QList<qreal> list;
+        const auto array = jsonValue.toArray();
+        list.reserve(array.size());
+        for (const auto& item : array) {
+            const auto number = item.toDouble(std::numeric_limits<double>::quiet_NaN());
+            if (!item.isDouble() || !std::isfinite(number))
+                return false;
+            list.append(number);
+        }
+        value = QVariant::fromValue(list);
+        return true;
+    }
+
+    switch (typeId) {
+    case QMetaType::Bool:
+        if (!jsonValue.isBool())
+            return false;
+        value = jsonValue.toBool();
+        return true;
+    case QMetaType::Int: {
+        const auto number = jsonValue.toDouble(std::numeric_limits<double>::quiet_NaN());
+        if (!jsonValue.isDouble() || !std::isfinite(number) || std::floor(number) < number
+            || number < std::numeric_limits<int>::min() || number > std::numeric_limits<int>::max())
+            return false;
+        value = static_cast<int>(number);
+        return true;
+    }
+    case QMetaType::Double: {
+        const auto number = jsonValue.toDouble(std::numeric_limits<double>::quiet_NaN());
+        if (!jsonValue.isDouble() || !std::isfinite(number))
+            return false;
+        value = number;
+        return true;
+    }
+    case QMetaType::Float: {
+        const auto number = jsonValue.toDouble(std::numeric_limits<double>::quiet_NaN());
+        if (!jsonValue.isDouble() || !std::isfinite(number)
+            || std::abs(number) > static_cast<double>(std::numeric_limits<float>::max()))
+            return false;
+        value = static_cast<float>(number);
+        return true;
+    }
+    case QMetaType::QString:
+        if (!jsonValue.isString())
+            return false;
+        value = jsonValue.toString();
+        return true;
+    case QMetaType::QVariantList:
+        if (!jsonValue.isArray())
+            return false;
+        value = jsonValue.toArray().toVariantList();
+        return true;
+    case QMetaType::QVariantMap:
+        if (!jsonValue.isObject())
+            return false;
+        value = jsonValue.toObject().toVariantMap();
+        return true;
+    default:
+        return false;
+    }
+}
+
+} // namespace
 
 Q_LOGGING_CATEGORY(lcConfig, "caelestia.config", QtInfoMsg)
 
@@ -15,6 +108,40 @@ Q_LOGGING_CATEGORY(lcConfig, "caelestia.config", QtInfoMsg)
 
 ConfigObject::ConfigObject(QObject* parent)
     : QObject(parent) {}
+
+QString ConfigObject::validateJson(const QJsonObject& obj) const {
+    const auto* meta = metaObject();
+
+    for (int i = basePropertyOffset(); i < meta->propertyCount(); ++i) {
+        const auto prop = meta->property(i);
+        const auto key = QString::fromUtf8(prop.name());
+
+        if (!obj.contains(key) || isGlobalOnly(key))
+            continue;
+
+        const auto jsonValue = obj.value(key);
+        auto* const subObj = prop.read(this).value<ConfigObject*>();
+        if (subObj) {
+            if (!jsonValue.isObject())
+                return QStringLiteral("Option '%1' must be a JSON object").arg(propertyPath(key));
+            const auto error = subObj->validateJson(jsonValue.toObject());
+            if (!error.isEmpty())
+                return error;
+            continue;
+        }
+
+        if (!prop.isWritable())
+            continue;
+
+        QVariant value;
+        if (!convertJsonValue(prop.metaType(), jsonValue, value)) {
+            return QStringLiteral("Invalid value for option '%1' (expected %2)")
+                .arg(propertyPath(key), QString::fromUtf8(prop.metaType().name()));
+        }
+    }
+
+    return {};
+}
 
 void ConfigObject::loadFromJson(const QJsonObject& obj) {
     const auto* meta = metaObject();
@@ -29,9 +156,11 @@ void ConfigObject::loadFromJson(const QJsonObject& obj) {
         if (!obj.contains(key))
             continue;
 
-        if (isGlobalOnly(key))
+        if (isGlobalOnly(key)) {
             qCWarning(lcConfig, "Option '%s' is global-only and will be ignored in per-monitor config",
                 qUtf8Printable(propertyPath(key)));
+            continue;
+        }
 
         const auto jsonVal = obj.value(key);
 
@@ -40,6 +169,10 @@ void ConfigObject::loadFromJson(const QJsonObject& obj) {
         auto* subObj = current.value<ConfigObject*>();
 
         if (subObj) {
+            if (!jsonVal.isObject()) {
+                qCWarning(lcConfig, "Option '%s' must be a JSON object", qUtf8Printable(propertyPath(key)));
+                continue;
+            }
             qCDebug(lcConfig) << "  Recursing into sub-object" << key;
             subObj->loadFromJson(jsonVal.toObject());
             continue;
@@ -49,22 +182,14 @@ void ConfigObject::loadFromJson(const QJsonObject& obj) {
         if (!prop.isWritable())
             continue;
 
-        // Handle QStringList explicitly (QJsonArray → QStringList needs manual conversion)
-        if (prop.metaType().id() == QMetaType::QStringList) {
-            QStringList list;
-            const auto jsonArr = jsonVal.toArray();
-            for (const auto& v : jsonArr)
-                list.append(v.toString());
-            prop.write(this, QVariant::fromValue(list));
-            m_loadedKeys.insert(key);
-            qCDebug(lcConfig) << "  Loaded" << key << "=" << list;
+        QVariant value;
+        if (!convertJsonValue(prop.metaType(), jsonVal, value) || !prop.write(this, value)) {
+            qCWarning(lcConfig, "Invalid value for option '%s' (expected %s)", qUtf8Printable(propertyPath(key)),
+                prop.metaType().name());
             continue;
         }
-
-        // For all other types, let Qt's variant conversion handle it
-        prop.write(this, jsonVal.toVariant());
         m_loadedKeys.insert(key);
-        qCDebug(lcConfig) << "  Loaded" << key << "=" << jsonVal.toVariant();
+        qCDebug(lcConfig) << "  Loaded" << key << "=" << value;
     }
 }
 
@@ -117,6 +242,20 @@ QJsonObject ConfigObject::toJsonObject() const {
             continue;
         }
 
+        if (prop.metaType().id() == QMetaType::QVariantMap) {
+            obj.insert(key, QJsonObject::fromVariantMap(value.toMap()));
+            continue;
+        }
+
+        if (prop.metaType().id() == QMetaType::fromType<QList<qreal>>().id()) {
+            QJsonArray arr;
+            const auto numbers = value.value<QList<qreal>>();
+            for (const auto number : numbers)
+                arr.append(number);
+            obj.insert(key, arr);
+            continue;
+        }
+
         obj.insert(key, QJsonValue::fromVariant(value));
     }
 
@@ -129,13 +268,68 @@ void ConfigObject::clearLoadedKeys() {
     const auto* meta = metaObject();
     for (int i = basePropertyOffset(); i < meta->propertyCount(); ++i) {
         auto prop = meta->property(i);
-        if (isGlobalOnly(QString::fromUtf8(prop.name())))
-            continue;
         auto value = prop.read(this);
         auto* subObj = value.value<ConfigObject*>();
         if (subObj)
             subObj->clearLoadedKeys();
     }
+}
+
+void ConfigObject::setDefaultSource(ConfigObject* defaults) {
+    m_defaults = defaults;
+    if (!defaults)
+        return;
+
+    const auto* meta = metaObject();
+    for (int i = basePropertyOffset(); i < meta->propertyCount(); ++i) {
+        const auto prop = meta->property(i);
+        auto* subObj = prop.read(this).value<ConfigObject*>();
+        auto* defaultSubObj = prop.read(defaults).value<ConfigObject*>();
+        if (subObj && defaultSubObj)
+            subObj->setDefaultSource(defaultSubObj);
+    }
+}
+
+void ConfigObject::restoreUnloadedValues() {
+    auto* const fallback = m_global ? m_global : m_defaults;
+
+    const auto* meta = metaObject();
+    for (int i = basePropertyOffset(); i < meta->propertyCount(); ++i) {
+        const auto prop = meta->property(i);
+        const auto key = QString::fromUtf8(prop.name());
+        auto* subObj = prop.read(this).value<ConfigObject*>();
+
+        if (subObj) {
+            subObj->restoreUnloadedValues();
+            continue;
+        }
+
+        if (!fallback || !prop.isWritable() || m_loadedKeys.contains(key))
+            continue;
+
+        const auto previous = prop.read(this);
+        if (!writeInheritedProperty(prop, prop.read(fallback))) {
+            qCWarning(lcConfig, "Unable to restore option '%s'", qUtf8Printable(propertyPath(key)));
+            continue;
+        }
+        const auto restored = prop.read(this);
+        if (previous != restored)
+            notifyPropertyChanged(key, restored);
+        // Inherited/default values are never persisted as explicit overrides.
+    }
+}
+
+void ConfigObject::flushPendingChanges() {
+    const auto* meta = metaObject();
+    for (int i = basePropertyOffset(); i < meta->propertyCount(); ++i) {
+        auto* subObj = meta->property(i).read(this).value<ConfigObject*>();
+        if (subObj)
+            subObj->flushPendingChanges();
+    }
+
+    if (m_batchTimer)
+        m_batchTimer->stop();
+    emitBatchedChanges();
 }
 
 void ConfigObject::syncFromGlobal(ConfigObject* global) {
@@ -151,9 +345,6 @@ void ConfigObject::syncFromGlobal(ConfigObject* global) {
     for (int i = basePropertyOffset(); i < meta->propertyCount(); ++i) {
         auto prop = meta->property(i);
         const auto key = QString::fromUtf8(prop.name());
-
-        if (isGlobalOnly(key))
-            continue;
 
         auto current = prop.read(this);
         auto* subObj = current.value<ConfigObject*>();
@@ -171,8 +362,7 @@ void ConfigObject::syncFromGlobal(ConfigObject* global) {
 
         if (!m_loadedKeys.contains(key)) {
             auto val = prop.read(global);
-            prop.write(this, val);
-            m_loadedKeys.remove(key); // setter added it — remove since this is a synced value
+            writeInheritedProperty(prop, val);
             qCDebug(lcConfig) << "  Synced" << key << "=" << val << "from global";
         } else {
             qCDebug(lcConfig) << "  Keeping loaded" << key << "=" << prop.read(this);
@@ -189,9 +379,6 @@ void ConfigObject::resyncFromGlobal() {
         auto prop = meta->property(i);
         const auto key = QString::fromUtf8(prop.name());
 
-        if (isGlobalOnly(key))
-            continue;
-
         auto current = prop.read(this);
         auto* subObj = current.value<ConfigObject*>();
 
@@ -204,8 +391,7 @@ void ConfigObject::resyncFromGlobal() {
             continue;
 
         if (!m_loadedKeys.contains(key)) {
-            prop.write(this, prop.read(m_global));
-            m_loadedKeys.remove(key); // setter added it — remove since this is a synced value
+            writeInheritedProperty(prop, prop.read(m_global));
         }
     }
 }
@@ -254,6 +440,10 @@ bool ConfigObject::isOverlay() const {
     return m_global != nullptr;
 }
 
+bool ConfigObject::isApplyingInheritedValue() const {
+    return m_applyingInheritedValue;
+}
+
 bool ConfigObject::isGlobalOnly(const QString& name) const {
     return isOverlay() && m_globalOnlyKeys.contains(name);
 }
@@ -263,28 +453,36 @@ void ConfigObject::markPropertyLoaded(const QString& name) {
 }
 
 void ConfigObject::resetOption(const QString& name) {
-    m_loadedKeys.remove(name);
+    const bool wasLoaded = m_loadedKeys.remove(name);
+    int idx = metaObject()->indexOfProperty(name.toUtf8().constData());
+    if (idx < 0)
+        return;
 
-    // If synced from global, re-copy the global value
-    if (m_global) {
-        int idx = metaObject()->indexOfProperty(name.toUtf8().constData());
-        if (idx >= 0) {
-            auto prop = metaObject()->property(idx);
-            if (prop.isWritable())
-                prop.write(this, prop.read(m_global));
-        }
+    const auto prop = metaObject()->property(idx);
+    if (!prop.isWritable())
+        return;
+
+    // Re-copy the inherited value for overlays or the compile-time default for roots.
+    auto* const fallback = m_global ? m_global : m_defaults;
+    if (fallback) {
+        writeInheritedProperty(prop, prop.read(fallback));
+        m_loadedKeys.remove(name);
     }
+
+    // Removing an explicit key is a persistence change even when its effective
+    // value was already identical to the inherited/default value.
+    if (wasLoaded)
+        notifyPropertyChanged(name, prop.read(this));
 }
 
 void ConfigObject::onGlobalPropertiesChanged(const QMap<QString, QVariant>& changed) {
     for (auto it = changed.begin(); it != changed.end(); ++it) {
-        if (m_loadedKeys.contains(it.key()) || isGlobalOnly(it.key()))
+        if (m_loadedKeys.contains(it.key()))
             continue;
 
         int idx = metaObject()->indexOfProperty(it.key().toUtf8().constData());
         if (idx >= 0) {
-            metaObject()->property(idx).write(this, it.value());
-            m_loadedKeys.remove(it.key()); // setter added it — remove since this is a synced value
+            writeInheritedProperty(metaObject()->property(idx), it.value());
             qCDebug(lcConfig) << metaObject()->className() << "synced" << it.key() << "=" << it.value()
                               << "from global change";
         }
@@ -293,6 +491,11 @@ void ConfigObject::onGlobalPropertiesChanged(const QMap<QString, QVariant>& chan
 
 void ConfigObject::markGlobalOnly(const QString& name) {
     m_globalOnlyKeys.insert(name);
+}
+
+bool ConfigObject::writeInheritedProperty(const QMetaProperty& property, const QVariant& value) {
+    QScopedValueRollback guard(m_applyingInheritedValue, true);
+    return property.write(this, value);
 }
 
 void ConfigObject::notifyPropertyChanged(const QString& name, const QVariant& value) {

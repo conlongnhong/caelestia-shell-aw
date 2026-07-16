@@ -82,7 +82,7 @@ Item {
         stateLayer.opacity: 0
         onClicked: {
             if (!nState.isWindow)
-                WindowFactory.create();
+                WindowFactory.create(nState.screen);
             root.close();
         }
 

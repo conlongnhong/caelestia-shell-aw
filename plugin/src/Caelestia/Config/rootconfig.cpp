@@ -1,11 +1,13 @@
 #include "rootconfig.hpp"
 
+#include <qcryptographichash.h>
 #include <qdatetime.h>
 #include <qdir.h>
 #include <qfile.h>
 #include <qfileinfo.h>
 #include <qjsondocument.h>
 #include <qmetaobject.h>
+#include <qsavefile.h>
 #include <qstandardpaths.h>
 
 namespace caelestia::config {
@@ -14,6 +16,11 @@ namespace {
 
 QString watchRoot() {
     return QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+}
+
+QString dataSignature(const QByteArray& data) {
+    return QStringLiteral("sha256:%1")
+        .arg(QString::fromLatin1(QCryptographicHash::hash(data, QCryptographicHash::Sha256).toHex()));
 }
 
 } // namespace
@@ -54,6 +61,35 @@ QStringList RootConfig::collectUnknownKeys(const ConfigObject* obj, const QJsonO
     return unknown;
 }
 
+QJsonObject RootConfig::mergePreservingUnknown(
+    const ConfigObject* obj, const QJsonObject& original, const QJsonObject& serialized) {
+    auto merged = original;
+    const auto* meta = obj->metaObject();
+
+    for (int i = ConfigObject::basePropertyOffset(); i < meta->propertyCount(); ++i) {
+        const auto prop = meta->property(i);
+        const auto key = QString::fromUtf8(prop.name());
+        auto* const subObj = prop.read(obj).value<ConfigObject*>();
+
+        if (subObj) {
+            const auto subOriginal = original.value(key).toObject();
+            const auto subSerialized = serialized.value(key).toObject();
+            const auto subMerged = mergePreservingUnknown(subObj, subOriginal, subSerialized);
+            if (subMerged.isEmpty())
+                merged.remove(key);
+            else
+                merged.insert(key, subMerged);
+        } else if (serialized.contains(key)) {
+            merged.insert(key, serialized.value(key));
+        } else {
+            // Known options omitted by serialization were reset and must be removed.
+            merged.remove(key);
+        }
+    }
+
+    return merged;
+}
+
 void RootConfig::setupFileBackend(const QString& path, const QString& screen) {
     m_filePath = path;
     m_screen = screen;
@@ -72,7 +108,61 @@ void RootConfig::setupFileBackend(const QString& path, const QString& screen) {
     connect(m_saveTimer, &QTimer::timeout, this, [this] {
         QDir().mkpath(QFileInfo(m_filePath).absolutePath());
 
-        QFile file(m_filePath);
+        QJsonObject sourceJson;
+        QString expectedSignature;
+        if (QFile::exists(m_filePath)) {
+            QFile sourceFile(m_filePath);
+            if (!sourceFile.open(QIODevice::ReadOnly)) {
+                const auto err = QStringLiteral("Failed to read %1 before saving: %2")
+                                     .arg(m_filePath, sourceFile.errorString());
+                qCWarning(lcConfig, "%s", qUtf8Printable(err));
+                emit saveFailed(err, m_screen);
+                return;
+            }
+
+            const auto sourceData = sourceFile.readAll();
+            expectedSignature = dataSignature(sourceData);
+
+            // Never treat an edit made since our last successful load/save as the
+            // new baseline. Doing so would overwrite known keys with stale values.
+            if (expectedSignature != m_lastSignature) {
+                const auto err = QStringLiteral("Config changed externally before saving: %1").arg(m_filePath);
+                qCWarning(lcConfig, "%s", qUtf8Printable(err));
+                emit saveFailed(err, m_screen);
+                m_reloadDebounce->start();
+                return;
+            }
+
+            QJsonParseError parseError{};
+            const auto sourceDoc = QJsonDocument::fromJson(sourceData, &parseError);
+            if (parseError.error != QJsonParseError::NoError || !sourceDoc.isObject()) {
+                const auto detail = parseError.error == QJsonParseError::NoError
+                    ? QStringLiteral("top-level JSON value must be an object")
+                    : parseError.errorString();
+                const auto err = QStringLiteral("Refusing to overwrite invalid config %1: %2").arg(m_filePath, detail);
+                qCWarning(lcConfig, "%s", qUtf8Printable(err));
+                emit saveFailed(err, m_screen);
+                return;
+            }
+            sourceJson = sourceDoc.object();
+
+            // The file may have changed while it was being read and parsed.
+            if (fileSignature() != expectedSignature) {
+                const auto err = QStringLiteral("Config changed while preparing to save: %1").arg(m_filePath);
+                qCWarning(lcConfig, "%s", qUtf8Printable(err));
+                emit saveFailed(err, m_screen);
+                m_reloadDebounce->start();
+                return;
+            }
+        } else if (!m_lastSignature.isEmpty()) {
+            const auto err = QStringLiteral("Config was removed externally before saving: %1").arg(m_filePath);
+            qCWarning(lcConfig, "%s", qUtf8Printable(err));
+            emit saveFailed(err, m_screen);
+            m_reloadDebounce->start();
+            return;
+        }
+
+        QSaveFile file(m_filePath);
         if (!file.open(QIODevice::WriteOnly)) {
             auto err = QStringLiteral("Failed to write %1: %2").arg(m_filePath, file.errorString());
             qCWarning(lcConfig, "%s", qUtf8Printable(err));
@@ -80,13 +170,41 @@ void RootConfig::setupFileBackend(const QString& path, const QString& screen) {
             return;
         }
 
-        auto json = toJsonObject();
-        file.write(QJsonDocument(json).toJson(QJsonDocument::Indented));
-        file.close();
+        const auto json = mergePreservingUnknown(this, sourceJson, toJsonObject());
+        const auto data = QJsonDocument(json).toJson(QJsonDocument::Indented);
+        const auto savedSignature = dataSignature(data);
+        if (file.write(data) != data.size()) {
+            auto err = QStringLiteral("Failed to write %1: %2").arg(m_filePath, file.errorString());
+            qCWarning(lcConfig, "%s", qUtf8Printable(err));
+            file.cancelWriting();
+            emit saveFailed(err, m_screen);
+            return;
+        }
 
+        // Do not replace a file that was externally changed after our snapshot.
+        if (fileSignature() != expectedSignature) {
+            const auto err = QStringLiteral("Config changed while saving: %1").arg(m_filePath);
+            qCWarning(lcConfig, "%s", qUtf8Printable(err));
+            file.cancelWriting();
+            emit saveFailed(err, m_screen);
+            m_reloadDebounce->start();
+            return;
+        }
+
+        if (!file.commit()) {
+            auto err = QStringLiteral("Failed to commit %1: %2").arg(m_filePath, file.errorString());
+            qCWarning(lcConfig, "%s", qUtf8Printable(err));
+            file.cancelWriting();
+            emit saveFailed(err, m_screen);
+            return;
+        }
         // Update watches — save may have created directories
         updateWatch();
-        m_lastSignature = fileSignature();
+        // The baseline is the content we committed, not a later reread that
+        // could already contain an external writer's replacement.
+        m_lastSignature = savedSignature;
+        if (fileSignature() != savedSignature)
+            m_reloadDebounce->start();
 
         emit saved(m_screen);
     });
@@ -171,9 +289,6 @@ void RootConfig::onWatcherEvent() {
     // Re-evaluate what to watch — directories may have been created or deleted
     updateWatch();
 
-    if (m_recentlySaved)
-        return;
-
     // Only reload when the file actually changed (directory is watched so events fire for unrelated files)
     if (fileSignature() == m_lastSignature)
         return;
@@ -182,11 +297,16 @@ void RootConfig::onWatcherEvent() {
 }
 
 QString RootConfig::fileSignature() const {
-    QFileInfo info(m_filePath);
-    if (!info.exists())
+    QFile file(m_filePath);
+    if (!file.exists())
         return QString();
 
-    return QStringLiteral("%1:%2").arg(info.size()).arg(info.lastModified().toMSecsSinceEpoch());
+    if (!file.open(QIODevice::ReadOnly)) {
+        const QFileInfo info(file);
+        return QStringLiteral("unreadable:%1:%2").arg(info.size()).arg(info.lastModified().toMSecsSinceEpoch());
+    }
+
+    return dataSignature(file.readAll());
 }
 
 void RootConfig::saveToFile() {
@@ -198,13 +318,29 @@ void RootConfig::saveToFile() {
 }
 
 std::optional<QString> RootConfig::reloadFromFile() {
-    m_lastSignature = fileSignature();
+    // An explicit or watcher-driven reload supersedes any queued local save.
+    if (m_saveTimer)
+        m_saveTimer->stop();
+    if (m_reloadDebounce)
+        m_reloadDebounce->stop();
+    if (m_retryTimer)
+        m_retryTimer->stop();
 
     QFile file(m_filePath);
 
     if (!file.exists()) {
         qCDebug(lcConfig) << "File does not exist:" << m_filePath;
-        return std::nullopt;
+        m_loading = true;
+        clearLoadedKeys();
+        restoreUnloadedValues();
+        flushPendingChanges();
+        m_loading = false;
+        m_lastUnknownKeys.clear();
+        m_parseRetries = 0;
+        m_lastSignature.clear();
+        if (!fileSignature().isEmpty())
+            m_reloadDebounce->start();
+        return QString();
     }
 
     if (!file.open(QIODevice::ReadOnly)) {
@@ -213,8 +349,10 @@ std::optional<QString> RootConfig::reloadFromFile() {
         return err;
     }
 
+    const auto sourceData = file.readAll();
+    const auto loadedSignature = dataSignature(sourceData);
     QJsonParseError error{};
-    auto doc = QJsonDocument::fromJson(file.readAll(), &error);
+    auto doc = QJsonDocument::fromJson(sourceData, &error);
 
     if (error.error != QJsonParseError::NoError) {
         if (m_retryTimer && m_parseRetries < 3) {
@@ -232,19 +370,40 @@ std::optional<QString> RootConfig::reloadFromFile() {
 
     m_parseRetries = 0;
 
+    if (!doc.isObject()) {
+        const auto err = QStringLiteral("Top-level JSON value in %1 must be an object").arg(m_filePath);
+        qCWarning(lcConfig, "%s", qUtf8Printable(err));
+        return err;
+    }
+
     qCDebug(lcConfig) << "Reloading" << metaObject()->className() << "from" << m_filePath;
+
+    const auto jsonObj = doc.object();
+    const auto validationError = validateJson(jsonObj);
+    if (!validationError.isEmpty()) {
+        qCWarning(lcConfig, "Failed to validate %s: %s", qUtf8Printable(m_filePath),
+            qUtf8Printable(validationError));
+        return validationError;
+    }
 
     m_loading = true;
 
     clearLoadedKeys();
+    restoreUnloadedValues();
 
-    auto jsonObj = doc.object();
     loadFromJson(jsonObj);
 
-    m_loading = false;
+    // Emit aggregate change notifications while auto-save is still suppressed.
+    flushPendingChanges();
 
+    m_loading = false;
     // Collect unknown keys — caller is responsible for emitting signals
     m_lastUnknownKeys = collectUnknownKeys(this, jsonObj);
+    // Invalid files must never become a save baseline. Only accept the content
+    // signature after parsing, validation and loading have all succeeded.
+    m_lastSignature = loadedSignature;
+    if (fileSignature() != loadedSignature)
+        m_reloadDebounce->start();
 
     return QString(); // success
 }
@@ -271,6 +430,10 @@ void RootConfig::emitLoadSignals(const std::optional<QString>& result, bool emit
 
 void RootConfig::reload() {
     emitLoadSignals(reloadFromFile());
+}
+
+void RootConfig::setDefaults(ConfigObject* defaults) {
+    setDefaultSource(defaults);
 }
 
 } // namespace caelestia::config

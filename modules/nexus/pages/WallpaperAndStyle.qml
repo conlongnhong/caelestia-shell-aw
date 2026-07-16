@@ -14,19 +14,39 @@ PageBase {
     id: root
 
     readonly property list<MenuItem> hwDecoderItems: [
-        MenuItem { text: qsTr("Tự động") },
-        MenuItem { text: qsTr("Phần mềm") },
-        MenuItem { text: "VAAPI" },
-        MenuItem { text: "VDPAU" },
-        MenuItem { text: "CUDA" },
-        MenuItem { text: "Vulkan" },
-        MenuItem { text: "DRM" }
+        MenuItem {
+            text: qsTr("Tự động")
+        },
+        MenuItem {
+            text: qsTr("Phần mềm")
+        },
+        MenuItem {
+            text: "VAAPI"
+        },
+        MenuItem {
+            text: "VDPAU"
+        },
+        MenuItem {
+            text: "CUDA"
+        },
+        MenuItem {
+            text: "Vulkan"
+        },
+        MenuItem {
+            text: "DRM"
+        }
     ]
     readonly property list<string> hwDecoderValues: ["auto", "none", "vaapi", "vdpau", "cuda", "vulkan", "drm"]
     readonly property var hwDecoderIndexMap: ({
-        "auto": 0, "none": 1, "vaapi": 2, "vdpau": 3,
-        "cuda": 4, "vulkan": 5, "drm": 6
-    })
+            "auto": 0,
+            "none": 1,
+            "vaapi": 2,
+            "vdpau": 3,
+            "cuda": 4,
+            "vulkan": 5,
+            "drm": 6
+        })
+    readonly property url wallpaperPreview: Wallpapers.getPreviewSource(Wallpapers.current, Wallpapers.itemBusters[Wallpapers.current] || Wallpapers.cacheBuster)
 
     function hwDecoderToIndex(val: string): int {
         const v = (val ?? "none").toLowerCase();
@@ -47,12 +67,14 @@ PageBase {
             Layout.alignment: Qt.AlignHCenter
             implicitWidth: {
                 const screen = root.nState.screen;
-                if (!screen || screen.height === 0) return 0;
+                if (!screen || screen.height === 0)
+                    return 0;
                 return implicitHeight / screen.height * screen.width;
             }
             implicitHeight: {
                 const screen = root.nState.screen;
-                if (!screen || screen.width === 0) return 0;
+                if (!screen || screen.width === 0)
+                    return 0;
                 const cWidth = root.cappedWidth;
                 return Math.min(Math.round(cWidth * 0.4), cWidth / screen.width * screen.height);
             }
@@ -145,7 +167,7 @@ PageBase {
                     id: wallImg
 
                     anchors.fill: parent
-                    source: Wallpapers.current
+                    source: root.wallpaperPreview
                     preventInit: wallIndicatorLoader.opacity > 0
                     fadeOutAnim: Anim.DefaultEffects
                     fadeInAnim: Anim.SlowEffects

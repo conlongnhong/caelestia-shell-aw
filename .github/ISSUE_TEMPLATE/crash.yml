@@ -47,7 +47,7 @@ body:
     attributes:
       label: Reminder
       options:
-        - label: I've successfully updated to the latest versions following the [updating guide](https://github.com/caelestia-dots/caelestia?tab=readme-ov-file#updating).
+        - label: I've successfully updated to the latest fork version following the [updating guide](https://github.com/conlongnhong/caelestia-shell-aw#updating).
           required: false
         - label: I've successfully updated the system packages to the latest.
           required: false
