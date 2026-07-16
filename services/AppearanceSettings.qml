@@ -10,7 +10,7 @@ Scope {
     property bool cliLoaded
     property var cliData: ({})
 
-    function clamp(value: real, minimum: real = 0, maximum: real = 1): real {
+    function clamp(value, minimum = 0, maximum = 1) {
         return Math.max(minimum, Math.min(maximum, value));
     }
 

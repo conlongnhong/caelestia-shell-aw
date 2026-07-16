@@ -65,7 +65,7 @@ PageBase {
         return Math.round(value * 100) / 100;
     }
 
-    function selected(items: list<MenuItem>, values: var, value: var): MenuItem {
+    function selected(items: var, values: var, value: var): var {
         const index = values.indexOf(value);
         return items[Math.max(0, index)];
     }

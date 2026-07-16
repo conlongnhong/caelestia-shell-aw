@@ -31,7 +31,7 @@ Singleton {
 
     signal schemeLoaded
 
-    function clamp(value: real, minimum: real = 0, maximum: real = 1): real {
+    function clamp(value, minimum = 0, maximum = 1) {
         return Math.max(minimum, Math.min(maximum, value));
     }
 
@@ -77,7 +77,7 @@ Singleton {
         return Qt.hsla(c.hslHue, c.hslSaturation, 0.1, 1);
     }
 
-    function applyAccent(colours: M3Palette, isPreview: bool): void {
+    function applyAccent(colours: var, isPreview: bool): void {
         const value = GlobalConfig.appearance.palette.accentColor.trim();
         if (!value)
             return;
