@@ -22,6 +22,25 @@ Singleton {
     readonly property string wallsdir: Quickshell.env("CAELESTIA_WALLPAPERS_DIR") || absolutePath(GlobalConfig.paths.wallpaperDir)
     readonly property string recsdir: Quickshell.env("CAELESTIA_RECORDINGS_DIR") || `${videos}/Recordings`
     readonly property string libdir: Quickshell.env("CAELESTIA_LIB_DIR") || "/usr/lib/caelestia"
+    readonly property string avatar: resolveAvatar()
+
+    function resolveAvatar(): string {
+        let picture = GlobalConfig.profile.avatarPicture.trim();
+        if (!picture)
+            return `${home}/.face`;
+        if (picture.startsWith("file:"))
+            return toLocalFile(picture);
+
+        picture = picture.replace(/^~(?=\/|$)/, home);
+        if (picture.startsWith("/"))
+            return picture;
+
+        let directory = GlobalConfig.profile.avatarPath.trim();
+        if (directory.startsWith("file:"))
+            directory = toLocalFile(directory);
+        directory = directory.replace(/^~(?=\/|$)/, home).replace(/\/+$/, "");
+        return directory ? `${directory}/${picture}` : `${home}/${picture}`;
+    }
 
     function toLocalFile(path: url): string {
         path = Qt.resolvedUrl(path);

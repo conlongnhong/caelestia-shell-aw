@@ -190,7 +190,7 @@ CustomMouseArea {
                 anchors.fill: parent
 
                 spacing: 3
-                locale: Qt.locale()
+                locale: Qt.locale(GlobalConfig.services.calendarLocale || Qt.locale().name)
 
                 delegate: Item {
                     id: dayItem

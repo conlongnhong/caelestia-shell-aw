@@ -11,17 +11,63 @@ import qs.utils
 Searcher {
     id: root
 
+    readonly property list<var> systemActions: [
+        {
+            name: qsTr("Cài đặt Bluetooth"),
+            description: qsTr("Mở trình quản lý Bluetooth đã cấu hình"),
+            icon: "bluetooth",
+            command: GlobalConfig.general.apps.bluetooth
+        },
+        {
+            name: qsTr("Đổi mật khẩu"),
+            description: qsTr("Chạy lệnh đổi mật khẩu đã cấu hình"),
+            icon: "password",
+            command: GlobalConfig.general.apps.changePassword
+        },
+        {
+            name: qsTr("Cài đặt mạng"),
+            description: qsTr("Mở trình quản lý mạng đã cấu hình"),
+            icon: "wifi",
+            command: GlobalConfig.general.apps.network
+        },
+        {
+            name: qsTr("Quản lý người dùng"),
+            description: qsTr("Mở công cụ quản lý người dùng đã cấu hình"),
+            icon: "manage_accounts",
+            command: GlobalConfig.general.apps.manageUser
+        },
+        {
+            name: qsTr("Cài đặt Ethernet"),
+            description: qsTr("Mở trình quản lý Ethernet đã cấu hình"),
+            icon: "settings_ethernet",
+            command: GlobalConfig.general.apps.networkEthernet
+        },
+        {
+            name: qsTr("Trình quản lý tác vụ"),
+            description: qsTr("Mở trình quản lý tiến trình đã cấu hình"),
+            icon: "monitoring",
+            command: GlobalConfig.general.apps.taskManager
+        },
+        {
+            name: qsTr("Cập nhật hệ thống"),
+            description: qsTr("Chạy lệnh cập nhật hệ thống đã cấu hình"),
+            icon: "system_update",
+            command: GlobalConfig.general.apps.update
+        }
+    ]
+
     function transformSearch(search: string): string {
         return search.slice(GlobalConfig.launcher.actionPrefix.length);
     }
 
     list: variants.instances
     useFuzzy: GlobalConfig.launcher.useFuzzy.actions
+    useSloppy: GlobalConfig.search.sloppy
 
     Variants {
         id: variants
 
-        model: GlobalConfig.launcher.actions.filter(a => (a.enabled ?? true) && (GlobalConfig.launcher.enableDangerousActions || !(a.dangerous ?? false)))
+        model: [...GlobalConfig.launcher.actions, ...root.systemActions].filter(a => (a.enabled ?? true) && (GlobalConfig.launcher.enableDangerousActions || !(a.dangerous ?? false)))
 
         Action {}
     }

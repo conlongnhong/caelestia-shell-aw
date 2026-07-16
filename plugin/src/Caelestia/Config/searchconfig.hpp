@@ -8,7 +8,9 @@ class SearchPrefixConfig : public ConfigObject {
     Q_OBJECT
     QML_ANONYMOUS
 
-    CONFIG_GLOBAL_PROPERTY(bool, showDefaultActionsWithoutPrefix, true)
+    // Disabled by default so adding end4-compatible search actions does not
+    // change Caelestia's existing launcher results until explicitly enabled.
+    CONFIG_GLOBAL_PROPERTY(bool, showDefaultActionsWithoutPrefix, false)
     CONFIG_GLOBAL_PROPERTY(QString, app)
     CONFIG_GLOBAL_PROPERTY(QString, clipboard, QStringLiteral(";"))
     CONFIG_GLOBAL_PROPERTY(QString, emojis, QStringLiteral(":"))

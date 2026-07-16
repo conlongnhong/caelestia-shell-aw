@@ -18,6 +18,15 @@ Item {
 
     property color pfpFallbackColour: Colours.layer(Colours.palette.m3surfaceContainerHighest, 2)
 
+    function profileDescription(): string {
+        const description = GlobalConfig.profile.descriptionText.trim();
+        if (description === "::uptime::")
+            return qsTr("Hoạt động: %1").arg(SysInfo.uptime.split(",").slice(0, 2).join(","));
+        if (description && description !== "::distro::")
+            return description;
+        return SysInfo.wm + "...";
+    }
+
     anchors.fill: parent
     anchors.margins: Tokens.padding.large
 
@@ -88,7 +97,7 @@ Item {
                 id: pfp
 
                 anchors.fill: parent
-                path: `${Paths.home}/.face`
+                path: Paths.avatar
             }
 
             StyledRect {
@@ -265,7 +274,7 @@ Item {
 
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.verticalCenterOffset: Math.round(fontInfo.pointSize * 0.1)
-                text: SysInfo.wm + "..."
+                text: root.profileDescription()
                 color: Colours.palette.m3onSecondaryContainer
                 font: Tokens.font.body.builders.small.vaxis("slnt", -4).build()
                 width: Math.min(implicitWidth, Tokens.sizes.dashboard.userWidth - wmContainer.x - Tokens.padding.medium * 2 - wmIcon.implicitWidth - wmLabel.spacing - Tokens.padding.extraLarge)

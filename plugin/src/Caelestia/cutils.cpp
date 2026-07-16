@@ -7,6 +7,7 @@
 #include <qfileinfo.h>
 #include <qfuturewatcher.h>
 #include <qloggingcategory.h>
+#include <qprocess.h>
 #include <qqmlengine.h>
 #include <qregularexpression.h>
 
@@ -137,6 +138,10 @@ QString CUtils::toLocalFile(const QUrl& url) {
     }
 
     return url.toLocalFile();
+}
+
+QStringList CUtils::splitCommand(const QString& command) {
+    return QProcess::splitCommand(command);
 }
 
 qreal CUtils::clamp(qreal value, qreal min, qreal max) {

@@ -83,6 +83,39 @@ PageBase {
             }
         }
 
+        SectionHeader {
+            text: qsTr("Hồ sơ")
+        }
+
+        TextFieldRow {
+            first: true
+            label: qsTr("Thư mục ảnh đại diện")
+            subtext: qsTr("Để trống để tiếp tục dùng ~/.face của Caelestia")
+            value: GlobalConfig.profile.avatarPath
+            placeholder: "~/Pictures/Avatars"
+            leadingIcon: "folder"
+            onCommitted: value => GlobalConfig.profile.avatarPath = value.trim()
+        }
+
+        TextFieldRow {
+            label: qsTr("Ảnh đại diện")
+            subtext: qsTr("Đường dẫn đầy đủ hoặc tên tệp nằm trong thư mục phía trên")
+            value: GlobalConfig.profile.avatarPicture
+            placeholder: "avatar.png"
+            leadingIcon: "account_circle"
+            onCommitted: value => GlobalConfig.profile.avatarPicture = value.trim()
+        }
+
+        TextFieldRow {
+            last: true
+            label: qsTr("Mô tả hồ sơ")
+            subtext: qsTr("Hỗ trợ ::distro::, ::uptime:: hoặc văn bản tùy ý")
+            value: GlobalConfig.profile.descriptionText
+            placeholder: "::distro::"
+            leadingIcon: "badge"
+            onCommitted: value => GlobalConfig.profile.descriptionText = value.trim() || "::distro::"
+        }
+
         // System
         SectionHeader {
             text: qsTr("Hệ thống")

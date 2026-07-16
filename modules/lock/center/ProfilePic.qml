@@ -46,7 +46,7 @@ Item {
         id: pfp
 
         anchors.fill: shape
-        path: `${Paths.home}/.face`
+        path: Paths.avatar
 
         layer.enabled: true
         layer.effect: Mask {

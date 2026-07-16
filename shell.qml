@@ -45,6 +45,7 @@ ShellRoot {
 
     ConfigToasts {}
     AppearanceSettings {}
+    LocaleSettings {}
     Shortcuts {}
     BatteryMonitor {}
     IdleMonitors {

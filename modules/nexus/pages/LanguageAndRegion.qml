@@ -43,48 +43,15 @@ PageBase {
             text: qsTr("Ngôn ngữ")
         }
 
-        // Read-only: the shell follows the system locale (no in-shell translations yet)
-        ConnectedRect {
-            Layout.fillWidth: true
+        TextFieldRow {
             first: true
             last: true
-            implicitHeight: localeLayout.implicitHeight + localeLayout.anchors.margins * 2
-
-            RowLayout {
-                id: localeLayout
-
-                anchors.fill: parent
-                anchors.margins: Tokens.padding.medium
-                anchors.leftMargin: Tokens.padding.largeIncreased
-                anchors.rightMargin: Tokens.padding.largeIncreased
-                spacing: Tokens.spacing.medium
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: qsTr("Ngôn ngữ hệ thống")
-                        font: Tokens.font.body.small
-                        elide: Text.ElideRight
-                    }
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: qsTr("Theo ngôn ngữ hệ thống (%1)").arg(Qt.locale().name)
-                        color: Colours.palette.m3outline
-                        font: Tokens.font.label.small
-                        elide: Text.ElideRight
-                    }
-                }
-
-                StyledText {
-                    text: Qt.locale().nativeLanguageName || Qt.locale().name
-                    color: Colours.palette.m3onSurfaceVariant
-                    font: Tokens.font.body.small
-                }
-            }
+            label: qsTr("Ngôn ngữ giao diện")
+            subtext: qsTr("Dùng “auto” để theo hệ thống; ví dụ vi_VN hoặc en_US")
+            value: GlobalConfig.language.ui
+            placeholder: "auto"
+            leadingIcon: "translate"
+            onCommitted: value => GlobalConfig.language.ui = value.trim() || "auto"
         }
 
         // Weather
@@ -92,43 +59,34 @@ PageBase {
             text: qsTr("Thời tiết")
         }
 
-        // Placeholder until the map-based location picker lands
-        ConnectedRect {
-            Layout.fillWidth: true
+        ToggleRow {
             first: true
+            text: qsTr("Tự xác định vị trí")
+            subtext: qsTr("Dùng vị trí IP khi thanh thời tiết không có cấu hình riêng")
+            checked: GlobalConfig.services.weatherUseGps
+            onToggled: GlobalConfig.services.weatherUseGps = checked
+        }
+
+        TextFieldRow {
+            enabled: !GlobalConfig.services.weatherUseGps
+            opacity: enabled ? 1 : 0.55
+            label: qsTr("Vị trí thời tiết")
+            subtext: qsTr("Tên thành phố hoặc tọa độ “vĩ độ,kinh độ”")
+            value: GlobalConfig.services.weatherLocation
+            placeholder: "Hồ Chí Minh"
+            leadingIcon: "location_on"
+            onCommitted: value => GlobalConfig.services.weatherLocation = value.trim()
+        }
+
+        StepperRow {
             last: true
-            implicitHeight: comingSoon.implicitHeight + Tokens.padding.extraLarge * 2
-
-            ColumnLayout {
-                id: comingSoon
-
-                anchors.centerIn: parent
-                width: parent.width - Tokens.padding.largeIncreased * 2
-                spacing: Tokens.padding.extraSmall
-
-                MaterialIcon {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "map"
-                    color: Colours.palette.m3outlineVariant
-                    fontStyle: Tokens.font.icon.extraLarge
-                }
-
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Tính năng chọn vị trí sắp ra mắt")
-                    color: Colours.palette.m3outlineVariant
-                    font: Tokens.font.title.small
-                }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                    text: qsTr("Chọn vị trí thời tiết trên bản đồ trong bản cập nhật sau")
-                    color: Colours.palette.m3outlineVariant
-                    font: Tokens.font.body.small
-                }
-            }
+            label: qsTr("Chu kỳ cập nhật")
+            subtext: qsTr("Phút giữa các lần tải dữ liệu thời tiết")
+            value: GlobalConfig.services.weatherFetchInterval
+            from: 5
+            to: 1440
+            stepSize: 5
+            onMoved: value => GlobalConfig.services.weatherFetchInterval = Math.round(value)
         }
 
         // Units
@@ -161,12 +119,21 @@ PageBase {
 
         SelectRow {
             first: true
-            last: true
             label: qsTr("Định dạng đồng hồ")
             subtext: qsTr("Cách hiển thị thời gian trong toàn bộ giao diện")
             menuItems: root.clockItems
             active: root.clockItems[GlobalConfig.services.useTwelveHourClock ? 1 : 0]
             onSelected: item => GlobalConfig.services.useTwelveHourClock = root.clockItems.indexOf(item) === 1
+        }
+
+        TextFieldRow {
+            last: true
+            label: qsTr("Locale lịch")
+            subtext: qsTr("Quy tắc tên tháng, thứ và ngày đầu tuần")
+            value: GlobalConfig.services.calendarLocale
+            placeholder: "vi_VN"
+            leadingIcon: "calendar_month"
+            onCommitted: value => GlobalConfig.services.calendarLocale = value.trim() || Qt.locale().name
         }
     }
 }
