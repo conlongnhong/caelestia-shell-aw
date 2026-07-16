@@ -58,7 +58,7 @@ Item {
         topPadding: Math.round((Tokens.padding.medium + Tokens.padding.large) / 2)
         bottomPadding: Math.round((Tokens.padding.medium + Tokens.padding.large) / 2)
 
-        placeholderText: qsTr("Nhập \"%1\" để dùng lệnh").arg(GlobalConfig.launcher.actionPrefix)
+        placeholderText: qsTr("Ứng dụng, %1emoji, %2file, %2window hoặc %3lệnh").arg(GlobalConfig.search.prefix.emojis).arg(GlobalConfig.launcher.actionPrefix).arg(GlobalConfig.search.prefix.shellCommand)
 
         onAccepted: {
             const currentItem = list.currentList?.currentItem;

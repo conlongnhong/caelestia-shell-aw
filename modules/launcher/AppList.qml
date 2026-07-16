@@ -45,6 +45,18 @@ StyledListView {
         return stripPrefix(text, GlobalConfig.search.prefix.shellCommand).replace(/^file:\/\//, "").trim();
     }
 
+    function fileQueryForText(text: string): string {
+        return text.slice(`${GlobalConfig.launcher.actionPrefix}file `.length).trim();
+    }
+
+    function windowQueryForText(text: string): string {
+        return text.slice(`${GlobalConfig.launcher.actionPrefix}window `.length).trim().toLowerCase();
+    }
+
+    function emojiQueryForText(text: string): string {
+        return stripPrefix(text, GlobalConfig.search.prefix.emojis).trim();
+    }
+
     function webQueryForText(text: string): string {
         return stripPrefix(text, GlobalConfig.search.prefix.webSearch).trim();
     }
@@ -58,17 +70,68 @@ StyledListView {
 
     function commandAction(text: string): var {
         const command = shellCommandForText(text);
+        const argv = CUtils.splitCommand(command);
         return {
-            name: command || qsTr("Nhập lệnh shell"),
-            desc: qsTr("Chạy bằng /bin/sh sau khi bạn chọn kết quả"),
+            name: command || qsTr("Nhập chương trình cần chạy"),
+            desc: argv.length ? qsTr("Chạy trực tiếp, không diễn giải cú pháp shell") : qsTr("Nhập một chương trình và các đối số"),
             icon: "terminal",
             onClicked: list => {
-                if (!command)
+                if (!argv.length)
                     return;
                 list.screenState.launcher = false;
-                Quickshell.execDetached(["sh", "-c", command]);
+                Quickshell.execDetached(argv);
             }
         };
+    }
+
+    function fileResultsForText(text: string): var {
+        FileSearch.request(fileQueryForText(text));
+        return FileSearch.results.map(item => ({
+            name: item.name,
+            desc: item.desc,
+            icon: item.icon,
+            onClicked: list => {
+                list.screenState.launcher = false;
+                const encodedPath = item.path.split("/").map(segment => encodeURIComponent(segment)).join("/");
+                Qt.openUrlExternally(`file://${encodedPath}`);
+            }
+        }));
+    }
+
+    function windowResultsForText(text: string): var {
+        const query = windowQueryForText(text);
+        return Hypr.toplevels.values.filter(client => {
+            const ipc = client.lastIpcObject ?? {};
+            const title = String(client.title ?? "");
+            const appClass = String(ipc.class ?? "");
+            const searchable = `${title} ${appClass}`.toLowerCase();
+            return String(client.address ?? "") && ipc.mapped !== false && ipc.hidden !== true && (!query || searchable.includes(query));
+        }).map(client => ({
+            name: String(client.title || client.lastIpcObject?.class || qsTr("Cửa sổ không tên")),
+            desc: qsTr("Cửa sổ · %1").arg(String(client.lastIpcObject?.class ?? "")),
+            icon: "select_window",
+            onClicked: list => {
+                const address = String(client.address ?? "");
+                if (!address)
+                    return;
+                const normalisedAddress = address.startsWith("0x") ? address : `0x${address}`;
+                const selector = `address:${normalisedAddress}`;
+                list.screenState.launcher = false;
+                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "${selector}" })` : `focuswindow ${selector}`);
+            }
+        }));
+    }
+
+    function emojiResultsForText(text: string): var {
+        return Emojis.query(emojiQueryForText(text)).map(item => ({
+            name: `${item.glyph}  ${item.name}`,
+            desc: qsTr("Sao chép emoji vào bảng nhớ tạm"),
+            icon: "emoji_emotions",
+            onClicked: list => {
+                Quickshell.clipboardText = item.glyph;
+                list.screenState.launcher = false;
+            }
+        }));
     }
 
     function webAction(text: string): var {
@@ -128,6 +191,9 @@ StyledListView {
     function stateForText(text: string): string {
         const actionPrefix = GlobalConfig.launcher.actionPrefix;
         if (actionPrefix && text.startsWith(actionPrefix)) {
+            for (const provider of ["file", "window"])
+                if (text.startsWith(`${actionPrefix}${provider} `))
+                    return provider;
             for (const action of ["calc", "scheme", "variant"])
                 if (text.startsWith(`${actionPrefix}${action} `))
                     return action;
@@ -138,6 +204,10 @@ StyledListView {
         const mathPrefix = GlobalConfig.search.prefix.math;
         if ((mathPrefix && text.startsWith(mathPrefix)) || /^\s*\d/.test(text))
             return "calc";
+
+        const emojiPrefix = GlobalConfig.search.prefix.emojis;
+        if (emojiPrefix && text.startsWith(emojiPrefix))
+            return "emoji";
 
         const shellPrefix = GlobalConfig.search.prefix.shellCommand;
         const webPrefix = GlobalConfig.search.prefix.webSearch;
@@ -160,6 +230,12 @@ StyledListView {
             return searchActionsForText(text);
         case "calc":
             return [0];
+        case "file":
+            return fileResultsForText(text);
+        case "window":
+            return windowResultsForText(text);
+        case "emoji":
+            return emojiResultsForText(text);
         case "scheme":
             return Schemes.query(text);
         case "variant":
@@ -243,6 +319,27 @@ StyledListView {
 
             PropertyChanges {
                 root.delegate: calcItem
+            }
+        },
+        State {
+            name: "file"
+
+            PropertyChanges {
+                root.delegate: actionItem
+            }
+        },
+        State {
+            name: "window"
+
+            PropertyChanges {
+                root.delegate: actionItem
+            }
+        },
+        State {
+            name: "emoji"
+
+            PropertyChanges {
+                root.delegate: actionItem
             }
         },
         State {
