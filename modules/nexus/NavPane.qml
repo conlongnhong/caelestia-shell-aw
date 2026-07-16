@@ -19,7 +19,7 @@ ColumnLayout {
 
         Layout.fillWidth: true
 
-        placeholderText: qsTr("Search settings")
+        placeholderText: qsTr("Tìm kiếm cài đặt")
         font: Tokens.font.body.large
 
         bg.color: Colours.tPalette.m3surfaceContainerLowest

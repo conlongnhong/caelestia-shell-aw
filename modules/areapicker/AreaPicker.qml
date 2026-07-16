@@ -83,7 +83,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshot"
-        description: "Open screenshot tool"
+        description: "Mở công cụ chụp màn hình"
         onPressed: {
             root.freeze = false;
             root.closing = false;
@@ -96,7 +96,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotFreeze"
-        description: "Open screenshot tool (freeze mode)"
+        description: "Mở công cụ chụp màn hình (chế độ đóng băng)"
         onPressed: {
             root.freeze = true;
             root.closing = false;
@@ -109,7 +109,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotClip"
-        description: "Open screenshot tool (clipboard)"
+        description: "Mở công cụ chụp màn hình (bảng nhớ tạm)"
         onPressed: {
             root.freeze = false;
             root.closing = false;
@@ -122,7 +122,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotFreezeClip"
-        description: "Open screenshot tool (freeze mode, clipboard)"
+        description: "Mở công cụ chụp màn hình (chế độ đóng băng, bảng nhớ tạm)"
         onPressed: {
             root.freeze = true;
             root.closing = false;

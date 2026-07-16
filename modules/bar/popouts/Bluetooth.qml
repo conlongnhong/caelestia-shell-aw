@@ -26,7 +26,7 @@ ColumnLayout {
     }
 
     Toggle {
-        label: qsTr("Enabled")
+        label: qsTr("Đã bật")
         checked: Bluetooth.defaultAdapter?.enabled ?? false // qmllint disable unresolved-type
         toggle.onToggled: {
             const adapter = Bluetooth.defaultAdapter; // qmllint disable unresolved-type
@@ -36,7 +36,7 @@ ColumnLayout {
     }
 
     Toggle {
-        label: qsTr("Discovering")
+        label: qsTr("Đang tìm kiếm")
         checked: Bluetooth.defaultAdapter?.discovering ?? false // qmllint disable unresolved-type
         toggle.onToggled: {
             const adapter = Bluetooth.defaultAdapter; // qmllint disable unresolved-type
@@ -50,10 +50,10 @@ ColumnLayout {
         Layout.rightMargin: Tokens.padding.extraSmall
         text: {
             const devices = Bluetooth.devices.values; // qmllint disable unresolved-type
-            let available = qsTr("%1 device%2 available").arg(devices.length).arg(devices.length === 1 ? "" : "s");
+            let available = qsTr("Có %1 thiết bị khả dụng%2").arg(devices.length).arg("");
             const connected = devices.filter(d => d.connected).length;
             if (connected > 0)
-                available += qsTr(" (%1 connected)").arg(connected);
+                available += qsTr(" (%1 đã kết nối)").arg(connected);
             return available;
         }
         color: Colours.palette.m3onSurfaceVariant
@@ -177,7 +177,7 @@ ColumnLayout {
         inactiveColour: Colours.palette.m3primaryContainer
         inactiveOnColour: Colours.palette.m3onPrimaryContainer
         verticalPadding: Tokens.padding.extraSmall
-        text: qsTr("Open settings")
+        text: qsTr("Mở cài đặt")
         icon: "settings"
 
         onClicked: root.popouts.detachRequested("bluetooth")

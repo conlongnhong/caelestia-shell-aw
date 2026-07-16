@@ -1,28 +1,21 @@
 pragma Singleton
 
 import QtQuick
-import QtCore
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Quickshell.Io
+import Caelestia.Config
 
 import qs.services
 
 Singleton {
     id: root
 
-    property bool pauseOnBattery: false
-    property bool pauseOnWindowOverlap: true
-    property string hwDecoder: "none"
-
-    Settings {
-        id: pauserSettings
-        category: "WallpaperPauser"
-        property alias pauseOnBattery: root.pauseOnBattery
-        property alias pauseOnWindowOverlap: root.pauseOnWindowOverlap
-        property alias hwDecoder: root.hwDecoder
-    }
+    // Các giá trị này được GlobalConfig lưu trong ~/.config/caelestia/shell.json.
+    property bool pauseOnBattery: GlobalConfig.services.pauseWallpaperOnBattery
+    property bool pauseOnWindowOverlap: GlobalConfig.services.pauseWallpaperOnWindowOverlap
+    property string hwDecoder: GlobalConfig.services.wallpaperHwDecoder
     property bool paused: false
     property bool _loaded: false
     property string pauseReason: "None"
@@ -124,14 +117,20 @@ Singleton {
     }
 
     onPauseOnBatteryChanged: {
+        if (GlobalConfig.services.pauseWallpaperOnBattery !== pauseOnBattery)
+            GlobalConfig.services.pauseWallpaperOnBattery = pauseOnBattery;
         recalculate();
     }
 
     onPauseOnWindowOverlapChanged: {
+        if (GlobalConfig.services.pauseWallpaperOnWindowOverlap !== pauseOnWindowOverlap)
+            GlobalConfig.services.pauseWallpaperOnWindowOverlap = pauseOnWindowOverlap;
         recalculate();
     }
 
     onHwDecoderChanged: {
+        if (GlobalConfig.services.wallpaperHwDecoder !== hwDecoder)
+            GlobalConfig.services.wallpaperHwDecoder = hwDecoder;
         // We still need to sync this to a text file because the python CLI needs to read it
         // BEFORE the Qt application starts in order to inject the environment variables.
         if (root._loaded) {
@@ -143,5 +142,21 @@ Singleton {
     Component.onCompleted: {
         root._loaded = true;
         recalculate();
+    }
+
+    Connections {
+        target: GlobalConfig.services
+
+        function onPauseWallpaperOnBatteryChanged(): void {
+            root.pauseOnBattery = GlobalConfig.services.pauseWallpaperOnBattery;
+        }
+
+        function onPauseWallpaperOnWindowOverlapChanged(): void {
+            root.pauseOnWindowOverlap = GlobalConfig.services.pauseWallpaperOnWindowOverlap;
+        }
+
+        function onWallpaperHwDecoderChanged(): void {
+            root.hwDecoder = GlobalConfig.services.wallpaperHwDecoder;
+        }
     }
 }

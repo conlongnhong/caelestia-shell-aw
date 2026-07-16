@@ -29,11 +29,11 @@ Singleton {
         if (enabled) {
             setDynamicConfs();
             if (GlobalConfig.utilities.toasts.gameModeChanged)
-                Toaster.toast(qsTr("Game mode enabled"), qsTr("Disabled Hyprland animations, blur, gaps and shadows"), "gamepad");
+                Toaster.toast(qsTr("Đã bật chế độ trò chơi"), qsTr("Đã tắt hiệu ứng động, làm mờ, khoảng cách và bóng đổ của Hyprland"), "gamepad");
         } else {
             Hypr.extras.message("reload");
             if (GlobalConfig.utilities.toasts.gameModeChanged)
-                Toaster.toast(qsTr("Game mode disabled"), qsTr("Hyprland settings restored"), "gamepad");
+                Toaster.toast(qsTr("Đã tắt chế độ trò chơi"), qsTr("Đã khôi phục cài đặt Hyprland"), "gamepad");
         }
     }
 

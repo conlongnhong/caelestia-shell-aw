@@ -278,6 +278,25 @@ Singleton {
         }
     }
 
+    function localizedStatusReason(reason: string): string {
+        const reasons = {
+            "Login required": qsTr("Cần đăng nhập"),
+            "Machine authorization required": qsTr("Cần cấp quyền cho máy"),
+            "Tailscale may not be running": qsTr("Tailscale có thể chưa chạy"),
+            "Authentication required": qsTr("Cần xác thực"),
+            "Failed to parse status": qsTr("Không thể phân tích trạng thái"),
+            "WARP registration required": qsTr("Cần đăng ký WARP"),
+            "Unknown WARP status": qsTr("Không rõ trạng thái WARP"),
+            "Unknown error": qsTr("Lỗi không xác định"),
+            "Permission denied. Run in terminal: sudo tailscale set --operator=$USER": qsTr("Bị từ chối quyền. Chạy trong terminal: sudo tailscale set --operator=$USER"),
+            "WireGuard module not loaded. Run: sudo modprobe wireguard": qsTr("Chưa nạp mô-đun WireGuard. Chạy: sudo modprobe wireguard")
+        };
+        const servicePrefix = "Service not running (run: ";
+        if (reason.startsWith(servicePrefix) && reason.endsWith(")"))
+            return qsTr("Dịch vụ chưa chạy (chạy: %1)").arg(reason.slice(servicePrefix.length, -1));
+        return reasons[reason] ?? reason;
+    }
+
     function emitStatusToast(statusObj: var): void {
         if (!GlobalConfig.utilities.toasts.vpnChanged)
             return;
@@ -286,19 +305,19 @@ Singleton {
 
         switch (statusObj.state) {
         case "connected":
-            Toaster.toast(qsTr("VPN connected"), qsTr("Connected to %1").arg(displayName), "vpn_key");
+            Toaster.toast(qsTr("Đã kết nối VPN"), qsTr("Đã kết nối tới %1").arg(displayName), "vpn_key");
             break;
         case "disconnected":
-            Toaster.toast(qsTr("VPN disconnected"), qsTr("Disconnected from %1").arg(displayName), "vpn_key_off");
+            Toaster.toast(qsTr("Đã ngắt kết nối VPN"), qsTr("Đã ngắt kết nối khỏi %1").arg(displayName), "vpn_key_off");
             break;
         case "needs-auth":
-            const authMsg = statusObj.reason || "Authentication required";
-            Toaster.toast(qsTr("VPN authentication required"), qsTr("%1: %2").arg(displayName).arg(authMsg), "vpn_lock");
+            const authMsg = localizedStatusReason(statusObj.reason || "Authentication required");
+            Toaster.toast(qsTr("VPN yêu cầu xác thực"), qsTr("%1: %2").arg(displayName).arg(authMsg), "vpn_lock");
             break;
         case "error":
             if (status.state === "connected" || status.state === "connecting" || status.state === "needs-auth") {
-                const errMsg = statusObj.reason || "Unknown error";
-                Toaster.toast(qsTr("VPN error"), qsTr("%1: %2").arg(displayName).arg(errMsg), "error");
+                const errMsg = localizedStatusReason(statusObj.reason || "Unknown error");
+                Toaster.toast(qsTr("Lỗi VPN"), qsTr("%1: %2").arg(displayName).arg(errMsg), "error");
             }
             break;
         }

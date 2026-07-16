@@ -20,7 +20,7 @@ PageBase {
     readonly property string statusText: {
         if (!device)
             return "";
-        let s = connected ? qsTr("Connected") : (device.bonded ? qsTr("Paired") : qsTr("Not paired"));
+        let s = connected ? qsTr("Đã kết nối") : (device.bonded ? qsTr("Đã ghép đôi") : qsTr("Chưa ghép đôi"));
         if (connected && device.batteryAvailable)
             s += " • " + Math.round(device.battery * 100) + "%";
         return s;
@@ -32,7 +32,7 @@ PageBase {
             nState.closeSubPage();
     }
 
-    title: device?.name ?? qsTr("Device")
+    title: device?.name ?? qsTr("Thiết bị")
     isSubPage: true
 
     ColumnLayout {
@@ -81,7 +81,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("Forget")
+                        text: qsTr("Quên")
                         color: forgetBtn.onColour
                     }
                 }
@@ -136,7 +136,7 @@ PageBase {
 
                         StyledText {
                             Layout.alignment: Qt.AlignHCenter
-                            text: root.connected ? qsTr("Disconnect") : qsTr("Connect")
+                            text: root.connected ? qsTr("Ngắt kết nối") : qsTr("Kết nối")
                             color: connectBtn.inactiveOnColour
                             animate: true
                         }
@@ -149,8 +149,8 @@ PageBase {
         ToggleRow {
             verticalPadding: Tokens.padding.large
             first: true
-            text: qsTr("Trusted")
-            subtext: qsTr("Allow this device to connect automatically")
+            text: qsTr("Tin cậy")
+            subtext: qsTr("Cho phép thiết bị này tự động kết nối")
             checked: root.device?.trusted ?? false
             onToggled: {
                 if (root.device)
@@ -160,8 +160,8 @@ PageBase {
 
         ToggleRow {
             verticalPadding: Tokens.padding.large
-            text: qsTr("Blocked")
-            subtext: qsTr("Prevent this device from connecting")
+            text: qsTr("Đã chặn")
+            subtext: qsTr("Ngăn thiết bị này kết nối")
             checked: root.device?.blocked ?? false
             onToggled: {
                 if (root.device)
@@ -172,8 +172,8 @@ PageBase {
         ToggleRow {
             verticalPadding: Tokens.padding.large
             last: true
-            text: qsTr("Wake allowed")
-            subtext: qsTr("Allow this device to wake the system")
+            text: qsTr("Cho phép đánh thức")
+            subtext: qsTr("Cho phép thiết bị này đánh thức hệ thống")
             checked: root.device?.wakeAllowed ?? false
             onToggled: {
                 if (root.device)
@@ -203,11 +203,11 @@ PageBase {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Battery")
+                        text: qsTr("Pin")
                     }
 
                     StyledText {
-                        text: root.device?.batteryAvailable ? Math.round(root.device.battery * 100) + "%" : qsTr("Unavailable")
+                        text: root.device?.batteryAvailable ? Math.round(root.device.battery * 100) + "%" : qsTr("Không khả dụng")
                         color: Colours.palette.m3outline
                         font: Tokens.font.body.small
                     }
@@ -243,7 +243,7 @@ PageBase {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Address")
+                    text: qsTr("Địa chỉ")
                 }
 
                 StyledText {

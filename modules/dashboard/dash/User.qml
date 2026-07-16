@@ -201,7 +201,7 @@ Item {
         anchors.leftMargin: Tokens.spacing.small
         anchors.verticalCenterOffset: Math.round(fontInfo.pointSize * 0.1)
 
-        text: "up " + SysInfo.uptime.split(",").slice(0, 2).join(",") // Max 2 components
+        text: qsTr("Thời gian hoạt động: ") + SysInfo.uptime.split(",").slice(0, 2).join(",").replace(/\bdays?\b/g, qsTr("ngày")).replace(/\bhours?\b/g, qsTr("giờ")).replace(/\bminutes?\b/g, qsTr("phút")) // Max 2 components
         width: Tokens.sizes.dashboard.userWidth - x - Tokens.padding.extraLarge
         elide: Text.ElideRight
     }

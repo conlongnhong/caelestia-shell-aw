@@ -57,7 +57,7 @@ Item {
                 return Colours.palette.m3onSurface;
             }
 
-            text: root.math.length > 0 ? (Qalculator.result || qsTr("Calculating...")) : qsTr("Type an expression to calculate")
+            text: root.math.length > 0 ? (Qalculator.result || qsTr("Đang tính...")) : qsTr("Nhập biểu thức để tính")
             elide: Text.ElideLeft
 
             Layout.fillWidth: true
@@ -92,7 +92,7 @@ Item {
                 anchors.right: icon.left
                 anchors.rightMargin: Tokens.spacing.small
 
-                text: qsTr("Open in calculator")
+                text: qsTr("Mở trong máy tính")
                 color: Colours.palette.m3onTertiary
                 font: Tokens.font.label.medium
 

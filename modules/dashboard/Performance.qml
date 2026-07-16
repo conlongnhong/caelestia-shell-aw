@@ -33,14 +33,14 @@ Item {
             StyledText {
                 Layout.topMargin: -Tokens.spacing.small
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("No widgets enabled")
+                text: qsTr("Chưa bật tiện ích nào")
                 font: Tokens.font.title.large
                 color: Colours.palette.m3onSurface
             }
 
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Enable widgets in the dashboard settings")
+                text: qsTr("Bật tiện ích trong cài đặt bảng điều khiển")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }

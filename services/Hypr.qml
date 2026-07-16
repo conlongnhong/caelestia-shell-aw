@@ -29,7 +29,7 @@ Singleton {
     readonly property bool capsLock: keyboard?.capsLock ?? false
     readonly property bool numLock: keyboard?.numLock ?? false
     readonly property string defaultKbLayout: keyboard?.layout.split(",")[0] ?? "??"
-    readonly property string kbLayoutFull: keyboard?.activeKeymap ?? "Unknown"
+    readonly property string kbLayoutFull: keyboard?.activeKeymap ?? qsTr("Không rõ")
     readonly property string kbLayout: kbMap.get(kbLayoutFull) ?? "??"
     readonly property var kbMap: new Map()
 
@@ -40,6 +40,8 @@ Singleton {
     property bool hadKeyboard
     property string lastSpecialWorkspace: ""
 
+    readonly property string minimizedWorkspace: "special:minimized"
+
     signal configReloaded
 
     function dispatch(request: string): void {
@@ -47,7 +49,7 @@ Singleton {
     }
 
     function cycleSpecialWorkspace(direction: string): void {
-        const openSpecials = workspaces.values.filter(w => w.name.startsWith("special:") && w.lastIpcObject.windows > 0);
+        const openSpecials = workspaces.values.filter(w => isCyclableSpecialWorkspace(w));
 
         if (openSpecials.length === 0)
             return;
@@ -57,7 +59,7 @@ Singleton {
         if (!activeSpecial) {
             if (lastSpecialWorkspace) {
                 const workspace = workspaces.values.find(w => w.name === lastSpecialWorkspace);
-                if (workspace && workspace.lastIpcObject.windows > 0) {
+                if (workspace && isCyclableSpecialWorkspace(workspace)) {
                     dispatch(usingLua ? `hl.dsp.focus({ workspace = "${lastSpecialWorkspace}" })` : `workspace ${lastSpecialWorkspace}`);
                     return;
                 }
@@ -79,6 +81,10 @@ Singleton {
         dispatch(usingLua ? `hl.dsp.focus({ workspace = "${openSpecials[nextIndex].name}" })` : `workspace ${openSpecials[nextIndex].name}`);
     }
 
+    function isCyclableSpecialWorkspace(workspace: HyprlandWorkspace): bool {
+        return workspace.name.startsWith("special:") && workspace.name !== minimizedWorkspace && workspace.lastIpcObject.windows > 0;
+    }
+
     function monitorNames(): list<string> {
         return monitors.values.map(e => e.name);
     }
@@ -89,9 +95,9 @@ Singleton {
 
     function reloadDynamicConfs(): void {
         if (usingLua) {
-            extras.batchMessage(['eval hl.bind("Caps_Lock", hl.dsp.global("caelestia:refreshDevices"), { locked = true, non_consuming = true, ignore_mods = true, release = true })', 'eval hl.bind("Num_Lock", hl.dsp.global("caelestia:refreshDevices"), { locked = true, non_consuming = true, ignore_mods = true, release = true })']);
+            extras.batchMessage(['eval hl.unbind("Caps_Lock")', 'eval hl.unbind("Num_Lock")', 'eval hl.bind("Caps_Lock", hl.dsp.global("caelestia:refreshDevices"), { locked = true, non_consuming = true, ignore_mods = true, release = true })', 'eval hl.bind("Num_Lock", hl.dsp.global("caelestia:refreshDevices"), { locked = true, non_consuming = true, ignore_mods = true, release = true })']);
         } else {
-            extras.batchMessage(["keyword bindlni ,Caps_Lock,global,caelestia:refreshDevices", "keyword bindlni ,Num_Lock,global,caelestia:refreshDevices"]);
+            extras.batchMessage(["keyword unbind ,Caps_Lock", "keyword unbind ,Num_Lock", "keyword bindlni ,Caps_Lock,global,caelestia:refreshDevices", "keyword bindlni ,Num_Lock,global,caelestia:refreshDevices"]);
         }
     }
 
@@ -102,9 +108,9 @@ Singleton {
             return;
 
         if (capsLock)
-            Toaster.toast(qsTr("Caps lock enabled"), qsTr("Caps lock is currently enabled"), "keyboard_capslock_badge");
+            Toaster.toast(qsTr("Đã bật Caps Lock"), qsTr("Caps Lock hiện đang bật"), "keyboard_capslock_badge");
         else
-            Toaster.toast(qsTr("Caps lock disabled"), qsTr("Caps lock is currently disabled"), "keyboard_capslock");
+            Toaster.toast(qsTr("Đã tắt Caps Lock"), qsTr("Caps Lock hiện đang tắt"), "keyboard_capslock");
     }
 
     onNumLockChanged: {
@@ -112,14 +118,14 @@ Singleton {
             return;
 
         if (numLock)
-            Toaster.toast(qsTr("Num lock enabled"), qsTr("Num lock is currently enabled"), "looks_one");
+            Toaster.toast(qsTr("Đã bật Num Lock"), qsTr("Num Lock hiện đang bật"), "looks_one");
         else
-            Toaster.toast(qsTr("Num lock disabled"), qsTr("Num lock is currently disabled"), "timer_1");
+            Toaster.toast(qsTr("Đã tắt Num Lock"), qsTr("Num Lock hiện đang tắt"), "timer_1");
     }
 
     onKbLayoutFullChanged: {
         if (hadKeyboard && GlobalConfig.utilities.toasts.kbLayoutChanged)
-            Toaster.toast(qsTr("Keyboard layout changed"), qsTr("Layout changed to: %1").arg(kbLayoutFull), "keyboard");
+            Toaster.toast(qsTr("Đã đổi bố cục bàn phím"), qsTr("Bố cục đã đổi thành: %1").arg(kbLayoutFull), "keyboard");
 
         hadKeyboard = !!keyboard;
     }
@@ -155,7 +161,7 @@ Singleton {
         function onLastIpcObjectChanged(): void {
             const specialName = root.focusedMonitor.lastIpcObject.specialWorkspace.name;
 
-            if (specialName && specialName.startsWith("special:")) {
+            if (specialName && specialName.startsWith("special:") && specialName !== root.minimizedWorkspace) {
                 root.lastSpecialWorkspace = specialName;
             }
         }
@@ -206,7 +212,7 @@ Singleton {
         }
 
         function listSpecialWorkspaces(): string {
-            return root.workspaces.values.filter(w => w.name.startsWith("special:") && w.lastIpcObject.windows > 0).map(w => w.name).join("\n");
+            return root.workspaces.values.filter(w => root.isCyclableSpecialWorkspace(w)).map(w => w.name).join("\n");
         }
 
         target: "hypr"
@@ -216,7 +222,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "refreshDevices"
-        description: "Reload devices"
+        description: qsTr("Tải lại thiết bị")
         onPressed: extras.refreshDevices()
         onReleased: extras.refreshDevices()
     }

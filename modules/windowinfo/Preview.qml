@@ -14,8 +14,13 @@ Item {
 
     required property ShellScreen screen
     required property HyprlandToplevel client
+    required property real maximumWidth
 
-    Layout.preferredWidth: preview.implicitWidth + Tokens.padding.extraLargeIncreased
+    readonly property real contentMaximumWidth: Math.max(1, maximumWidth - Tokens.padding.extraLargeIncreased)
+
+    Layout.minimumWidth: 0
+    Layout.preferredWidth: Math.min(preview.implicitWidth + Tokens.padding.extraLargeIncreased, maximumWidth)
+    Layout.maximumWidth: maximumWidth
     Layout.fillHeight: true
 
     StyledClippingRect {
@@ -28,6 +33,7 @@ Item {
         anchors.bottomMargin: Tokens.spacing.medium
 
         implicitWidth: view.implicitWidth
+        width: Math.min(preview.implicitWidth, root.contentMaximumWidth)
 
         color: Colours.tPalette.m3surfaceContainer
         radius: Tokens.rounding.medium
@@ -49,14 +55,14 @@ Item {
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("No active client")
+                    text: qsTr("Không có cửa sổ đang hoạt động")
                     color: Colours.palette.m3outline
                     font: Tokens.font.body.builders.large.size(28).weight(Font.Medium).build()
                 }
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    text: qsTr("Try switching to a window")
+                    text: qsTr("Hãy thử chuyển sang một cửa sổ")
                     color: Colours.palette.m3outline
                     font: Tokens.font.body.large
                 }
@@ -71,7 +77,16 @@ Item {
             captureSource: root.client?.wayland ?? null // qmllint disable unresolved-type
             live: true
 
-            constraintSize.width: root.client ? parent.height * Math.min(root.screen.width / root.screen.height, root.client?.lastIpcObject.size[0] / root.client?.lastIpcObject.size[1]) : parent.height
+            constraintSize.width: {
+                const client = root.client;
+                if (!client)
+                    return Math.max(1, Math.min(root.contentMaximumWidth, parent.height));
+
+                const screenRatio = root.screen.height > 0 ? root.screen.width / root.screen.height : 1;
+                const clientSize = client.lastIpcObject?.size ?? [1, 1];
+                const clientRatio = clientSize[1] > 0 ? clientSize[0] / clientSize[1] : screenRatio;
+                return Math.max(1, Math.min(root.contentMaximumWidth, parent.height * Math.min(screenRatio, clientRatio)));
+            }
             constraintSize.height: parent.height
         }
     }
@@ -83,14 +98,19 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Tokens.padding.large
 
+        width: Math.max(1, root.width - Tokens.padding.large * 2)
+
         animate: true
+        elide: Text.ElideRight
+        horizontalAlignment: Text.AlignHCenter
         text: {
             const client = root.client;
             if (!client)
-                return qsTr("No active client");
+                return qsTr("Không có cửa sổ đang hoạt động");
 
             const mon = client.monitor;
-            return qsTr("%1 on monitor %2 at %3, %4").arg(client.title).arg(mon.name).arg(client.lastIpcObject.at[0]).arg(client.lastIpcObject.at[1]);
+            const position = client.lastIpcObject?.at ?? [];
+            return qsTr("%1 trên màn hình %2 tại %3, %4").arg(client.title).arg(mon?.name ?? qsTr("không xác định")).arg(position[0] ?? -1).arg(position[1] ?? -1);
         }
     }
 }

@@ -60,7 +60,7 @@ Item {
             }
 
             StyledText {
-                text: qsTr("This folder is empty")
+                text: qsTr("Thư mục này trống")
                 color: Colours.palette.m3outline
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
             }
@@ -151,6 +151,7 @@ Item {
         anchors.margins: Tokens.padding.extraSmall
 
         currentItem: view.currentItem
+        dialog: root.dialog
     }
 
     component FileEntry: StyledRect {
@@ -214,7 +215,7 @@ Item {
             elide: item.GridView.isCurrentItem ? Text.ElideNone : Text.ElideRight
             wrapMode: item.GridView.isCurrentItem ? Text.WrapAtWordBoundaryOrAnywhere : Text.NoWrap
 
-            Component.onCompleted: text = item.modelData.name
+            Component.onCompleted: text = root.dialog.cwd.length === 1 && root.dialog.cwd[0] === "Home" ? root.dialog.displayName(item.modelData.name) : item.modelData.name
         }
 
         Behavior on implicitHeight {

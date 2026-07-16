@@ -60,14 +60,14 @@ StyledRect {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Screen Recorder")
+                    text: qsTr("Trình ghi màn hình")
                     font: Tokens.font.body.medium
                     elide: Text.ElideRight
                 }
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: Recorder.paused ? qsTr("Paused") : Recorder.running ? qsTr("Running...") : qsTr("Ready")
+                    text: Recorder.paused ? qsTr("Tạm dừng") : Recorder.running ? qsTr("Đang ghi...") : qsTr("Sẵn sàng")
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                     elide: Text.ElideRight
@@ -84,26 +84,26 @@ StyledRect {
                 menuItems: [
                     MenuItem {
                         icon: "fullscreen"
-                        text: qsTr("Record fullscreen")
-                        activeText: qsTr("Fullscreen")
+                        text: qsTr("Ghi toàn màn hình")
+                        activeText: qsTr("Toàn màn hình")
                         onClicked: Recorder.start()
                     },
                     MenuItem {
                         icon: "screenshot_region"
-                        text: qsTr("Record region")
-                        activeText: qsTr("Region")
+                        text: qsTr("Ghi một vùng")
+                        activeText: qsTr("Vùng")
                         onClicked: Recorder.start(["-r"])
                     },
                     MenuItem {
                         icon: "select_to_speak"
-                        text: qsTr("Record fullscreen with sound")
-                        activeText: qsTr("Fullscreen")
+                        text: qsTr("Ghi toàn màn hình kèm âm thanh")
+                        activeText: qsTr("Toàn màn hình")
                         onClicked: Recorder.start(["-s"])
                     },
                     MenuItem {
                         icon: "volume_up"
-                        text: qsTr("Record region with sound")
-                        activeText: qsTr("Region")
+                        text: qsTr("Ghi một vùng kèm âm thanh")
+                        activeText: qsTr("Vùng")
                         onClicked: Recorder.start(["-sr"])
                     }
                 ]
@@ -193,7 +193,7 @@ StyledRect {
 
                     anchors.centerIn: parent
                     animate: true
-                    text: Recorder.paused ? "PAUSED" : "REC"
+                    text: Recorder.paused ? "TẠM DỪNG" : "GHI"
                     color: Recorder.paused ? Colours.palette.m3onTertiary : Colours.palette.m3onError
                     font: Tokens.font.mono.small
                 }
@@ -237,7 +237,7 @@ StyledRect {
                     else
                         time = `${mins}:${secs}`;
 
-                    return qsTr("Recording for %1").arg(time);
+                    return qsTr("Thời gian ghi: %1").arg(time);
                 }
                 font: Tokens.font.body.medium
                 elide: Text.ElideMiddle

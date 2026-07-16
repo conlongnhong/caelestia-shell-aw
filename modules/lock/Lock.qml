@@ -44,7 +44,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "lock"
-        description: "Lock the current session"
+        description: "Khóa phiên hiện tại"
         onPressed: lock.locked = true
     }
 
@@ -52,7 +52,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "unlock"
-        description: "Unlock the current session"
+        description: "Mở khóa phiên hiện tại"
         onPressed: lock.unlock()
     }
 

@@ -13,7 +13,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("App volumes")
+    title: qsTr("Âm lượng ứng dụng")
     isSubPage: true
 
     ColumnLayout {
@@ -26,7 +26,7 @@ PageBase {
             Layout.fillWidth: true
             Layout.leftMargin: Tokens.padding.small
             Layout.bottomMargin: Tokens.spacing.medium
-            text: qsTr("Adjust the volume of individual apps currently playing audio.")
+            text: qsTr("Điều chỉnh âm lượng của từng ứng dụng đang phát âm thanh.")
             color: Colours.palette.m3outline
             font: Tokens.font.body.small
             wrapMode: Text.WordWrap
@@ -39,7 +39,7 @@ PageBase {
             last: true
             showList: true
             placeholderIcon: "music_off"
-            placeholderText: qsTr("No apps playing audio")
+            placeholderText: qsTr("Không có ứng dụng nào đang phát âm thanh")
             color: list.count === 0 ? Colours.tPalette.m3surfaceContainer : "transparent"
             list.spacing: Tokens.spacing.extraSmall / 2
 

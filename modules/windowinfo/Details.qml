@@ -10,20 +10,24 @@ ColumnLayout {
 
     required property HyprlandToplevel client
 
+    readonly property var ipc: client?.lastIpcObject ?? null
+    readonly property var position: ipc?.at ?? []
+    readonly property var clientSize: ipc?.size ?? []
+
     anchors.fill: parent
     spacing: Tokens.spacing.small
 
     Label {
         Layout.topMargin: Tokens.padding.extraLargeIncreased
 
-        text: root.client?.title ?? qsTr("No active client")
+        text: root.client?.title ?? qsTr("Không có cửa sổ đang hoạt động")
         wrapMode: Text.WrapAtWordBoundaryOrAnywhere
 
         font: Tokens.font.body.builders.large.weight(Font.Medium).build()
     }
 
     Label {
-        text: root.client?.lastIpcObject.class ?? qsTr("No active client")
+        text: root.ipc?.class ?? qsTr("Không có cửa sổ đang hoạt động")
         color: Colours.palette.m3tertiary
 
         font: Tokens.font.body.large
@@ -42,24 +46,27 @@ ColumnLayout {
 
     Detail {
         icon: "location_on"
-        text: qsTr("Address: %1").arg(`0x${root.client?.address}` ?? "unknown")
+        text: {
+            const address = root.client?.address;
+            return qsTr("Địa chỉ: %1").arg(address ? `0x${address}` : "không xác định");
+        }
         color: Colours.palette.m3primary
     }
 
     Detail {
         icon: "location_searching"
-        text: qsTr("Position: %1, %2").arg(root.client?.lastIpcObject.at[0] ?? -1).arg(root.client?.lastIpcObject.at[1] ?? -1)
+        text: qsTr("Vị trí: %1, %2").arg(root.position[0] ?? -1).arg(root.position[1] ?? -1)
     }
 
     Detail {
         icon: "resize"
-        text: qsTr("Size: %1 x %2").arg(root.client?.lastIpcObject.size[0] ?? -1).arg(root.client?.lastIpcObject.size[1] ?? -1)
+        text: qsTr("Kích thước: %1 x %2").arg(root.clientSize[0] ?? -1).arg(root.clientSize[1] ?? -1)
         color: Colours.palette.m3tertiary
     }
 
     Detail {
         icon: "workspaces"
-        text: qsTr("Workspace: %1 (%2)").arg(root.client?.workspace.name ?? -1).arg(root.client?.workspace.id ?? -1)
+        text: qsTr("Không gian làm việc: %1 (%2)").arg(root.client?.workspace?.name ?? -1).arg(root.client?.workspace?.id ?? -1)
         color: Colours.palette.m3secondary
     }
 
@@ -68,52 +75,52 @@ ColumnLayout {
         text: {
             const mon = root.client?.monitor;
             if (mon)
-                return qsTr("Monitor: %1 (%2) at %3, %4").arg(mon.name).arg(mon.id).arg(mon.x).arg(mon.y);
-            return qsTr("Monitor: unknown");
+                return qsTr("Màn hình: %1 (%2) tại %3, %4").arg(mon.name).arg(mon.id).arg(mon.x).arg(mon.y);
+            return qsTr("Màn hình: không xác định");
         }
     }
 
     Detail {
         icon: "page_header"
-        text: qsTr("Initial title: %1").arg(root.client?.lastIpcObject.initialTitle ?? "unknown")
+        text: qsTr("Tiêu đề ban đầu: %1").arg(root.ipc?.initialTitle ?? "không xác định")
         color: Colours.palette.m3tertiary
     }
 
     Detail {
         icon: "category"
-        text: qsTr("Initial class: %1").arg(root.client?.lastIpcObject.initialClass ?? "unknown")
+        text: qsTr("Class ban đầu: %1").arg(root.ipc?.initialClass ?? "không xác định")
     }
 
     Detail {
         icon: "account_tree"
-        text: qsTr("Process id: %1").arg(String(root.client?.lastIpcObject.pid ?? -1))
+        text: qsTr("ID tiến trình: %1").arg(String(root.ipc?.pid ?? -1))
         color: Colours.palette.m3primary
     }
 
     Detail {
         icon: "picture_in_picture_center"
-        text: qsTr("Floating: %1").arg(root.client?.lastIpcObject.floating ? "yes" : "no")
+        text: qsTr("Thả nổi: %1").arg(root.ipc?.floating ? "có" : "không")
         color: Colours.palette.m3secondary
     }
 
     Detail {
         icon: "gradient"
-        text: qsTr("Xwayland: %1").arg(root.client?.lastIpcObject.xwayland ? "yes" : "no")
+        text: qsTr("Xwayland: %1").arg(root.ipc?.xwayland ? "có" : "không")
     }
 
     Detail {
         icon: "keep"
-        text: qsTr("Pinned: %1").arg(root.client?.lastIpcObject.pinned ? "yes" : "no")
+        text: qsTr("Đã ghim: %1").arg(root.ipc?.pinned ? "có" : "không")
         color: Colours.palette.m3secondary
     }
 
     Detail {
         icon: "fullscreen"
         text: {
-            const fs = root.client?.lastIpcObject.fullscreen;
-            if (fs)
-                return qsTr("Fullscreen state: %1").arg(fs == 0 ? "off" : fs == 1 ? "maximised" : "on");
-            return qsTr("Fullscreen state: unknown");
+            const fs = root.ipc?.fullscreen;
+            if (fs === undefined || fs === null)
+                return qsTr("Trạng thái toàn màn hình: không xác định");
+            return qsTr("Trạng thái toàn màn hình: %1").arg(fs === 0 ? "tắt" : fs === 1 ? "phóng to" : "bật");
         }
         color: Colours.palette.m3tertiary
     }

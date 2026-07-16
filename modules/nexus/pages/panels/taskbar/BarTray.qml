@@ -7,7 +7,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Tray")
+    title: qsTr("Khay hệ thống")
     isSubPage: true
 
     ColumnLayout {
@@ -18,27 +18,27 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: qsTr("Background")
+            text: qsTr("Nền")
             checked: Config.bar.tray.background
             onToggled: GlobalConfig.bar.tray.background = checked
         }
 
         ToggleRow {
-            text: qsTr("Recolour icons")
+            text: qsTr("Đổi màu biểu tượng")
             checked: Config.bar.tray.recolour
             onToggled: GlobalConfig.bar.tray.recolour = checked
         }
 
         ToggleRow {
-            text: qsTr("Compact")
+            text: qsTr("Thu gọn")
             checked: Config.bar.tray.compact
             onToggled: GlobalConfig.bar.tray.compact = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Popout on hover")
-            subtext: qsTr("Show the tray menu popout when hovering")
+            text: qsTr("Hiện bảng bật ra khi rê chuột")
+            subtext: qsTr("Hiện bảng khay hệ thống khi rê chuột")
             checked: Config.bar.popouts.tray
             onToggled: GlobalConfig.bar.popouts.tray = checked
         }

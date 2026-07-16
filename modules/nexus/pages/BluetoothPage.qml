@@ -17,7 +17,7 @@ PageBase {
     readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter // qmllint disable unresolved-type
     readonly property bool btEnabled: adapter?.enabled ?? false
 
-    title: qsTr("Connected devices")
+    title: qsTr("Thiết bị đã kết nối")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -42,7 +42,7 @@ PageBase {
 
             showList: root.btEnabled
             placeholderIcon: root.btEnabled ? "devices_other" : "bluetooth_disabled"
-            placeholderText: root.btEnabled ? qsTr("No saved devices") : qsTr("Bluetooth disabled")
+            placeholderText: root.btEnabled ? qsTr("Không có thiết bị đã lưu") : qsTr("Bluetooth đã tắt")
 
             model: ScriptModel {
                 values: Bluetooth.devices.values.filter(d => d.bonded).sort((a, b) => (b.connected - a.connected) || a.name.localeCompare(b.name)) // qmllint disable unresolved-type
@@ -115,14 +115,14 @@ PageBase {
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: device.modelData?.name ?? qsTr("Unknown")
+                            text: device.modelData?.name ?? qsTr("Không rõ")
                             font: Tokens.font.body.small
                             elide: Text.ElideRight
                         }
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: device.connected ? qsTr("Connected%1").arg(device.modelData?.batteryAvailable ? " • " + Math.round(device.modelData.battery * 100) + "%" : "") : qsTr("Saved")
+                            text: device.connected ? qsTr("Đã kết nối%1").arg(device.modelData?.batteryAvailable ? " • " + Math.round(device.modelData.battery * 100) + "%" : "") : qsTr("Đã lưu")
                             color: Colours.palette.m3outline
                             font: Tokens.font.label.small
                             elide: Text.ElideRight
@@ -199,7 +199,7 @@ PageBase {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Pair new device")
+                    text: qsTr("Ghép đôi thiết bị mới")
                     font: Tokens.font.body.small
                     elide: Text.ElideRight
                 }
@@ -210,8 +210,8 @@ PageBase {
             Layout.topMargin: Tokens.spacing.large - parent.spacing
 
             first: true
-            text: qsTr("Discoverable")
-            subtext: qsTr("Allow nearby devices to find this one")
+            text: qsTr("Cho phép tìm thấy")
+            subtext: qsTr("Cho phép thiết bị ở gần tìm thấy thiết bị này")
             enabled: root.btEnabled
             opacity: root.btEnabled ? 1 : 0.5
             checked: root.adapter?.discoverable ?? false
@@ -227,8 +227,8 @@ PageBase {
 
         ToggleRow {
             last: true
-            text: qsTr("Pairable")
-            subtext: qsTr("Allow nearby devices to pair with this one")
+            text: qsTr("Cho phép ghép đôi")
+            subtext: qsTr("Cho phép thiết bị ở gần ghép đôi với thiết bị này")
             enabled: root.btEnabled
             opacity: root.btEnabled ? 1 : 0.5
             checked: root.adapter?.pairable ?? false

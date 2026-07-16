@@ -4,33 +4,45 @@ import Caelestia.Config
 import qs.components
 import qs.services
 
-DoubleSpinBox {
+// Qt 6.10 chưa có DoubleSpinBox. Dùng SpinBox số nguyên với hệ số tỉ lệ
+// để giữ nguyên API giá trị thực mà Nexus cần.
+SpinBox {
     id: root
 
     property int repeatRate: 400
     property int repeatDecay: 50
     property int cLayer: 1
+    property real realFrom: 0
+    property real realTo: 99
+    property real realStepSize: 1
+    property real realValue: 0
+    readonly property int decimals: realStepSize < 1 ? Math.max(1, Math.ceil(-Math.log10(realStepSize))) : 0
+    readonly property int valueScale: Math.pow(10, decimals)
+
+    signal realValueModified(value: real)
+
+    from: Math.round(realFrom * valueScale)
+    to: Math.round(realTo * valueScale)
+    stepSize: Math.max(1, Math.round(realStepSize * valueScale))
+    value: Math.round(realValue * valueScale)
+
+    textFromValue: (value, locale) => Number(value / root.valueScale).toLocaleString(locale, "f", root.decimals)
+    valueFromText: (text, locale) => Math.round(Number.fromLocaleString(locale, text) * root.valueScale)
+    onValueModified: realValueModified(value / valueScale)
 
     function increase(): void {
         let newValue = Math.min(to, value + stepSize);
-        // Round to avoid floating point precision errors
-        const decimals = stepSize < 1 ? Math.max(1, Math.ceil(-Math.log10(stepSize))) : 0;
-        newValue = Math.round(newValue * Math.pow(10, decimals)) / Math.pow(10, decimals);
         value = newValue;
         valueModified();
     }
 
     function decrease(): void {
         let newValue = Math.max(from, value - stepSize);
-        // Round to avoid floating point precision errors
-        const decimals = stepSize < 1 ? Math.max(1, Math.ceil(-Math.log10(stepSize))) : 0;
-        newValue = Math.round(newValue * Math.pow(10, decimals)) / Math.pow(10, decimals);
         value = newValue;
         valueModified();
     }
 
     editable: true
-    decimals: stepSize < 1 ? Math.max(1, Math.ceil(-Math.log10(stepSize))) : 0
     spacing: Tokens.spacing.small
 
     implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
@@ -43,7 +55,13 @@ DoubleSpinBox {
         text: root.textFromValue(root.value, root.locale)
 
         readOnly: !root.editable
-        validator: root.validator
+        validator: DoubleValidator {
+            bottom: Math.min(root.realFrom, root.realTo)
+            top: Math.max(root.realFrom, root.realTo)
+            decimals: root.decimals
+            locale: root.locale.name
+            notation: DoubleValidator.StandardNotation
+        }
         inputMethodHints: Qt.ImhFormattedNumbersOnly
 
         leftPadding: Tokens.padding.medium

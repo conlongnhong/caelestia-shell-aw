@@ -38,7 +38,7 @@ ColumnLayout {
             StyledText {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: true
-                text: qsTr("Recordings")
+                text: qsTr("Bản ghi")
                 font: Tokens.font.body.medium
             }
 
@@ -92,7 +92,7 @@ ColumnLayout {
                         return time;
                     const date = new Date(...matches.slice(1));
                     date.setMonth(date.getMonth() - 1); // Woe (months start from 0)
-                    return qsTr("Recording at %1").arg(Qt.formatDateTime(date, Qt.locale()));
+                    return qsTr("Ghi lúc %1").arg(Qt.formatDateTime(date, Qt.locale()));
                 }
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight
@@ -218,7 +218,7 @@ ColumnLayout {
                     }
 
                     StyledText {
-                        text: qsTr("No recordings found")
+                        text: qsTr("Không tìm thấy bản ghi")
                         color: Colours.palette.m3outline
                     }
                 }

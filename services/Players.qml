@@ -43,7 +43,7 @@ Singleton {
                 return;
             }
             if (root.active.trackArtist != "" && root.active.trackTitle != "") {
-                Toaster.toast(qsTr("Now Playing"), qsTr("%1 - %2").arg(root.active.trackArtist).arg(root.active.trackTitle), "music_note");
+                Toaster.toast(qsTr("Đang phát"), qsTr("%1 - %2").arg(root.active.trackArtist).arg(root.active.trackTitle), "music_note");
             }
         }
 
@@ -62,7 +62,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaToggle"
-        description: "Toggle media playback"
+        description: qsTr("Phát hoặc tạm dừng")
         onPressed: {
             const active = root.active;
             if (active && active.canTogglePlaying)
@@ -74,7 +74,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaPrev"
-        description: "Previous track"
+        description: qsTr("Bài trước")
         onPressed: {
             const active = root.active;
             if (active && active.canGoPrevious)
@@ -86,7 +86,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaNext"
-        description: "Next track"
+        description: qsTr("Bài tiếp theo")
         onPressed: {
             const active = root.active;
             if (active && active.canGoNext)
@@ -98,7 +98,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaStop"
-        description: "Stop media playback"
+        description: qsTr("Dừng phát")
         onPressed: root.active?.stop()
     }
 

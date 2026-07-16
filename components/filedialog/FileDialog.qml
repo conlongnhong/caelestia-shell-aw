@@ -10,9 +10,9 @@ LazyLoader {
     id: loader
 
     property list<string> cwd: ["Home"]
-    property string filterLabel: "All files"
+    property string filterLabel: qsTr("Tất cả tệp")
     property list<string> filters: ["*"]
-    property string title: qsTr("Select a file")
+    property string title: qsTr("Chọn tệp")
 
     signal accepted(path: string)
     signal rejected
@@ -46,6 +46,21 @@ LazyLoader {
 
         function rejected(): void {
             loader.rejected();
+        }
+
+        function displayName(name: string): string {
+            const names = {
+                "Home": qsTr("Trang chủ"),
+                "Downloads": qsTr("Tải xuống"),
+                "Desktop": qsTr("Màn hình nền"),
+                "Documents": qsTr("Tài liệu"),
+                "Music": qsTr("Nhạc"),
+                "Pictures": qsTr("Hình ảnh"),
+                "Public": qsTr("Công khai"),
+                "Templates": qsTr("Mẫu"),
+                "Videos": qsTr("Video")
+            };
+            return names[name] ?? name;
         }
 
         implicitWidth: 1000

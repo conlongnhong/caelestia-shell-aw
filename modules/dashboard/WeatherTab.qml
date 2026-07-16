@@ -28,7 +28,7 @@ Item {
                 spacing: Tokens.spacing.extraSmall
 
                 StyledText {
-                    text: Weather.city || qsTr("Loading...")
+                    text: Weather.city || qsTr("Đang tải...")
                     font: Tokens.font.body.builders.large.size(28).weight(Font.DemiBold).build()
                     color: Colours.palette.m3onSurface
                 }
@@ -49,14 +49,14 @@ Item {
 
                 WeatherStat {
                     icon: "wb_twilight"
-                    label: "Sunrise"
+                    label: qsTr("Bình minh")
                     value: Weather.sunrise
                     colour: Colours.palette.m3tertiary
                 }
 
                 WeatherStat {
                     icon: "bedtime"
-                    label: "Sunset"
+                    label: qsTr("Hoàng hôn")
                     value: Weather.sunset
                     colour: Colours.palette.m3tertiary
                 }
@@ -110,19 +110,19 @@ Item {
 
             DetailCard {
                 icon: "water_drop"
-                label: "Humidity"
+                label: qsTr("Độ ẩm")
                 value: Weather.humidity + "%"
                 colour: Colours.palette.m3secondary
             }
             DetailCard {
                 icon: "thermostat"
-                label: "Feels Like"
+                label: qsTr("Cảm giác như")
                 value: Weather.feelsLike
                 colour: Colours.palette.m3primary
             }
             DetailCard {
                 icon: "air"
-                label: "Wind"
+                label: qsTr("Gió")
                 value: Weather.windSpeed ? Weather.windSpeed + " km/h" : "--"
                 colour: Colours.palette.m3tertiary
             }
@@ -132,7 +132,7 @@ Item {
             Layout.topMargin: Tokens.spacing.medium
             Layout.leftMargin: Tokens.padding.medium
             visible: forecastRepeater.count > 0
-            text: qsTr("7-Day Forecast")
+            text: qsTr("Dự báo 7 ngày")
             font: Tokens.font.body.builders.medium.weight(Font.DemiBold).build()
             color: Colours.palette.m3onSurface
         }
@@ -166,7 +166,7 @@ Item {
 
                         StyledText {
                             Layout.alignment: Qt.AlignHCenter
-                            text: forecastItem.index === 0 ? qsTr("Today") : new Date(forecastItem.modelData.date).toLocaleDateString(Qt.locale(), "ddd")
+                            text: forecastItem.index === 0 ? qsTr("Hôm nay") : new Date(forecastItem.modelData.date).toLocaleDateString(Qt.locale(), "ddd")
                             font: Tokens.font.body.builders.medium.weight(Font.DemiBold).build()
                             color: Colours.palette.m3primary
                         }

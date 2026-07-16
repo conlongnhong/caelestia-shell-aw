@@ -33,7 +33,7 @@ Item {
         spacing: Tokens.spacing.medium
 
         StyledText {
-            text: qsTr("Output device")
+            text: qsTr("Thiết bị đầu ra")
             font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
         }
 
@@ -54,7 +54,7 @@ Item {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.medium
-            text: qsTr("Input device")
+            text: qsTr("Thiết bị đầu vào")
             font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
         }
 
@@ -73,7 +73,7 @@ Item {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.medium
-            text: qsTr("Volume (%1)").arg(Audio.muted ? qsTr("Muted") : `${Math.round(Audio.volume * 100)}%`)
+            text: qsTr("Âm lượng (%1)").arg(Audio.muted ? qsTr("Đã tắt tiếng") : `${Math.round(Audio.volume * 100)}%`)
             font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
         }
 
@@ -104,7 +104,7 @@ Item {
             inactiveColour: Colours.palette.m3primaryContainer
             inactiveOnColour: Colours.palette.m3onPrimaryContainer
             verticalPadding: Tokens.padding.extraSmall
-            text: qsTr("Open settings")
+            text: qsTr("Mở cài đặt")
             icon: "settings"
 
             onClicked: root.popouts.detachRequested("audio")

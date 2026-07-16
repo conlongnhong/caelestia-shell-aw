@@ -123,7 +123,7 @@ StyledRect {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.leftMargin: homeIcon.active ? Tokens.padding.extraSmall : 0
 
-                                text: folder.modelData
+                                text: (folder.index === 0 && folder.modelData === "Home") || (root.dialog.cwd[0] === "Home" && folder.index === 1) ? root.dialog.displayName(folder.modelData) : folder.modelData
                                 color: folder.index < root.dialog.cwd.length - 1 ? Colours.palette.m3onSurfaceVariant : Colours.palette.m3onSurface
                                 font: Tokens.font.body.builders.small.weight(Font.Bold).build()
                             }

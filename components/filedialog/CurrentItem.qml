@@ -8,6 +8,7 @@ Item {
     id: root
 
     required property var currentItem
+    required property var dialog
 
     implicitWidth: content.implicitWidth + Tokens.padding.medium + content.anchors.rightMargin
     implicitHeight: currentItem ? content.implicitHeight + Tokens.padding.medium + content.anchors.bottomMargin : 0
@@ -82,7 +83,7 @@ Item {
             Connections {
                 function onCurrentItemChanged(): void {
                     if (root.currentItem)
-                        content.text = qsTr(`"%1" selected`).arg(root.currentItem.modelData.name);
+                        content.text = qsTr("Đã chọn \"%1\"").arg(root.dialog.cwd.length === 1 && root.dialog.cwd[0] === "Home" ? root.dialog.displayName(root.currentItem.modelData.name) : root.currentItem.modelData.name);
                 }
 
                 target: root

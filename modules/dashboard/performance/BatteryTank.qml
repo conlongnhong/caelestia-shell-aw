@@ -74,7 +74,7 @@ StyledClippingRect {
 
         StyledText {
             Layout.fillWidth: true
-            text: qsTr("Battery")
+            text: qsTr("Pin")
             color: contents.textColour
             font: Tokens.font.body.medium
         }
@@ -87,10 +87,10 @@ StyledClippingRect {
             Layout.alignment: Qt.AlignRight
             text: {
                 if (UPower.displayDevice.state === UPowerDeviceState.FullyCharged)
-                    return qsTr("Full");
+                    return qsTr("Đầy");
 
                 if (contents.charging)
-                    return qsTr("Charging");
+                    return qsTr("Đang sạc");
 
                 const s = UPower.displayDevice.timeToEmpty;
                 if (s === 0)
@@ -99,9 +99,9 @@ StyledClippingRect {
                 const hr = Math.floor(s / 3600);
                 const min = Math.floor((s % 3600) / 60);
                 if (hr > 0)
-                    return `${hr}h ${min}m`;
+                    return `${hr} giờ ${min} phút`;
 
-                return `${min}m`;
+                return `${min} phút`;
             }
             color: contents.subTextColour
             font: Tokens.font.body.small

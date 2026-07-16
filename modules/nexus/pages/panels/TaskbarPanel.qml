@@ -7,7 +7,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Taskbar")
+    title: qsTr("Thanh tác vụ")
     isSubPage: true
 
     ColumnLayout {
@@ -19,28 +19,28 @@ PageBase {
         // Behaviour
         SectionHeader {
             first: true
-            text: qsTr("Behaviour")
+            text: qsTr("Hành vi")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Persistent")
-            subtext: qsTr("Keep the bar visible at all times")
+            text: qsTr("Luôn hiện")
+            subtext: qsTr("Luôn giữ thanh hiển thị")
             checked: Config.bar.persistent
             onToggled: GlobalConfig.bar.persistent = checked
         }
 
         ToggleRow {
-            text: qsTr("Show on hover")
-            subtext: qsTr("Reveal the bar when the cursor reaches the screen edge")
+            text: qsTr("Hiện khi rê chuột")
+            subtext: qsTr("Hiện thanh khi con trỏ chạm cạnh màn hình")
             checked: Config.bar.showOnHover
             onToggled: GlobalConfig.bar.showOnHover = checked
         }
 
         StepperRow {
             last: true
-            label: qsTr("Drag threshold")
-            subtext: qsTr("Pixels dragged before the bar reveals")
+            label: qsTr("Ngưỡng kéo")
+            subtext: qsTr("Số pixel kéo trước khi thanh hiện ra")
             value: Config.bar.dragThreshold
             from: 0
             to: 200
@@ -50,70 +50,70 @@ PageBase {
 
         // Components
         SectionHeader {
-            text: qsTr("Components")
+            text: qsTr("Thành phần")
         }
 
         NavRow {
             first: true
             icon: "workspaces"
-            label: qsTr("Workspaces")
-            status: qsTr("Indicators, window icons")
+            label: qsTr("Không gian làm việc")
+            status: qsTr("Chỉ báo, biểu tượng cửa sổ")
             onClicked: root.nState.openSubPage(5)
         }
 
         NavRow {
             icon: "web_asset"
-            label: qsTr("Active window")
-            status: qsTr("Title display, popout")
+            label: qsTr("Cửa sổ đang hoạt động")
+            status: qsTr("Hiển thị tiêu đề, bảng bật ra")
             onClicked: root.nState.openSubPage(6)
         }
 
         NavRow {
             icon: "widgets"
-            label: qsTr("Tray")
-            status: qsTr("System tray icons")
+            label: qsTr("Khay hệ thống")
+            status: qsTr("Biểu tượng khay hệ thống")
             onClicked: root.nState.openSubPage(7)
         }
 
         NavRow {
             icon: "signal_cellular_alt"
-            label: qsTr("Status icons")
-            status: qsTr("Visible indicators")
+            label: qsTr("Biểu tượng trạng thái")
+            status: qsTr("Chỉ báo hiển thị")
             onClicked: root.nState.openSubPage(8)
         }
 
         NavRow {
             last: true
             icon: "schedule"
-            label: qsTr("Clock")
-            status: qsTr("Date, icon, background")
+            label: qsTr("Đồng hồ")
+            status: qsTr("Ngày, biểu tượng, nền")
             onClicked: root.nState.openSubPage(9)
         }
 
         // Scroll actions
         SectionHeader {
-            text: qsTr("Scroll actions")
+            text: qsTr("Thao tác cuộn")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Workspaces")
-            subtext: qsTr("Scroll over the workspace indicator to switch workspaces")
+            text: qsTr("Không gian làm việc")
+            subtext: qsTr("Cuộn trên chỉ báo để chuyển không gian làm việc")
             checked: Config.bar.scrollActions.workspaces
             onToggled: GlobalConfig.bar.scrollActions.workspaces = checked
         }
 
         ToggleRow {
-            text: qsTr("Volume")
-            subtext: qsTr("Scroll on the top half of the bar to adjust volume")
+            text: qsTr("Âm lượng")
+            subtext: qsTr("Cuộn ở nửa trên của thanh để chỉnh âm lượng")
             checked: Config.bar.scrollActions.volume
             onToggled: GlobalConfig.bar.scrollActions.volume = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Brightness")
-            subtext: qsTr("Scroll on the bottom half of the bar to adjust brightness")
+            text: qsTr("Độ sáng")
+            subtext: qsTr("Cuộn ở nửa dưới của thanh để chỉnh độ sáng")
             checked: Config.bar.scrollActions.brightness
             onToggled: GlobalConfig.bar.scrollActions.brightness = checked
         }

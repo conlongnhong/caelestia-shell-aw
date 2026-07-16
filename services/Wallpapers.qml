@@ -185,6 +185,7 @@ Searcher {
     FileView {
         path: "/tmp/caelestia_thumb_ready.txt"
         watchChanges: true
+        printErrors: false
         onFileChanged: reload()
         onLoaded: {
             const lines = text().trim().split("\n");

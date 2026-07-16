@@ -7,10 +7,10 @@ ColumnLayout {
     spacing: Tokens.spacing.small
 
     StyledText {
-        text: qsTr("Capslock: %1").arg(Hypr.capsLock ? "Enabled" : "Disabled")
+        text: qsTr("Khóa chữ hoa: %1").arg(Hypr.capsLock ? qsTr("Bật") : qsTr("Tắt"))
     }
 
     StyledText {
-        text: qsTr("Numlock: %1").arg(Hypr.numLock ? "Enabled" : "Disabled")
+        text: qsTr("Khóa số: %1").arg(Hypr.numLock ? qsTr("Bật") : qsTr("Tắt"))
     }
 }

@@ -8,7 +8,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Sidebar")
+    title: qsTr("Thanh bên")
     isSubPage: true
 
     ColumnLayout {
@@ -19,20 +19,20 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("General")
+            text: qsTr("Chung")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Enabled")
+            text: qsTr("Đã bật")
             checked: Config.sidebar.enabled
             onToggled: GlobalConfig.sidebar.enabled = checked
         }
 
         StepperRow {
             last: true
-            label: qsTr("Drag threshold")
-            subtext: qsTr("Pixels dragged before the sidebar opens")
+            label: qsTr("Ngưỡng kéo")
+            subtext: qsTr("Số pixel kéo trước khi thanh bên mở")
             value: Config.sidebar.dragThreshold
             from: 0
             to: 200

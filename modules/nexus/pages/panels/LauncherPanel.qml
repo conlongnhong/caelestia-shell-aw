@@ -8,7 +8,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Launcher")
+    title: qsTr("Trình khởi chạy")
     isSubPage: true
 
     ColumnLayout {
@@ -20,32 +20,32 @@ PageBase {
         // General
         SectionHeader {
             first: true
-            text: qsTr("General")
+            text: qsTr("Chung")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Enabled")
+            text: qsTr("Đã bật")
             checked: Config.launcher.enabled
             onToggled: GlobalConfig.launcher.enabled = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Show on hover")
-            subtext: qsTr("Reveal when the cursor reaches the screen edge")
+            text: qsTr("Hiện khi rê chuột")
+            subtext: qsTr("Hiện khi con trỏ chạm cạnh màn hình")
             checked: Config.launcher.showOnHover
             onToggled: GlobalConfig.launcher.showOnHover = checked
         }
 
         // Display
         SectionHeader {
-            text: qsTr("Display")
+            text: qsTr("Màn hình")
         }
 
         StepperRow {
             first: true
-            label: qsTr("Max items shown")
+            label: qsTr("Số mục hiển thị tối đa")
             value: Config.launcher.maxShown
             from: 1
             to: 20
@@ -54,7 +54,7 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Max wallpapers")
+            label: qsTr("Số hình nền tối đa")
             value: Config.launcher.maxWallpapers
             from: 1
             to: 30
@@ -64,8 +64,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Drag threshold")
-            subtext: qsTr("Pixels dragged before the launcher opens")
+            label: qsTr("Ngưỡng kéo")
+            subtext: qsTr("Số pixel kéo trước khi trình khởi chạy mở")
             value: Config.launcher.dragThreshold
             from: 0
             to: 200
@@ -75,58 +75,58 @@ PageBase {
 
         // Behaviour
         SectionHeader {
-            text: qsTr("Behaviour")
+            text: qsTr("Hành vi")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Vim keybinds")
-            subtext: qsTr("Navigate results with Ctrl+hjkl")
+            text: qsTr("Phím tắt Vim")
+            subtext: qsTr("Điều hướng kết quả bằng Ctrl+hjkl")
             checked: GlobalConfig.launcher.vimKeybinds
             onToggled: GlobalConfig.launcher.vimKeybinds = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Enable dangerous actions")
-            subtext: qsTr("Allow actions that shut down or log out")
+            text: qsTr("Bật hành động nguy hiểm")
+            subtext: qsTr("Cho phép hành động tắt máy hoặc đăng xuất")
             checked: GlobalConfig.launcher.enableDangerousActions
             onToggled: GlobalConfig.launcher.enableDangerousActions = checked
         }
 
         // Fuzzy search
         SectionHeader {
-            text: qsTr("Fuzzy search")
+            text: qsTr("Tìm kiếm gần đúng")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Apps")
+            text: qsTr("Ứng dụng")
             checked: GlobalConfig.launcher.useFuzzy.apps
             onToggled: GlobalConfig.launcher.useFuzzy.apps = checked
         }
 
         ToggleRow {
-            text: qsTr("Actions")
+            text: qsTr("Hành động")
             checked: GlobalConfig.launcher.useFuzzy.actions
             onToggled: GlobalConfig.launcher.useFuzzy.actions = checked
         }
 
         ToggleRow {
-            text: qsTr("Schemes")
+            text: qsTr("Bảng màu")
             checked: GlobalConfig.launcher.useFuzzy.schemes
             onToggled: GlobalConfig.launcher.useFuzzy.schemes = checked
         }
 
         ToggleRow {
-            text: qsTr("Variants")
+            text: qsTr("Biến thể")
             checked: GlobalConfig.launcher.useFuzzy.variants
             onToggled: GlobalConfig.launcher.useFuzzy.variants = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Wallpapers")
+            text: qsTr("Hình nền")
             checked: GlobalConfig.launcher.useFuzzy.wallpapers
             onToggled: GlobalConfig.launcher.useFuzzy.wallpapers = checked
         }

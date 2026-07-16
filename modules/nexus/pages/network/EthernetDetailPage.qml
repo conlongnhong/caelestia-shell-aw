@@ -151,7 +151,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: root.device?.connected ? qsTr("Disconnect") : qsTr("Connect")
+                        text: root.device?.connected ? qsTr("Ngắt kết nối") : qsTr("Kết nối")
                         color: connectBtn.onColour
                     }
                 }
@@ -161,45 +161,45 @@ PageBase {
         // ---- Connection info ------------------------------------------------
         SectionHeader {
             first: true
-            text: qsTr("Connection")
+            text: qsTr("Kết nối")
         }
 
         InfoRow {
             first: true
             icon: "link"
-            label: qsTr("Status")
-            value: root.device?.connected ? qsTr("Connected") : qsTr("Not connected")
+            label: qsTr("Trạng thái")
+            value: root.device?.connected ? qsTr("Đã kết nối") : qsTr("Chưa kết nối")
         }
 
         InfoRow {
             icon: "settings_ethernet"
-            label: qsTr("Interface")
+            label: qsTr("Giao diện")
             value: root.ifaceName || qsTr("—")
         }
 
         InfoRow {
             icon: "speed"
-            label: qsTr("Speed")
+            label: qsTr("Tốc độ")
             visible: Nmcli.ethernetSpeed.length > 0
             value: Nmcli.ethernetSpeed
         }
 
         InfoRow {
             icon: "lan"
-            label: qsTr("IP address")
+            label: qsTr("Địa chỉ IP")
             value: root.details?.ipAddress || qsTr("—")
         }
 
         InfoRow {
             icon: "router"
-            label: qsTr("Gateway")
+            label: qsTr("Cổng mạng")
             value: root.details?.gateway || qsTr("—")
         }
 
         InfoRow {
             last: true
             icon: "memory"
-            label: qsTr("MAC address")
+            label: qsTr("Địa chỉ MAC")
             value: root.details?.macAddress || qsTr("—")
         }
 
@@ -214,8 +214,8 @@ PageBase {
             Layout.fillWidth: true
             first: true
             last: root.ipMethod === "auto"
-            label: qsTr("IP assignment")
-            fallbackText: qsTr("Automatic (DHCP)")
+            label: qsTr("Cách cấp IP")
+            fallbackText: qsTr("Tự động (DHCP)")
             fallbackIcon: "lan"
 
             menuItems: [autoItem, autoDnsItem, manualItem]
@@ -226,21 +226,21 @@ PageBase {
                 id: autoItem
 
                 icon: "lan"
-                text: qsTr("Automatic (DHCP)")
+                text: qsTr("Tự động (DHCP)")
             }
 
             MenuItem {
                 id: autoDnsItem
 
                 icon: "dns"
-                text: qsTr("Automatic, DNS only")
+                text: qsTr("Tự động, chỉ DNS")
             }
 
             MenuItem {
                 id: manualItem
 
                 icon: "edit"
-                text: qsTr("Manual")
+                text: qsTr("Thủ công")
             }
         }
 
@@ -255,10 +255,10 @@ PageBase {
 
                 Layout.fillWidth: true
                 visible: root.ipMethod === "manual"
-                placeholderText: qsTr("Address (CIDR)")
+                placeholderText: qsTr("Địa chỉ (CIDR)")
                 leadingIcon: "router"
-                supportingText: qsTr("IP and prefix, e.g. 192.168.1.50/24")
-                errorText: qsTr("Enter a valid address in CIDR notation")
+                supportingText: qsTr("IP và tiền tố, ví dụ 192.168.1.50/24")
+                errorText: qsTr("Nhập địa chỉ hợp lệ theo ký hiệu CIDR")
                 inputMethodHints: Qt.ImhNoPredictiveText
                 validate: /^(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\/(?:3[0-2]|[12]?\d)$/
             }
@@ -268,9 +268,9 @@ PageBase {
 
                 Layout.fillWidth: true
                 visible: root.ipMethod === "manual"
-                placeholderText: qsTr("Gateway")
+                placeholderText: qsTr("Cổng mạng")
                 leadingIcon: "exit_to_app"
-                errorText: qsTr("Enter a valid gateway address")
+                errorText: qsTr("Nhập địa chỉ cổng mạng hợp lệ")
                 inputMethodHints: Qt.ImhNoPredictiveText
                 validate: /^$|^(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)$/
             }
@@ -279,10 +279,10 @@ PageBase {
                 id: dnsField
 
                 Layout.fillWidth: true
-                placeholderText: qsTr("DNS servers")
+                placeholderText: qsTr("Máy chủ DNS")
                 leadingIcon: "dns"
-                supportingText: qsTr("Comma-separated")
-                errorText: qsTr("Enter valid DNS server addresses")
+                supportingText: qsTr("Phân tách bằng dấu phẩy")
+                errorText: qsTr("Nhập địa chỉ máy chủ DNS hợp lệ")
                 inputMethodHints: Qt.ImhNoPredictiveText
                 validate: /^$|^\s*(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\s*,\s*(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d))*\s*$/
             }
@@ -337,7 +337,7 @@ PageBase {
                     id: applyTextComp
 
                     StyledText {
-                        text: qsTr("Apply")
+                        text: qsTr("Áp dụng")
                         color: applyBtn.onColour
                         animate: true
                     }
