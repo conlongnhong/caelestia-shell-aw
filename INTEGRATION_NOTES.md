@@ -32,10 +32,15 @@ current while implementing the task.
 - Launcher safety/integration assertions: passed (direct argv execution,
   bounded asynchronous `locate`, reused Hypr service, clipboard integration,
   and provider state/delegate coverage).
+- Rapid file-query replacement is serialized across `Process` shutdown; stale
+  output is discarded by comparing the running and requested queries.
 - CMake configure/build could not start in the assigned environment because
   `cmake` is not installed or available in `PATH` (`exit 127`).
 - `scripts/qml-lint-conventions.py` could not run because the repository's
   existing script references `Violation` before it is defined (`NameError` at
   line 124). The script was not modified because it is outside Launcher scope.
-- No `qmllint`, `quickshell`, or Nix executable is available in this
-  environment for an alternative QML/build validation.
+- PySide 6.9.1 `qmllint` and `qmlformat` parsed the changed QML without syntax
+  errors. Full type resolution remains unavailable because this environment
+  has no Quickshell/Caelestia QML import installation.
+- No `quickshell` or Nix executable is available in this environment for an
+  alternative runtime/build validation.

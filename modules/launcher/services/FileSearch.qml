@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 pragma Singleton
 
 import QtQuick
@@ -10,7 +11,25 @@ Singleton {
 
     property string requestedQuery
     property string runningQuery
+    property bool restartPending
     property var results: []
+
+    function startRequested(): void {
+        if (!requestedQuery)
+            return;
+
+        if (searchProcess.running) {
+            runningQuery = "";
+            restartPending = true;
+            searchProcess.running = false;
+            return;
+        }
+
+        restartPending = false;
+        runningQuery = requestedQuery;
+        searchProcess.command = ["locate", "-i", "-l", "60", "--", runningQuery];
+        searchProcess.running = true;
+    }
 
     function request(query: string): void {
         query = query.trim();
@@ -20,6 +39,8 @@ Singleton {
         requestedQuery = query;
         debounce.restart();
         if (!query) {
+            restartPending = false;
+            runningQuery = "";
             searchProcess.running = false;
             results = [];
         }
@@ -29,16 +50,7 @@ Singleton {
         id: debounce
 
         interval: 80
-        onTriggered: {
-            if (!root.requestedQuery)
-                return;
-
-            root.runningQuery = "";
-            searchProcess.running = false;
-            root.runningQuery = root.requestedQuery;
-            searchProcess.command = ["locate", "-i", "-l", "60", "--", root.runningQuery];
-            searchProcess.running = true;
-        }
+        onTriggered: root.startRequested()
     }
 
     Process {
@@ -59,6 +71,11 @@ Singleton {
         }
 
         onExited: exitCode => { // qmllint disable signal-handler-parameters
+            if (root.restartPending) {
+                Qt.callLater(root.startRequested);
+                return;
+            }
+
             if (exitCode !== 0 && root.runningQuery === root.requestedQuery)
                 root.results = [];
         }
