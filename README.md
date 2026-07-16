@@ -1,877 +1,663 @@
-<h1 align=center>caelestia-shell</h1>
+<a id="dau-trang"></a>
 
-<div align=center>
+<p align="center">
+  <img src="./assets/logo.svg" width="120" alt="Biểu trưng Caelestia Shell AW">
+</p>
 
-![GitHub last commit](https://img.shields.io/github/last-commit/caelestia-dots/shell?style=for-the-badge&labelColor=101418&color=9ccbfb)
-![GitHub Repo stars](https://img.shields.io/github/stars/caelestia-dots/shell?style=for-the-badge&labelColor=101418&color=b9c8da)
-![GitHub repo size](https://img.shields.io/github/repo-size/caelestia-dots/shell?style=for-the-badge&labelColor=101418&color=d3bfe6)
-[![Ko-Fi donate](https://img.shields.io/badge/donate-kofi?style=for-the-badge&logo=ko-fi&logoColor=ffffff&label=ko-fi&labelColor=101418&color=f16061&link=https%3A%2F%2Fko-fi.com%2Fsoramane)](https://ko-fi.com/soramane)
-[![Discord invite](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscordapp.com%2Fapi%2Finvites%2FBGDCFCmMBk%3Fwith_counts%3Dtrue&query=approximate_member_count&style=for-the-badge&logo=discord&logoColor=ffffff&label=discord&labelColor=101418&color=96f1f1&link=https%3A%2F%2Fdiscord.gg%2FBGDCFCmMBk)](https://discord.gg/BGDCFCmMBk)
+<h1 align="center">Caelestia Shell AW</h1>
 
-</div>
+<p align="center">
+  <strong>Vỏ desktop hiện đại, giàu hiệu ứng và có khả năng tùy biến cao dành cho Hyprland.</strong>
+</p>
+
+<p align="center">
+  Được xây dựng bằng Quickshell, Qt 6/QML và C++20; tích hợp thanh tác vụ, trình khởi chạy, bảng điều khiển, thông báo, màn hình khóa, hình nền động và trung tâm cài đặt Nexus trong một giao diện thống nhất.
+</p>
+
+<p align="center">
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/commits/main"><img src="https://img.shields.io/github/last-commit/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=C%E1%BA%ADp%20nh%E1%BA%ADt&labelColor=1e1e2e&color=89b4fa&cacheSeconds=3600" alt="Lần cập nhật gần nhất"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/stargazers"><img src="https://img.shields.io/github/stars/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=Sao&labelColor=1e1e2e&color=f9e2af&cacheSeconds=3600" alt="Số sao"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/network/members"><img src="https://img.shields.io/github/forks/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=Nh%C3%A1nh&labelColor=1e1e2e&color=cba6f7&cacheSeconds=3600" alt="Số nhánh fork"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/issues"><img src="https://img.shields.io/github/issues/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=V%E1%BA%A5n%20%C4%91%E1%BB%81&labelColor=1e1e2e&color=f38ba8&cacheSeconds=3600" alt="Vấn đề đang mở"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/blob/main/LICENSE"><img src="https://img.shields.io/github/license/conlongnhong/caelestia-shell-aw?style=for-the-badge&label=Gi%E1%BA%A5y%20ph%C3%A9p&labelColor=1e1e2e&color=a6e3a1&cacheSeconds=3600" alt="Giấy phép"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/actions/workflows/lint.yml"><img src="https://img.shields.io/github/actions/workflow/status/conlongnhong/caelestia-shell-aw/lint.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=Ki%E1%BB%83m%20tra%20m%C3%A3&labelColor=313244&color=a6e3a1" alt="Trạng thái kiểm tra mã"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/actions/workflows/check-format.yml"><img src="https://img.shields.io/github/actions/workflow/status/conlongnhong/caelestia-shell-aw/check-format.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=%C4%90%E1%BB%8Bnh%20d%E1%BA%A1ng&labelColor=313244&color=94e2d5" alt="Trạng thái kiểm tra định dạng"></a>
+  <a href="https://quickshell.outfoxxed.me"><img src="https://img.shields.io/badge/Quickshell-Git-89b4fa?style=flat-square&labelColor=313244" alt="Quickshell Git"></a>
+  <a href="https://hyprland.org"><img src="https://img.shields.io/badge/Hyprland-Wayland-cba6f7?style=flat-square&labelColor=313244" alt="Hyprland trên Wayland"></a>
+</p>
 
 https://github.com/user-attachments/assets/0840f496-575c-4ca6-83a8-87bb01a85c5f
 
-## Components
+<p align="center"><em>Video minh họa từ dự án upstream; giao diện thực tế thay đổi theo hình nền, bảng màu, phông chữ và cấu hình của bạn.</em></p>
 
--   Widgets: [`Quickshell`](https://quickshell.outfoxxed.me)
--   Window manager: [`Hyprland`](https://hyprland.org)
--   Dots: [`caelestia`](https://github.com/caelestia-dots)
+> [!IMPORTANT]
+> Kho mã nguồn này được phát triển dựa trên [Caelestia Shell gốc](https://github.com/caelestia-dots/shell). Để nhận đúng các thay đổi của bản AW, hãy dùng URL `conlongnhong/caelestia-shell-aw` khi cài qua Nix hoặc khi clone thủ công. Các gói AUR `caelestia-shell` và `caelestia-shell-git` thuộc dự án upstream nên có thể không chứa những tùy biến của kho này.
 
-## Installation
+<a id="muc-luc"></a>
 
-> [!NOTE]
-> This repo is for the desktop shell of the caelestia dots. If you want installation instructions
-> for the entire dots, head to [the main repo](https://github.com/caelestia-dots/caelestia) instead.
+## Mục lục
 
-### Arch linux
+- [Giới thiệu](#gioi-thieu)
+- [Tính năng nổi bật](#tinh-nang-noi-bat)
+- [Thành phần công nghệ](#thanh-phan-cong-nghe)
+- [Yêu cầu hệ thống](#yeu-cau-he-thong)
+- [Cài đặt](#cai-dat)
+  - [Nix và NixOS](#nix-va-nixos)
+  - [Arch Linux và AUR](#arch-linux-va-aur)
+  - [Cài đặt thủ công](#cai-dat-thu-cong)
+- [Khởi chạy và tự khởi động](#khoi-chay-va-tu-khoi-dong)
+- [Phím tắt và IPC](#phim-tat-va-ipc)
+- [Cấu hình và cá nhân hóa](#cau-hinh-va-ca-nhan-hoa)
+- [Cập nhật](#cap-nhat)
+- [Cấu trúc dự án](#cau-truc-du-an)
+- [Khắc phục sự cố](#khac-phuc-su-co)
+- [Phát triển và đóng góp](#phat-trien-va-dong-gop)
+- [Thống kê dự án](#thong-ke-du-an)
+- [Hỗ trợ và cộng đồng](#ho-tro-va-cong-dong)
+- [Ghi công](#ghi-cong)
+- [Giấy phép](#giay-phep)
 
-> [!NOTE]
-> If you want to make your own changes/tweaks to the shell do NOT edit the files installed by the AUR
-> package. Instead, follow the instructions in the [manual installation section](#manual-installation).
+<a id="gioi-thieu"></a>
 
-The shell is available from the AUR as `caelestia-shell`. You can install it with an AUR helper
-like [`yay`](https://github.com/Jguer/yay) or manually downloading the PKGBUILD and running `makepkg -si`.
+## Giới thiệu
 
-A package following the latest commit also exists as `caelestia-shell-git`. This is bleeding edge
-and likely to be unstable/have bugs. Regular users are recommended to use the stable package
-(`caelestia-shell`).
+Caelestia Shell AW là một **desktop shell** dành cho Hyprland, không phải trình quản lý cửa sổ hoặc môi trường desktop độc lập. Shell cung cấp lớp giao diện người dùng chạy phía trên Hyprland: thanh tác vụ, trình khởi chạy ứng dụng, bảng điều khiển, trung tâm thông báo, màn hình khóa, OSD, hình nền và nhiều dịch vụ tích hợp.
 
-### Nix
+| Hạng mục | Thông tin |
+| --- | --- |
+| Nền tảng | Linux, Wayland và Hyprland |
+| Giao diện | Quickshell + Qt 6/QML |
+| Phần mở rộng | C++20, CMake và Ninja |
+| Cấu hình | JSON, cấu hình riêng theo màn hình và Home Manager |
+| Đóng gói | Nix Flake, mô-đun Home Manager và CMake |
+| Giấy phép | GNU GPL v3 (`GPL-3.0`) |
+| Dự án gốc | [`caelestia-dots/shell`](https://github.com/caelestia-dots/shell) |
 
-You can run the shell directly via `nix run`:
+Nếu đã bật Nix Flakes, bạn có thể chạy thử ngay bản kèm CLI:
 
 ```sh
-nix run github:caelestia-dots/shell
+nix run github:conlongnhong/caelestia-shell-aw#with-cli
 ```
 
-Or add it to your system configuration:
+<a id="tinh-nang-noi-bat"></a>
+
+## Tính năng nổi bật
+
+- **Thanh tác vụ linh hoạt:** workspace, cửa sổ đang hoạt động, system tray, đồng hồ, âm thanh, microphone, mạng, Wi-Fi, Bluetooth, pin, trạng thái phím khóa và menu nguồn.
+- **Trình khởi chạy đa năng:** tìm ứng dụng, thực thi hành động, tính toán bằng Qalculate, đổi hình nền, bảng màu và biến thể Material 3.
+- **Dashboard đầy đủ:** lịch, thời tiết, media/MPRIS, lời bài hát, CPU, GPU, bộ nhớ, lưu trữ, mạng và pin.
+- **Nexus:** trung tâm cài đặt cho hình nền, kiểu giao diện, mạng, Bluetooth, âm thanh, ứng dụng, panel, dịch vụ, ngôn ngữ và khu vực.
+- **Thông báo và sidebar:** nhóm thông báo, hành động nhanh, chế độ không làm phiền và lịch sử thông báo trực quan.
+- **Màn hình khóa và menu phiên:** khóa bằng mật khẩu, hỗ trợ PAM, tùy chọn vân tay/Howdy, đăng xuất, tắt máy, khởi động lại và ngủ đông.
+- **Hình nền thông minh:** ảnh, hình nền video, chuyển cảnh mượt, visualiser âm thanh và đồng hồ desktop.
+- **Tối ưu hình nền động:** tự tạm dừng video khi dùng pin hoặc khi cửa sổ che phần lớn màn hình; có thể chọn bộ giải mã `auto`, `VAAPI`, `VDPAU`, `CUDA`, `Vulkan`, `DRM` hoặc giải mã phần mềm.
+- **Tiện ích tích hợp:** OSD âm lượng/độ sáng, ảnh chụp vùng màn hình, ghi màn hình, VPN, game mode, idle inhibitor, quick toggles và toast.
+- **Đa màn hình:** cấu hình riêng theo tên màn hình, workspace theo màn hình và loại trừ panel trên màn hình được chọn.
+- **Điều khiển từ bên ngoài:** phím tắt toàn cục của Hyprland và IPC qua `caelestia shell`.
+
+<a id="thanh-phan-cong-nghe"></a>
+
+## Thành phần công nghệ
+
+| Vai trò | Công nghệ |
+| --- | --- |
+| Khung widget | [Quickshell](https://quickshell.outfoxxed.me) bản Git |
+| Compositor / trình quản lý cửa sổ | [Hyprland](https://hyprland.org) |
+| UI | Qt 6, QML và Material 3 |
+| Plugin và dịch vụ hệ thống | C++20 |
+| Hệ thống build | [CMake](https://cmake.org) 3.19+ và [Ninja](https://ninja-build.org) |
+| Công cụ dòng lệnh | [Caelestia CLI](https://github.com/caelestia-dots/cli) |
+| Âm thanh và visualiser | PipeWire, libcava, aubio và FFTW |
+| Hệ thống mạng | NetworkManager và `nmcli` |
+| Đóng gói khai báo | Nix Flake và Home Manager |
+
+<a id="yeu-cau-he-thong"></a>
+
+## Yêu cầu hệ thống
+
+> [!NOTE]
+> Dự án nhắm đến Linux chạy Wayland/Hyprland. Windows, macOS, X11 và các compositor khác không phải môi trường được hỗ trợ chính thức.
+
+### Thành phần bắt buộc
+
+- Hyprland và một phiên Wayland hoạt động bình thường.
+- [`quickshell-git`](https://quickshell.outfoxxed.me); bản Git là yêu cầu quan trọng, bản phát hành cũ có thể thiếu API cần thiết.
+- Qt 6.9 trở lên: tối thiểu `qt6-base`, `qt6-declarative` và `qt6-shadertools`.
+- `caelestia-cli` nếu muốn dùng đầy đủ lệnh quản lý shell, hình nền, bảng màu và ghi màn hình.
+- NetworkManager, PipeWire, `ddcutil`, `brightnessctl`, `lm-sensors`, `fish`, `bash`, `swappy`, `wl-clipboard` và `libqalculate`.
+- `libcava`, `aubio`, FFTW, `xkeyboard-config` và các thư viện C/C++ tiêu chuẩn để build plugin.
+- Phông Material Symbols, Rubik và Caskaydia Cove Nerd Font để biểu tượng và bố cục hiển thị đúng.
+
+### Thành phần chỉ cần khi build
+
+- Git.
+- CMake 3.19 trở lên.
+- Ninja.
+- Trình biên dịch hỗ trợ C++20, chẳng hạn GCC hoặc Clang.
+- `pkg-config`/`pkgconf`.
+
+### Thành phần tùy chọn
+
+- `gpu-screen-recorder` để dùng tính năng ghi màn hình.
+- `fprintd` hoặc Howdy nếu bật xác thực sinh trắc học.
+- Một dịch vụ VPN tương thích với cấu hình của bạn.
+
+<a id="cai-dat"></a>
+
+## Cài đặt
+
+Trước khi cài, nên sao lưu cấu hình Caelestia hiện có:
+
+```sh
+cp -a ~/.config/caelestia ~/.config/caelestia.backup
+```
+
+Nếu thư mục chưa tồn tại, bạn có thể bỏ qua bước sao lưu.
+
+<a id="nix-va-nixos"></a>
+
+### Nix và NixOS
+
+Đây là cách gọn nhất để chạy đúng phiên bản trong kho AW.
+
+#### Chạy trực tiếp
+
+```sh
+# Bản mặc định
+nix run github:conlongnhong/caelestia-shell-aw
+
+# Khuyến nghị: kèm Caelestia CLI để có đầy đủ chức năng
+nix run github:conlongnhong/caelestia-shell-aw#with-cli
+```
+
+#### Thêm vào flake của hệ thống
 
 ```nix
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    caelestia-shell = {
-      url = "github:caelestia-dots/shell";
+    caelestia-shell-aw = {
+      url = "github:conlongnhong/caelestia-shell-aw";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 }
 ```
 
-The package is available as `caelestia-shell.packages.<system>.default`, which can be added to your
-`environment.systemPackages`, `users.users.<username>.packages`, `home.packages` if using home-manager,
-or a devshell. The shell can then be run via `caelestia-shell`.
+Sau đó thêm gói phù hợp vào cấu hình:
 
-> [!TIP]
-> The default package does not have the CLI enabled by default, which is required for full funcionality.
-> To enable the CLI, use the `with-cli` package.
+```nix
+{ inputs, pkgs, ... }:
+{
+  environment.systemPackages = [
+    inputs.caelestia-shell-aw.packages.${pkgs.system}.with-cli
+  ];
+}
+```
 
-For home-manager, you can also use the Caelestia's home manager module (explained in [configuring](https://github.com/caelestia-dots/shell?tab=readme-ov-file#home-manager-module)) that installs and configures the shell and the CLI.
+Các đầu ra gói hiện có:
 
-### Manual installation
+| Đầu ra | Mục đích |
+| --- | --- |
+| `default` / `caelestia-shell` | Shell mặc định, không kèm CLI |
+| `with-cli` | Shell kèm CLI, phù hợp với hầu hết người dùng |
+| `debug` | Bản build phục vụ gỡ lỗi |
 
-Dependencies:
+#### Home Manager
 
--   [`caelestia-cli`](https://github.com/caelestia-dots/cli)
--   [`quickshell-git`](https://quickshell.outfoxxed.me) - this has to be the git version, not the latest tagged version
--   [`ddcutil`](https://github.com/rockowitz/ddcutil)
--   [`brightnessctl`](https://github.com/Hummer12007/brightnessctl)
--   [`libcava`](https://github.com/LukashonakV/cava)
--   [`networkmanager`](https://networkmanager.dev)
--   [`lm-sensors`](https://github.com/lm-sensors/lm-sensors)
--   [`fish`](https://github.com/fish-shell/fish-shell)
--   [`aubio`](https://github.com/aubio/aubio)
--   [`libpipewire`](https://pipewire.org)
--   `glibc`
--   `qt6-declarative`
--   `gcc-libs`
--   [`material-symbols`](https://fonts.google.com/icons)
--   [`caskaydia-cove-nerd`](https://www.nerdfonts.com/font-downloads)
--   [`swappy`](https://github.com/jtheoof/swappy)
--   [`libqalculate`](https://github.com/Qalculate/libqalculate)
--   [`bash`](https://www.gnu.org/software/bash)
--   `qt6-base`
--   `qt6-declarative`
+Import mô-đun từ flake rồi cấu hình `programs.caelestia`:
 
-Build dependencies:
+```nix
+{ inputs, ... }:
+{
+  imports = [
+    inputs.caelestia-shell-aw.homeManagerModules.default
+  ];
 
--   [`cmake`](https://cmake.org)
--   [`ninja`](https://github.com/ninja-build/ninja)
+  programs.caelestia = {
+    enable = true;
 
-To install the shell manually, install all dependencies and clone this repo to `$XDG_CONFIG_HOME/quickshell/caelestia`.
-Then simply build and install using `cmake`.
+    systemd = {
+      enable = true;
+      target = "graphical-session.target";
+      environment = [ ];
+    };
+
+    settings = {
+      bar.status.showBattery = true;
+      paths.wallpaperDir = "~/Pictures/Wallpapers";
+    };
+
+    cli = {
+      enable = true;
+      settings.theme.enableGtk = false;
+    };
+  };
+}
+```
+
+Mô-đun có thể tạo `~/.config/caelestia/shell.json`, cài shell/CLI và khởi động shell bằng user service của systemd.
+
+<a id="arch-linux-va-aur"></a>
+
+### Arch Linux và AUR
+
+Upstream cung cấp hai gói AUR:
 
 ```sh
-cd $XDG_CONFIG_HOME/quickshell
-git clone https://github.com/caelestia-dots/shell.git caelestia
+# Bản ổn định của upstream
+yay -S caelestia-shell
 
-cd caelestia
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/
-cmake --build build
+# Bản theo commit mới nhất của upstream, có thể kém ổn định hơn
+yay -S caelestia-shell-git
+```
+
+> [!WARNING]
+> Hai gói trên cài `caelestia-dots/shell`, không đảm bảo chứa các thay đổi của `caelestia-shell-aw`. Nếu cần đúng bản AW, hãy dùng Nix hoặc cài thủ công từ kho này.
+
+Không chỉnh trực tiếp các tệp do gói AUR cài vào hệ thống vì chúng sẽ bị ghi đè khi cập nhật. Muốn phát triển hoặc tùy biến mã nguồn, hãy dùng phương thức thủ công ở phần tiếp theo.
+
+<a id="cai-dat-thu-cong"></a>
+
+### Cài đặt thủ công
+
+1. Cài các phụ thuộc ở phần [Yêu cầu hệ thống](#yeu-cau-he-thong).
+2. Clone kho mã nguồn này.
+3. Build plugin, thư viện và QML bằng CMake/Ninja.
+
+```sh
+mkdir -p "$HOME/src"
+git clone https://github.com/conlongnhong/caelestia-shell-aw.git "$HOME/src/caelestia-shell-aw"
+cd "$HOME/src/caelestia-shell-aw"
+
+cmake -S . -B build -G Ninja \
+  -DVERSION=1.0.0 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/
+
+cmake --build build --parallel
 sudo cmake --install build
 ```
 
-> [!TIP]
-> You can customise the installation location via the `cmake` flags `INSTALL_LIBDIR`, `INSTALL_QMLDIR` and
-> `INSTALL_QSCONFDIR` for the libraries (the beat detector), QML plugin and Quickshell config directories
-> respectively. If changing the library directory, remember to set the `CAELESTIA_LIB_DIR` environment
-> variable to the custom directory when launching the shell.
->
-> e.g. installing to `~/.config/quickshell/caelestia` for easy local changes:
->
-> ```sh
-> mkdir -p ~/.config/quickshell/caelestia
-> cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/ -DINSTALL_QSCONFDIR=~/.config/quickshell/caelestia
-> cmake --build build
-> sudo cmake --install build
-> sudo chown -R $USER ~/.config/quickshell/caelestia
-> ```
+> [!NOTE]
+> Kho hiện chưa phát hành tag phiên bản, trong khi CMake tự tìm phiên bản bằng `git describe`. Vì vậy lệnh trên truyền rõ `-DVERSION=1.0.0` để bước configure không dừng lại. Khi kho đã có tag `v*`, bạn có thể bỏ cờ này.
 
-## Usage
+Trong lần configure đầu tiên, CMake tải mô-đun `m3shapes`; máy cần kết nối mạng. Mặc định, các thành phần được cài vào:
 
-The shell can be started via the `caelestia shell -d` command or `qs -c caelestia`.
-If the entire caelestia dots are installed, the shell will be autostarted on login
-via an `exec-once` in the hyprland config.
+| Biến CMake | Giá trị mặc định | Nội dung |
+| --- | --- | --- |
+| `INSTALL_LIBDIR` | `usr/lib/caelestia` | Thư viện phụ trợ |
+| `INSTALL_QMLDIR` | `usr/lib/qt6/qml` | Plugin QML |
+| `INSTALL_QSCONFDIR` | `etc/xdg/quickshell/caelestia` | Cấu hình Quickshell |
 
-### Shortcuts/IPC
-
-All keybinds are accessible via Hyprland [global shortcuts](https://wiki.hyprland.org/Configuring/Binds/#dbus-global-shortcuts).
-If using the entire caelestia dots, the keybinds are already configured for you.
-Otherwise, [this file](https://github.com/caelestia-dots/caelestia/blob/main/hypr/hyprland/keybinds.conf#L1-L39)
-contains an example on how to use global shortcuts.
-
-All IPC commands can be accessed via `caelestia shell ...`. For example
+Bạn có thể đổi vị trí bằng cờ CMake. Ví dụ, đặt phần cấu hình QML trong thư mục người dùng để tiện sửa trực tiếp:
 
 ```sh
+CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+cmake -S . -B build -G Ninja \
+  -DVERSION=1.0.0 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/ \
+  -DINSTALL_QSCONFDIR="$CONFIG_ROOT/quickshell/caelestia"
+
+cmake --build build --parallel
+sudo cmake --install build
+sudo chown -R "$USER":"$(id -gn)" "$CONFIG_ROOT/quickshell/caelestia"
+```
+
+Nếu đổi `INSTALL_LIBDIR`, hãy đặt biến môi trường `CAELESTIA_LIB_DIR` về đúng thư mục thư viện trước khi khởi chạy shell.
+
+<a id="khoi-chay-va-tu-khoi-dong"></a>
+
+## Khởi chạy và tự khởi động
+
+Chọn **một** trong các cách sau:
+
+```sh
+# Khi đã cài Caelestia CLI
+caelestia shell -d
+
+# Chạy trực tiếp bằng Quickshell
+qs -c caelestia
+
+# Tên executable của gói Nix
+caelestia-shell
+```
+
+Không nên chạy đồng thời nhiều lệnh trên vì có thể tạo nhiều phiên shell chồng lên nhau.
+
+Để dừng phiên do CLI quản lý:
+
+```sh
+caelestia shell -k
+```
+
+Nếu dùng toàn bộ Caelestia Dots, shell thường đã được tự khởi động. Nếu tự cấu hình Hyprland, thêm một dòng vào cấu hình của bạn:
+
+```conf
+exec-once = caelestia shell -d
+```
+
+Người dùng Home Manager đã bật `programs.caelestia.systemd.enable` không cần thêm `exec-once`. Có thể theo dõi service bằng:
+
+```sh
+systemctl --user status caelestia
+journalctl --user -u caelestia -f
+```
+
+<a id="phim-tat-va-ipc"></a>
+
+## Phím tắt và IPC
+
+### Phím tắt toàn cục của Hyprland
+
+Shell đăng ký các global shortcut dưới namespace `caelestia`. Ví dụ:
+
+```conf
+bind = SUPER, SPACE, global, caelestia:launcher
+bind = SUPER, N, global, caelestia:nexus
+bind = SUPER, D, global, caelestia:dashboard
+bind = SUPER, A, global, caelestia:sidebar
+bind = SUPER, X, global, caelestia:session
+bind = SUPER, L, global, caelestia:lock
+
+bind = , XF86AudioPlay, global, caelestia:mediaToggle
+bind = , XF86AudioNext, global, caelestia:mediaNext
+bind = , XF86AudioPrev, global, caelestia:mediaPrev
+bind = , XF86MonBrightnessUp, global, caelestia:brightnessUp
+bind = , XF86MonBrightnessDown, global, caelestia:brightnessDown
+```
+
+Các shortcut chính:
+
+| Tên | Chức năng |
+| --- | --- |
+| `launcher` | Mở/đóng trình khởi chạy |
+| `nexus` | Mở trung tâm cài đặt Nexus |
+| `dashboard` | Mở/đóng dashboard |
+| `sidebar` | Mở/đóng sidebar và thông báo |
+| `utilities` | Mở/đóng bảng tiện ích |
+| `session` | Mở/đóng menu phiên |
+| `showall` | Chuyển trạng thái launcher, dashboard, OSD và tiện ích |
+| `lock` / `unlock` | Khóa hoặc mở khóa phiên |
+| `screenshot*` | Mở công cụ chụp vùng với chế độ thường, freeze hoặc clipboard |
+| `mediaToggle`, `mediaPrev`, `mediaNext`, `mediaStop` | Điều khiển trình phát MPRIS |
+| `brightnessUp`, `brightnessDown` | Tăng hoặc giảm độ sáng |
+| `clearNotifs` | Xóa toàn bộ thông báo |
+
+### IPC qua Caelestia CLI
+
+Liệt kê toàn bộ target và hàm IPC đang có:
+
+```sh
+caelestia shell -s
+```
+
+Một số ví dụ:
+
+```sh
+# Mở/đóng hoặc liệt kê drawer
+caelestia shell drawers toggle launcher
+caelestia shell drawers list
+
+# Mở Nexus
+caelestia shell nexus open
+
+# Điều khiển media
+caelestia shell mpris playPause
+caelestia shell mpris next
 caelestia shell mpris getActive trackTitle
+
+# Hình nền
+caelestia shell wallpaper get
+caelestia shell wallpaper set "$HOME/Pictures/Wallpapers/example.jpg"
+
+# Thông báo và màn hình khóa
+caelestia shell notifs clear
+caelestia shell lock lock
+caelestia shell lock isLocked
 ```
 
-The list of IPC commands can be shown via `caelestia shell -s`:
+Tên target, hàm và tham số có thể thay đổi giữa các phiên bản; kết quả của `caelestia shell -s` là nguồn tham chiếu chính xác nhất cho bản đang chạy.
 
-```
-$ caelestia shell -s
-target drawers
-  function toggle(drawer: string): void
-  function list(): string
-target notifs
-  function clear(): void
-target lock
-  function lock(): void
-  function unlock(): void
-  function isLocked(): bool
-target mpris
-  function playPause(): void
-  function getActive(prop: string): string
-  function next(): void
-  function stop(): void
-  function play(): void
-  function list(): string
-  function pause(): void
-  function previous(): void
-target picker
-  function openFreeze(): void
-  function open(): void
-target wallpaper
-  function set(path: string): void
-  function get(): string
-  function list(): string
+<a id="cau-hinh-va-ca-nhan-hoa"></a>
+
+## Cấu hình và cá nhân hóa
+
+### Tệp cấu hình toàn cục
+
+Cấu hình chính nằm tại:
+
+```text
+~/.config/caelestia/shell.json
 ```
 
-### PFP/Wallpapers
+Tệp này không nhất thiết được tạo sẵn. Bạn chỉ cần khai báo những khóa muốn thay đổi; khóa bị lược bỏ sẽ dùng giá trị mặc định.
 
-The profile picture for the dashboard is read from the file `~/.face`, so to set
-it you can copy your image to there or set it via the dashboard.
+Ví dụ cấu hình gọn:
 
-The wallpapers for the wallpaper switcher are read from `~/Pictures/Wallpapers`
-by default. To change it, change the wallpapers path in `~/.config/caelestia/shell.json`.
+```json
+{
+  "appearance": {
+    "transparency": {
+      "enabled": true,
+      "base": 0.85,
+      "layers": 0.4
+    }
+  },
+  "bar": {
+    "persistent": true,
+    "showOnHover": true,
+    "status": {
+      "showNetwork": true,
+      "showBluetooth": true,
+      "showBattery": true
+    }
+  },
+  "dashboard": {
+    "showWeather": true,
+    "showPerformance": true
+  },
+  "services": {
+    "weatherLocation": "Ha Noi",
+    "useFahrenheit": false,
+    "useTwelveHourClock": false
+  },
+  "paths": {
+    "wallpaperDir": "~/Pictures/Wallpapers",
+    "lyricsDir": "~/Music/lyrics"
+  }
+}
+```
 
-To set the wallpaper, you can use the command `caelestia wallpaper`. Use `caelestia wallpaper -h` for more info about
-the command.
+Các nhóm cấu hình thường dùng:
 
-## Updating
+| Nhóm | Nội dung |
+| --- | --- |
+| `appearance` | Tỷ lệ giao diện, bo góc, khoảng cách, phông chữ, animation và độ trong suốt |
+| `general` | Ứng dụng mặc định, idle, pin, logo và hành vi toàn cục |
+| `background` | Hình nền, đồng hồ desktop và visualiser |
+| `bar` | Thành phần thanh tác vụ, workspace, tray, trạng thái và màn hình loại trừ |
+| `dashboard` | Media, thời tiết và thống kê tài nguyên |
+| `launcher` | Ứng dụng ưa thích/ẩn, prefix, fuzzy search và hành động |
+| `lock` | Màn hình khóa, vân tay và Howdy |
+| `notifs` | Thời gian hết hạn, hành vi click và nhóm thông báo |
+| `services` | Thời tiết, đơn vị, GPU, media, âm lượng, độ sáng và lời bài hát |
+| `utilities` | Toast, VPN và quick toggles |
+| `paths` | Thư mục hình nền, lời bài hát và tài nguyên tùy chỉnh |
 
-If installed via the AUR package, simply update your system (e.g. using `yay`).
+### Cấu hình theo màn hình
 
-If installed manually, you can update by running `git pull` in `$XDG_CONFIG_HOME/quickshell/caelestia`.
+Tạo tệp theo tên màn hình:
+
+```text
+~/.config/caelestia/monitors/<ten-man-hinh>/shell.json
+```
+
+Ví dụ tắt bar cố định trên `DP-1`:
+
+```json
+{
+  "bar": {
+    "persistent": false
+  }
+}
+```
+
+Giá trị trong tệp theo màn hình sẽ ghi đè cấu hình toàn cục khi tùy chọn đó hỗ trợ override. Một số thiết lập dịch vụ, đường dẫn, launcher, lock và hành vi toàn hệ thống chỉ đọc từ cấu hình toàn cục.
+
+### Nexus
+
+Mở trung tâm cài đặt bằng phím tắt `caelestia:nexus` hoặc lệnh:
 
 ```sh
-cd $XDG_CONFIG_HOME/quickshell/caelestia
-git pull
+caelestia shell nexus open
 ```
 
-## Configuring
+Trong trang **Wallpaper & style**, bạn có thể chọn hình nền, phông chữ, bảng màu, bộ giải mã video và hai chế độ tiết kiệm tài nguyên:
 
-All configuration options should be put in `~/.config/caelestia/shell.json`. This file is _not_ created by
-default, you must create it manually. Options that you omit from the config file will use their default
-values.
+- Tạm dừng hình nền động khi dùng pin.
+- Tạm dừng hình nền động khi bị cửa sổ che.
 
-### Per-monitor configuration
+### Ảnh đại diện và hình nền
 
-You can configure options per-monitor in `~/.config/caelestia/monitors/<screen-name>/shell.json`. Options
-set in this file will **override** the respective options in the global config. Otherwise, the options will
-use their values from the global config.
+- Ảnh đại diện dashboard được đọc từ `~/.face`.
+- Thư mục hình nền mặc định là `~/Pictures/Wallpapers`.
+- Hình nền động được đọc từ thư mục con `~/Pictures/Wallpapers/Animated` và hỗ trợ các tệp video phổ biến như MP4, WebM và MKV.
+- Có thể đổi thư mục bằng `paths.wallpaperDir`.
 
-For example, to disable the bar on DP-1:
+Nếu thumbnail của hình nền động chưa xuất hiện, yêu cầu CLI tạo lại ảnh xem trước:
 
-**`~/.config/caelestia/monitors/DP-1/shell.json`**
-
-```json
-{
-    "bar": {
-        "persistent": false
-    }
-}
+```sh
+caelestia wallpaper --extract-thumbs
 ```
 
-> [!NOTE]
-> Not all options are respect per-monitor overrides. Most notably, the following options will only read
-> from the global config, and ignore the respective option in per-monitor config files.
->
-> <details><summary>Ignored options</summary>
->
-> - `appearance` (`anim`, `transparency`)
-> - `general` (`logo`, `apps`, `idle`, `battery`)
-> - `bar.workspaces` (`perMonitorWorkspaces`, `specialWorkspaceIcons`, `windowIcons`)
-> - `bar.tray` (`iconSubs`, `hiddenIcons`)
-> - `dashboard` (`mediaUpdateInterval`, `resourceUpdateInterval`)
-> - `launcher` (`specialPrefix`, `actionPrefix`, `enableDangerousActions`, `vimKeybinds`,
->   `favouriteApps`, `hiddenApps`, `actions`)
-> - `launcher.useFuzzy` (`apps`, `actions`, `schemes`, `variants`, `wallpapers`)
-> - `notifs` (`expire`, `fullscreen`, `defaultExpireTimeout`, `fullscreenExpireTimeout`, `actionOnClick`)
-> - `lock` (`enableFprint`, `maxFprintTries`)
-> - `nexus` (`networkRescanInterval`)
-> - `utilities.toasts` (all except `fullscreen`)
-> - `utilities.vpn` (`enabled`, `provider`)
-> - `services` (`weatherLocation`, `useFahrenheit`, `useFahrenheitPerformance`, `useTwelveHourClock`,
->   `gpuType`, `visualiserBars`, `audioIncrement`, `brightnessIncrement`, `maxVolume`, `smartScheme`,
->   `defaultPlayer`, `playerAliases`, `lyricsBackend`)
-> - `paths` (`wallpaperDir`, `lyricsDir`)
->
-> </details>
+Trong launcher, dùng `Ctrl+Tab` để chuyển nhanh giữa danh sách hình nền tĩnh và hình nền động.
 
-### Example configuration
+Đổi hình nền và tạo bảng màu động:
 
-> [!NOTE]
-> The example configuration includes ALL configuration options in `shell.json`. You are
-> **not** recommended to copy and paste this entire configuration into `shell.json`.
-> This is meant to serve as a reference of all the available options, and you should
-> only add the ones you want to change to `shell.json`.
-
-<details><summary>Example</summary>
-
-```json
-{
-    "enabled": true,
-    "appearance": {
-        "deformScale": 1,
-        "rounding": {
-            "scale": 1
-        },
-        "spacing": {
-            "scale": 1
-        },
-        "padding": {
-            "scale": 1
-        },
-        "font": {
-            "scale": 1,
-            "clock": "Rubik",
-            "workspaces": "Rubik",
-            "headline": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 32, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 28, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 24, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "title": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 22, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 16, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 14, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "body": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 16, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 14, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 12, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "label": {
-                "family": "GoogleSansFlex",
-                "large": { "size": 14, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "medium": { "size": 12, "weight": 500, "italic": false, "vaxes": { "ROND": 25 } },
-                "small": { "size": 11, "weight": 400, "italic": false, "vaxes": { "ROND": 25 } }
-            },
-            "mono": {
-                "family": "CaskaydiaCove NF",
-                "large": { "size": 16, "weight": 400, "italic": false, "vaxes": {} },
-                "medium": { "size": 14, "weight": 400, "italic": false, "vaxes": {} },
-                "small": { "size": 12, "weight": 400, "italic": false, "vaxes": {} }
-            },
-            "icon": {
-                "family": "Material Symbols Rounded",
-                "extraLarge": { "size": 36, "weight": 400, "italic": false, "vaxes": {} },
-                "large": { "size": 24, "weight": 400, "italic": false, "vaxes": {} },
-                "medium": { "size": 18, "weight": 400, "italic": false, "vaxes": {} },
-                "small": { "size": 15, "weight": 400, "italic": false, "vaxes": {} }
-            }
-        },
-        "anim": {
-            "durations": {
-                "scale": 1
-            }
-        },
-        "transparency": {
-            "enabled": false,
-            "base": 0.85,
-            "layers": 0.4
-        }
-    },
-    "general": {
-        "logo": "",
-        "showOverFullscreen": false,
-        "mediaGifSpeedAdjustment": 300,
-        "sessionGifSpeed": 0.7,
-        "apps": {
-            "terminal": ["foot"],
-            "audio": ["pavucontrol"],
-            "playback": ["mpv"],
-            "explorer": ["thunar"]
-        },
-        "idle": {
-            "lockBeforeSleep": true,
-            "inhibitWhenAudio": true,
-            "inhibitWhenCharging": false,
-            "timeouts": [
-                {
-                    "timeout": 180,
-                    "idleAction": "lock",
-                    "inhibitWhenAudio": false,
-                    "inhibitWhenCharging": false,
-                    "respectInhibitors": true
-                },
-                {
-                    "timeout": 300,
-                    "idleAction": "dpms off",
-                    "returnAction": "dpms on"
-                },
-                {
-                    "timeout": 600,
-                    "idleAction": ["suspendThenHibernate"]
-                }
-            ]
-        },
-        "battery": {
-            "warnLevels": [
-                {
-                    "level": 20,
-                    "title": "Low battery",
-                    "message": "You might want to plug in a charger",
-                    "icon": "battery_android_frame_2"
-                },
-                {
-                    "level": 10,
-                    "title": "Did you see the previous message?",
-                    "message": "You should probably plug in a charger <b>now</b>",
-                    "icon": "battery_android_frame_1"
-                },
-                {
-                    "level": 5,
-                    "title": "Critical battery level",
-                    "message": "PLUG THE CHARGER RIGHT NOW!!",
-                    "icon": "battery_android_alert",
-                    "critical": true
-                }
-            ],
-            "criticalLevel": 3
-        }
-    },
-    "background": {
-        "enabled": true,
-        "wallpaperEnabled": true,
-        "desktopClock": {
-            "enabled": false,
-            "scale": 1.0,
-            "position": "bottom-right",
-            "invertColors": false,
-            "background": {
-                "enabled": false,
-                "opacity": 0.7,
-                "blur": true
-            },
-            "shadow": {
-                "enabled": true,
-                "opacity": 0.7,
-                "blur": 0.4
-            }
-        },
-        "visualiser": {
-            "enabled": false,
-            "autoHide": true,
-            "blur": false,
-            "rounding": 1,
-            "spacing": 1
-        }
-    },
-    "bar": {
-        "persistent": true,
-        "showOnHover": true,
-        "dragThreshold": 20,
-        "scrollActions": {
-            "workspaces": true,
-            "volume": true,
-            "brightness": true
-        },
-        "popouts": {
-            "activeWindow": true,
-            "tray": true,
-            "statusIcons": true
-        },
-        "workspaces": {
-            "shown": 5,
-            "activeIndicator": true,
-            "occupiedBg": false,
-            "showWindows": true,
-            "showWindowsOnSpecialWorkspaces": true,
-            "maxWindowIcons": 5,
-            "activeTrail": false,
-            "perMonitorWorkspaces": true,
-            "label": "  ",
-            "occupiedLabel": "󰮯",
-            "activeLabel": "󰮯",
-            "capitalisation": "preserve",
-            "specialWorkspaceIcons": [
-                {
-                    "name": "steam",
-                    "icon": "sports_esports"
-                }
-            ],
-            "windowIcons": [
-                {
-                    "regex": "steam(_app_(default|[0-9]+))?",
-                    "icon": "sports_esports"
-                }
-            ]
-        },
-        "activeWindow": {
-            "compact": false,
-            "inverted": false,
-            "showOnHover": true
-        },
-        "tray": {
-            "background": false,
-            "recolour": false,
-            "compact": false,
-            "iconSubs": [],
-            "hiddenIcons": []
-        },
-        "status": {
-            "showAudio": false,
-            "showMicrophone": false,
-            "showKbLayout": false,
-            "showNetwork": true,
-            "showWifi": true,
-            "showBluetooth": true,
-            "showBattery": true,
-            "showLockStatus": true
-        },
-        "clock": {
-            "background": false,
-            "showDate": false,
-            "showIcon": true
-        },
-        "entries": [
-            {
-                "id": "logo",
-                "enabled": true
-            },
-            {
-                "id": "workspaces",
-                "enabled": true
-            },
-            {
-                "id": "spacer",
-                "enabled": true
-            },
-            {
-                "id": "activeWindow",
-                "enabled": true
-            },
-            {
-                "id": "spacer",
-                "enabled": true
-            },
-            {
-                "id": "tray",
-                "enabled": true
-            },
-            {
-                "id": "clock",
-                "enabled": true
-            },
-            {
-                "id": "statusIcons",
-                "enabled": true
-            },
-            {
-                "id": "power",
-                "enabled": true
-            }
-        ],
-        "excludedScreens": []
-    },
-    "border": {
-        "thickness": 10,
-        "rounding": 25,
-        "smoothing": 20
-    },
-    "dashboard": {
-        "enabled": true,
-        "showOnHover": true,
-        "showDashboard": true,
-        "showMedia": true,
-        "showPerformance": true,
-        "showWeather": true,
-        "mediaUpdateInterval": 500,
-        "resourceUpdateInterval": 1000,
-        "dragThreshold": 50,
-        "performance": {
-            "showBattery": true,
-            "showGpu": true,
-            "showCpu": true,
-            "showMemory": true,
-            "showStorage": true,
-            "showNetwork": true
-        }
-    },
-    "launcher": {
-        "enabled": true,
-        "showOnHover": false,
-        "maxShown": 7,
-        "maxWallpapers": 9,
-        "specialPrefix": "@",
-        "actionPrefix": ">",
-        "enableDangerousActions": false,
-        "dragThreshold": 50,
-        "vimKeybinds": false,
-        "favouriteApps": [],
-        "hiddenApps": [],
-        "useFuzzy": {
-            "apps": false,
-            "actions": false,
-            "schemes": false,
-            "variants": false,
-            "wallpapers": false
-        },
-        "actions": [
-            {
-                "name": "Calculator",
-                "icon": "calculate",
-                "description": "Do simple math equations (powered by Qalc)",
-                "command": ["autocomplete", "calc"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Scheme",
-                "icon": "palette",
-                "description": "Change the current colour scheme",
-                "command": ["autocomplete", "scheme"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Wallpaper",
-                "icon": "image",
-                "description": "Change the current wallpaper",
-                "command": ["autocomplete", "wallpaper"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Variant",
-                "icon": "colors",
-                "description": "Change the current scheme variant",
-                "command": ["autocomplete", "variant"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Random",
-                "icon": "casino",
-                "description": "Switch to a random wallpaper",
-                "command": ["caelestia", "wallpaper", "-r"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Light",
-                "icon": "light_mode",
-                "description": "Change the scheme to light mode",
-                "command": ["setMode", "light"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Dark",
-                "icon": "dark_mode",
-                "description": "Change the scheme to dark mode",
-                "command": ["setMode", "dark"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Shutdown",
-                "icon": "power_settings_new",
-                "description": "Shutdown the system",
-                "command": ["poweroff"],
-                "enabled": true,
-                "dangerous": true
-            },
-            {
-                "name": "Reboot",
-                "icon": "cached",
-                "description": "Reboot the system",
-                "command": ["reboot"],
-                "enabled": true,
-                "dangerous": true
-            },
-            {
-                "name": "Logout",
-                "icon": "exit_to_app",
-                "description": "Log out of the current session",
-                "command": ["logout"],
-                "enabled": true,
-                "dangerous": true
-            },
-            {
-                "name": "Lock",
-                "icon": "lock",
-                "description": "Lock the current session",
-                "command": ["loginctl", "lock-session"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Sleep",
-                "icon": "bedtime",
-                "description": "Suspend then hibernate",
-                "command": ["suspendThenHibernate"],
-                "enabled": true,
-                "dangerous": false
-            },
-            {
-                "name": "Settings",
-                "icon": "settings",
-                "description": "Configure the shell",
-                "command": ["caelestia", "shell", "nexus", "open"],
-                "enabled": true,
-                "dangerous": false
-            }
-        ]
-    },
-    "lock": {
-        "enabled": true,
-        "recolourLogo": true,
-        "enableFprint": true,
-        "maxFprintTries": 3,
-        "enableHowdy": true,
-        "maxHowdyTries": 3,
-        "triggerHowdyOnWake": true,
-        "hideNotifs": false
-    },
-    "nexus": {
-        "wallpapersPerRow": 4,
-        "networkRescanInterval": 15000
-    },
-    "notifs": {
-        "expire": true,
-        "fullscreen": "on",
-        "defaultExpireTimeout": 5000,
-        "fullscreenExpireTimeout": 2000,
-        "clearThreshold": 0.3,
-        "expandThreshold": 20,
-        "actionOnClick": false,
-        "groupPreviewNum": 3,
-        "openExpanded": false
-    },
-    "osd": {
-        "enabled": true,
-        "hideDelay": 2000,
-        "enableBrightness": true,
-        "enableMicrophone": false
-    },
-    "services": {
-        "weatherLocation": "",
-        "useFahrenheit": false,
-        "useFahrenheitPerformance": false,
-        "useTwelveHourClock": false,
-        "gpuType": "",
-        "visualiserBars": 60,
-        "audioIncrement": 0.1,
-        "brightnessIncrement": 0.1,
-        "maxVolume": 1.0,
-        "smartScheme": true,
-        "defaultPlayer": "Spotify",
-        "playerAliases": [{ "from": "com.github.th_ch.youtube_music", "to": "YT Music" }],
-        "lyricsBackend": "Auto"
-    },
-    "session": {
-        "enabled": true,
-        "dragThreshold": 30,
-        "vimKeybinds": false,
-        "icons": {
-            "logout": "logout",
-            "shutdown": "power_settings_new",
-            "hibernate": "downloading",
-            "reboot": "cached"
-        },
-        "commands": {
-            "logout": ["logout"],
-            "shutdown": ["poweroff"],
-            "hibernate": ["hibernate"],
-            "reboot": ["reboot"]
-        }
-    },
-    "sidebar": {
-        "enabled": true,
-        "showOnHover": false,
-        "minHoverThreshold": 200,
-        "dragThreshold": 80
-    },
-    "utilities": {
-        "enabled": true,
-        "maxToasts": 4,
-        "toasts": {
-            "fullscreen": "off",
-            "configLoaded": true,
-            "chargingChanged": true,
-            "gameModeChanged": true,
-            "dndChanged": true,
-            "audioOutputChanged": true,
-            "audioInputChanged": true,
-            "capsLockChanged": true,
-            "numLockChanged": true,
-            "kbLayoutChanged": true,
-            "kbLimit": true,
-            "vpnChanged": true,
-            "nowPlaying": false
-        },
-        "vpn": {
-            "enabled": false,
-            "provider": [
-                {
-                    "name": "wireguard",
-                    "interface": "your-connection-name",
-                    "displayName": "Wireguard (Your VPN)",
-                    "enabled": false
-                }
-            ]
-        },
-        "quickToggles": [
-            {
-                "id": "wifi",
-                "enabled": true
-            },
-            {
-                "id": "bluetooth",
-                "enabled": true
-            },
-            {
-                "id": "mic",
-                "enabled": true
-            },
-            {
-                "id": "settings",
-                "enabled": true
-            },
-            {
-                "id": "gameMode",
-                "enabled": true
-            },
-            {
-                "id": "dnd",
-                "enabled": true
-            },
-            {
-                "id": "vpn",
-                "enabled": false
-            }
-        ]
-    },
-    "paths": {
-        "wallpaperDir": "~/Pictures/Wallpapers",
-        "lyricsDir": "~/Music/lyrics/",
-        "sessionGif": "root:/assets/kurukuru.gif",
-        "mediaGif": "root:/assets/bongocat.gif",
-        "noNotifsPic": "root:/assets/dino.png",
-        "lockNoNotifsPic": "root:/assets/dino.png"
-    }
-}
+```sh
+caelestia wallpaper -f "$HOME/Pictures/Wallpapers/example.jpg"
+caelestia scheme set -n dynamic
 ```
 
-</details>
+Xem đầy đủ tùy chọn của CLI:
 
-### Advanced configuration
+```sh
+caelestia wallpaper -h
+caelestia scheme -h
+```
+
+### Token nâng cao
+
+Các token nội bộ nằm trong:
+
+```text
+~/.config/caelestia/shell-tokens.json
+~/.config/caelestia/monitors/<ten-man-hinh>/shell-tokens.json
+```
 
 > [!WARNING]
-> Do NOT change any of these options if you do not know what you are doing. These options control the
-> tokens used internally within the shell, and can cause visual issues if changed. The existence of
-> the options are also not guaranteed across versions, and may change or be removed without notice.
+> Token điều khiển kích thước, khoảng cách, bo góc, phông chữ, thời lượng animation và easing curve. Chỉ chỉnh khi bạn hiểu rõ tác động; tên và cấu trúc token có thể thay đổi mà không giữ tương thích giữa các phiên bản.
 
-A separate `~/.config/caelestia/shell-tokens.json` file allows editing the internal tokens without
-touching the source code of the shell. These tokens affect, for example, individual rounding,
-spacing, padding, font size, animation duration and easing curves tokens, and the sizes of certain
-components. The appearance scale values in `shell.json` are multiplied against these base
-token values to produce the final computed values.
+<a id="cap-nhat"></a>
 
-Per-monitor token overrides are also available at
-`~/.config/caelestia/monitors/<screen-name>/shell-tokens.json`.
+## Cập nhật
 
-### Home Manager Module
+### Nix Flake
 
-For NixOS users, a home manager module is also available.
+Trong flake của hệ thống:
 
-<details><summary><code>home.nix</code></summary>
-
-```nix
-programs.caelestia = {
-  enable = true;
-  systemd = {
-    enable = false; # if you prefer starting from your compositor
-    target = "graphical-session.target";
-    environment = [];
-  };
-  settings = {
-    bar.status = {
-      showBattery = false;
-    };
-    paths.wallpaperDir = "~/Images";
-  };
-  cli = {
-    enable = true; # Also add caelestia-cli to path
-    settings = {
-      theme.enableGtk = false;
-    };
-  };
-};
+```sh
+nix flake update caelestia-shell-aw
+sudo nixos-rebuild switch --flake .
 ```
 
-The module automatically adds Caelestia shell to the path with **full functionality**. The CLI is not required, however you have the option to enable and configure it.
+Nếu dùng Home Manager độc lập, thay lệnh rebuild bằng lệnh Home Manager phù hợp với cấu hình của bạn.
 
-</details>
+### Cài thủ công
 
-## FAQ
+Sau khi pull, nên build lại vì thay đổi có thể nằm trong plugin C++ chứ không chỉ ở QML:
 
-### Need help or support?
+```sh
+cd "$HOME/src/caelestia-shell-aw"
+git pull --ff-only
 
-You can join the community Discord server for assistance and discussion:
-https://discord.gg/BGDCFCmMBk
+cmake -S . -B build -G Ninja \
+  -DVERSION=1.0.0 \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/
 
-### My screen is flickering, help pls!
+cmake --build build --parallel
+sudo cmake --install build
+caelestia shell -d
+```
 
-Try disabling VRR in the hyprland config. You can do this by adding the following to `~/.config/caelestia/hypr-user.conf`:
+### AUR upstream
+
+```sh
+yay -Syu
+```
+
+Nhắc lại: cập nhật AUR chỉ cập nhật bản upstream, không chuyển sang bản AW.
+
+<a id="cau-truc-du-an"></a>
+
+## Cấu trúc dự án
+
+```text
+.
+├── assets/                 # Biểu trưng, hình ảnh, phông chữ và tệp PAM
+├── components/             # Thành phần QML dùng lại
+├── extras/                 # Thư viện phụ trợ native
+├── modules/                # Bar, dashboard, launcher, lock, Nexus...
+├── nix/                    # Gói Nix và mô-đun Home Manager
+├── plugin/                 # Plugin C++/QML Caelestia
+├── scripts/                # Công cụ kiểm tra quy ước QML
+├── services/               # Audio, mạng, hình nền, media, thông báo...
+├── utils/                  # Tiện ích QML và thuật toán tìm kiếm
+├── shell.qml               # Điểm vào chính của Quickshell
+├── CMakeLists.txt          # Cấu hình build CMake
+├── flake.nix               # Đầu vào/đầu ra Nix Flake
+└── LICENSE                 # GNU GPL v3
+```
+
+<a id="khac-phuc-su-co"></a>
+
+## Khắc phục sự cố
+
+### `caelestia: command not found`
+
+Cài `caelestia-cli` hoặc dùng gói Nix `#with-cli`. Nếu chỉ muốn chạy shell mà không có CLI, thử:
+
+```sh
+qs -c caelestia
+```
+
+### Shell không khởi động
+
+Chạy foreground để xem lỗi trực tiếp:
+
+```sh
+qs -c caelestia
+```
+
+Kiểm tra các điểm sau:
+
+- Đang chạy phiên Hyprland/Wayland.
+- Đã cài đúng `quickshell-git`.
+- Plugin QML nằm trong đường dẫn Qt có thể tìm thấy.
+- `CAELESTIA_LIB_DIR` đúng nếu bạn đổi vị trí cài thư viện.
+- Không có một phiên Caelestia khác đang chạy.
+
+### Màn hình nhấp nháy
+
+Thử tắt VRR trong cấu hình Hyprland:
 
 ```conf
 misc {
@@ -879,57 +665,125 @@ misc {
 }
 ```
 
-### I want to make my own changes to the hyprland config!
+Nếu cài toàn bộ Caelestia Dots, có thể đặt tùy chỉnh trong `~/.config/caelestia/hypr-user.conf`; nếu không, dùng tệp cấu hình Hyprland của bạn.
 
-You can add your custom hyprland configs to `~/.config/caelestia/hypr-user.conf`.
+### Hình nền không xuất hiện trong launcher
 
-### I want to make my own changes to other stuff!
+- Kiểm tra `paths.wallpaperDir`.
+- Đảm bảo thư mục tồn tại và người dùng có quyền đọc.
+- Thử đặt trực tiếp một tệp bằng `caelestia wallpaper -f <duong-dan>`.
+- Khởi động lại shell sau khi thay đổi đường dẫn.
 
-See the [manual installation](https://github.com/caelestia-dots/shell?tab=readme-ov-file#manual-installation) section
-for the corresponding repo.
+### Hình nền video dùng nhiều CPU/GPU
 
-### I want to disable XXX feature!
+Mở **Nexus → Wallpaper & style**, bật tạm dừng khi dùng pin hoặc khi bị cửa sổ che, sau đó chọn bộ giải mã phần cứng phù hợp với GPU. Nếu driver không hỗ trợ, chọn `Software` để tránh lỗi phát video.
 
-Please read the [configuring](https://github.com/caelestia-dots/shell?tab=readme-ov-file#configuring) section in the readme.
-If there is no corresponding option, make feature request.
+### Thời tiết trống hoặc sai đơn vị
 
-### How do I make my colour scheme change with my wallpaper?
+Đặt `services.weatherLocation`, `services.useFahrenheit` và `services.useTwelveHourClock` trong `shell.json`, hoặc chỉnh tại **Nexus → Language & region**.
 
-Set a wallpaper via the launcher or `caelestia wallpaper` and set the scheme to the dynamic scheme via the launcher
-or `caelestia scheme set`. e.g.
+### Cấu hình theo màn hình không có tác dụng
+
+Lấy đúng tên màn hình bằng:
 
 ```sh
-caelestia wallpaper -f <path/to/file>
-caelestia scheme set -n dynamic
+hyprctl monitors
 ```
 
-### My wallpapers aren't showing up in the launcher!
+Đặt tệp vào `~/.config/caelestia/monitors/<ten-man-hinh>/shell.json`. Nếu khóa vẫn không đổi, khóa đó có thể chỉ hỗ trợ cấu hình toàn cục.
 
-The launcher pulls wallpapers from `~/Pictures/Wallpapers` by default. You can change this in the config. Additionally,
-the launcher only shows an odd number of wallpapers at one time. If you only have 2 wallpapers, consider getting more
-(or just putting one).
+### Wi-Fi, Bluetooth hoặc âm thanh không hiển thị
 
-## Credits
+Kiểm tra NetworkManager, Bluetooth và PipeWire đã chạy; đồng thời xác nhận người dùng có quyền truy cập thiết bị tương ứng. Ví dụ:
 
-Thanks to the Hyprland discord community (especially the homies in #rice-discussion) for all the help and suggestions
-for improving these dots!
+```sh
+systemctl status NetworkManager
+systemctl --user status pipewire
+```
 
-A special thanks to [@outfoxxed](https://github.com/outfoxxed) for making Quickshell and the effort put into fixing issues
-and implementing various feature requests.
+<a id="phat-trien-va-dong-gop"></a>
 
-Another special thanks to [@end_4](https://github.com/end-4) for his [config](https://github.com/end-4/dots-hyprland)
-which helped me a lot with learning how to use Quickshell.
+## Phát triển và đóng góp
 
-Finally another thank you to all the configs I took inspiration from (only one for now):
+Đọc [hướng dẫn đóng góp](./.github/CONTRIBUTING.md) trước khi mở pull request. Quy trình gợi ý:
 
--   [Axenide/Ax-Shell](https://github.com/Axenide/Ax-Shell)
+```sh
+git clone https://github.com/conlongnhong/caelestia-shell-aw.git
+cd caelestia-shell-aw
+git switch -c ten-nhanh-cua-ban
 
-## Stonks 📈
+cmake -S . -B build -G Ninja -DVERSION=1.0.0 -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --parallel
+python3 scripts/qml-lint-conventions.py
+```
 
-<a href="https://www.star-history.com/#caelestia-dots/shell&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=caelestia-dots/shell&type=Date" />
- </picture>
-</a>
+Khi đóng góp:
+
+- Giữ phong cách QML/C++ nhất quán với mã hiện có.
+- Chạy formatter và lint trước khi gửi pull request.
+- Kiểm thử thay đổi trong một phiên Hyprland thật.
+- Mô tả rõ chức năng, cách kiểm thử, tác dụng phụ và thay đổi phá vỡ tương thích.
+- Dùng thông điệp commit dạng `module: change`, theo quy ước của dự án.
+
+Bạn có thể dùng các mẫu sẵn có để [báo lỗi](https://github.com/conlongnhong/caelestia-shell-aw/issues/new/choose) hoặc đề xuất tính năng.
+
+<a id="thong-ke-du-an"></a>
+
+## Thống kê dự án
+
+<p align="center">
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw"><img src="https://img.shields.io/github/repo-size/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=Dung%20l%C6%B0%E1%BB%A3ng&labelColor=1e1e2e&color=94e2d5&cacheSeconds=3600" alt="Dung lượng kho mã nguồn"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw"><img src="https://img.shields.io/github/languages/code-size/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=K%C3%ADch%20th%C6%B0%E1%BB%9Bc%20m%C3%A3&labelColor=1e1e2e&color=89dceb&cacheSeconds=3600" alt="Kích thước mã nguồn"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/graphs/contributors"><img src="https://img.shields.io/github/contributors/conlongnhong/caelestia-shell-aw?style=for-the-badge&logo=github&label=%C4%90%C3%B3ng%20g%C3%B3p&labelColor=1e1e2e&color=a6e3a1&cacheSeconds=3600" alt="Số người đóng góp"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw"><img src="https://img.shields.io/github/languages/top/conlongnhong/caelestia-shell-aw?style=flat-square&logo=qt&label=Ng%C3%B4n%20ng%E1%BB%AF%20ch%C3%ADnh&labelColor=313244&color=cba6f7&cacheSeconds=3600" alt="Ngôn ngữ chính"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw"><img src="https://img.shields.io/github/languages/count/conlongnhong/caelestia-shell-aw?style=flat-square&logo=github&label=S%E1%BB%91%20ng%C3%B4n%20ng%E1%BB%AF&labelColor=313244&color=f5c2e7&cacheSeconds=3600" alt="Số ngôn ngữ"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/commits/main"><img src="https://img.shields.io/github/commit-activity/m/conlongnhong/caelestia-shell-aw?style=flat-square&logo=git&label=Commit%20m%E1%BB%97i%20th%C3%A1ng&labelColor=313244&color=fab387&cacheSeconds=3600" alt="Số commit mỗi tháng"></a>
+  <a href="https://github.com/conlongnhong/caelestia-shell-aw/pulls"><img src="https://img.shields.io/github/issues-pr/conlongnhong/caelestia-shell-aw?style=flat-square&logo=github&label=Pull%20request&labelColor=313244&color=89b4fa&cacheSeconds=3600" alt="Pull request đang mở"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.star-history.com/#conlongnhong/caelestia-shell-aw&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=conlongnhong/caelestia-shell-aw&type=Date&theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=conlongnhong/caelestia-shell-aw&type=Date">
+      <img alt="Biểu đồ lịch sử số sao của Caelestia Shell AW" src="https://api.star-history.com/svg?repos=conlongnhong/caelestia-shell-aw&type=Date">
+    </picture>
+  </a>
+</p>
+
+<p align="center"><sub>Các số liệu được tải động từ GitHub qua Shields.io và Star History nên có thể tạm thời không hiển thị khi dịch vụ bên thứ ba bị giới hạn.</sub></p>
+
+<a id="ho-tro-va-cong-dong"></a>
+
+## Hỗ trợ và cộng đồng
+
+- Lỗi hoặc đề xuất riêng cho bản AW: [GitHub Issues](https://github.com/conlongnhong/caelestia-shell-aw/issues).
+- Mã nguồn và tài liệu upstream: [`caelestia-dots/shell`](https://github.com/caelestia-dots/shell).
+- Cộng đồng Caelestia trên Discord: [discord.gg/BGDCFCmMBk](https://discord.gg/BGDCFCmMBk).
+- Ủng hộ tác giả upstream: [Ko-fi của soramane](https://ko-fi.com/soramane).
+
+Khi báo lỗi, hãy gửi kèm distro, phiên bản Hyprland/Quickshell/Qt, cách cài đặt, log liên quan và các bước tái hiện.
+
+<a id="ghi-cong"></a>
+
+## Ghi công
+
+- [Caelestia Dots](https://github.com/caelestia-dots) và các tác giả/đóng góp viên của [Caelestia Shell](https://github.com/caelestia-dots/shell) đã xây dựng nền tảng ban đầu.
+- [@outfoxxed](https://github.com/outfoxxed) đã phát triển Quickshell và hỗ trợ nhiều yêu cầu kỹ thuật của cộng đồng.
+- [@end-4](https://github.com/end-4) cùng dự án [dots-hyprland](https://github.com/end-4/dots-hyprland) là nguồn tham khảo quan trọng cho việc học và phát triển Quickshell.
+- [Axenide/Ax-Shell](https://github.com/Axenide/Ax-Shell) là một trong những nguồn cảm hứng về giao diện.
+- Cộng đồng Hyprland, đặc biệt các thành viên thảo luận về rice và desktop shell, đã đóng góp nhiều ý tưởng và phản hồi.
+- Cảm ơn mọi người đã báo lỗi, gửi pull request, viết tài liệu và chia sẻ cấu hình.
+
+<a id="giay-phep"></a>
+
+## Giấy phép
+
+Dự án được phân phối theo **GNU General Public License v3**. Bạn có thể sử dụng, nghiên cứu, sửa đổi và phân phối lại mã nguồn theo các điều khoản trong tệp [LICENSE](./LICENSE).
+
+<p align="center">
+  <a href="#dau-trang">Về đầu trang</a>
+</p>
