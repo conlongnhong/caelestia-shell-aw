@@ -128,7 +128,7 @@ Scope {
         for (let i = 0; i < mruAddresses.length; ++i)
             order.set(mruAddresses[i], i);
 
-        return allClients.sort((a, b) => {
+        const ordered = allClients.sort((a, b) => {
             const aa = normaliseAddress(a);
             const ba = normaliseAddress(b);
             if (aa === activeAddress)
@@ -147,6 +147,9 @@ Scope {
                 return ah - bh;
             return String(a.title ?? "").localeCompare(String(b.title ?? ""));
         });
+        if (GlobalConfig.overview.orderRightLeft || (GlobalConfig.overview.style === "niri" && GlobalConfig.overview.orderBottomUp))
+            ordered.reverse();
+        return ordered;
     }
     function reconcileClients(): void {
         if (!switching)
@@ -185,6 +188,9 @@ Scope {
         return address ? `address:0x${address}` : "";
     }
     function start(direction: int, stayOpen: bool): void {
+        if (!GlobalConfig.overview.enabled)
+            return;
+
         if (switching) {
             if (stayOpen)
                 sticky = true;
@@ -350,8 +356,10 @@ Scope {
         StyledWindow {
             id: win
 
-            readonly property real cardHeight: Math.min(cardWidth * 0.68, height * 0.42)
-            readonly property real cardWidth: Math.min(320, Math.max(210, width * 0.22))
+            readonly property bool niriStyle: GlobalConfig.overview.style === "niri"
+            readonly property real overviewScale: Math.max(0.25, GlobalConfig.overview.scale / 0.18)
+            readonly property real cardWidth: Math.min(520, Math.max(140, Math.min(320, Math.max(210, width * 0.22)) * overviewScale))
+            readonly property real cardHeight: Math.min(cardWidth * (niriStyle ? 0.56 : 0.68), height * (niriStyle ? 0.3 : 0.42))
             required property ShellScreen modelData
             readonly property real outerMargin: Math.max(20, Math.min(width, height) * 0.035)
 
@@ -433,7 +441,11 @@ Scope {
                     opacity: root.presented ? 1 : 0
                     radius: Tokens.rounding.extraLarge
                     scale: root.presented ? 1 : 0.96
-                    width: Math.min(win.width - win.outerMargin * 2, Math.max(280, root.clients.length * win.cardWidth + Math.max(0, root.clients.length - 1) * Tokens.spacing.medium + Tokens.padding.extraLarge * 2))
+                    width: {
+                        const visibleCards = Math.min(root.clients.length, win.niriStyle ? GlobalConfig.overview.rows : GlobalConfig.overview.columns);
+                        const cardsWidth = win.niriStyle ? win.cardWidth : visibleCards * win.cardWidth + Math.max(0, visibleCards - 1) * Tokens.spacing.medium;
+                        return Math.min(win.width - win.outerMargin * 2, Math.max(280, cardsWidth + Tokens.padding.extraLarge * 2));
+                    }
 
                     Behavior on opacity {
                         Anim {
@@ -465,19 +477,20 @@ Scope {
                         ListView {
                             id: list
 
+                            x: Math.max(0, (parent.width - width) / 2)
                             clip: true
                             currentIndex: root.selectedIndex
-                            height: win.cardHeight
+                            height: win.niriStyle ? Math.min(win.height * 0.62, Math.min(root.clients.length, GlobalConfig.overview.rows) * win.cardHeight + Math.max(0, Math.min(root.clients.length, GlobalConfig.overview.rows) - 1) * Tokens.spacing.medium) : win.cardHeight
                             highlightFollowsCurrentItem: true
                             highlightMoveDuration: Tokens.anim.durations.expressiveFastSpatial
                             highlightRangeMode: ListView.ApplyRange
                             highlightResizeDuration: 0
                             model: win.visible ? root.clients : []
-                            orientation: ListView.Horizontal
-                            preferredHighlightBegin: Math.max(0, width / 2 - win.cardWidth / 2)
-                            preferredHighlightEnd: Math.min(width, width / 2 + win.cardWidth / 2)
+                            orientation: win.niriStyle ? ListView.Vertical : ListView.Horizontal
+                            preferredHighlightBegin: Math.max(0, (win.niriStyle ? height : width) / 2 - (win.niriStyle ? win.cardHeight : win.cardWidth) / 2)
+                            preferredHighlightEnd: Math.min(win.niriStyle ? height : width, (win.niriStyle ? height : width) / 2 + (win.niriStyle ? win.cardHeight : win.cardWidth) / 2)
                             spacing: Tokens.spacing.medium
-                            width: parent.width
+                            width: win.niriStyle ? win.cardWidth : parent.width
 
                             delegate: Item {
                                 id: card
@@ -486,7 +499,7 @@ Scope {
                                 required property var modelData
                                 readonly property bool selected: index === root.selectedIndex
 
-                                height: list.height
+                                height: win.niriStyle ? win.cardHeight : list.height
                                 opacity: selected ? 1 : 0.78
                                 scale: selected ? 0.97 : 0.93
                                 width: win.cardWidth
@@ -537,7 +550,10 @@ Scope {
                                             width: Math.min(parent.width, implicitWidth)
                                         }
                                         Column {
-                                            anchors.centerIn: parent
+                                            anchors.horizontalCenter: GlobalConfig.overview.centerIcons ? parent.horizontalCenter : undefined
+                                            anchors.left: GlobalConfig.overview.centerIcons ? undefined : parent.left
+                                            anchors.leftMargin: GlobalConfig.overview.centerIcons ? 0 : Tokens.padding.large
+                                            anchors.verticalCenter: parent.verticalCenter
                                             spacing: Tokens.spacing.extraSmall
                                             visible: !preview.hasContent
 
@@ -611,7 +627,7 @@ Scope {
                                 border.color: Colours.palette.m3primary
                                 border.width: 3
                                 color: "transparent"
-                                height: list.height
+                                height: win.niriStyle ? win.cardHeight : list.height
                                 radius: Tokens.rounding.large
                                 width: win.cardWidth
                             }

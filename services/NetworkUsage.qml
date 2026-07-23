@@ -22,7 +22,7 @@ Singleton {
     // History buffers for sparkline
     readonly property alias downloadBuffer: downloadHistory
     readonly property alias uploadBuffer: uploadHistory
-    readonly property int historyLength: 30
+    readonly property int historyLength: GlobalConfig.dashboard.resourceHistoryLength
 
     // Private properties
     property real _downloadSpeed: 0

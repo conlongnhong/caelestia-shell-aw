@@ -35,6 +35,7 @@ class LauncherConfig : public ConfigObject {
     CONFIG_PROPERTY(int, maxWallpapers, 9)
     CONFIG_GLOBAL_PROPERTY(QString, specialPrefix, u"@"_s)
     CONFIG_GLOBAL_PROPERTY(QString, actionPrefix, u">"_s)
+    CONFIG_GLOBAL_PROPERTY(QString, appPrefix)
     CONFIG_GLOBAL_PROPERTY(bool, enableDangerousActions, false)
     CONFIG_PROPERTY(int, dragThreshold, 50)
     CONFIG_GLOBAL_PROPERTY(bool, vimKeybinds, false)
@@ -129,7 +130,20 @@ class LauncherConfig : public ConfigObject {
 public:
     explicit LauncherConfig(QObject* parent = nullptr)
         : ConfigObject(parent)
-        , m_useFuzzy(new LauncherUseFuzzy(this)) {}
+        , m_useFuzzy(new LauncherUseFuzzy(this)) {
+        addRangeConstraint(QStringLiteral("maxShown"), 1, 100);
+        addRangeConstraint(QStringLiteral("maxWallpapers"), 1, 100);
+        addRangeConstraint(QStringLiteral("dragThreshold"), 0, 1000);
+        const auto prefixValidator = [](const QVariant& value) {
+            const auto prefix = value.toString();
+            if (prefix.size() > 8 || prefix.contains(QRegularExpression(QStringLiteral("\\s"))))
+                return QStringLiteral("must be at most 8 characters and contain no whitespace");
+            return QString();
+        };
+        addValidator(QStringLiteral("specialPrefix"), prefixValidator);
+        addValidator(QStringLiteral("actionPrefix"), prefixValidator);
+        addValidator(QStringLiteral("appPrefix"), prefixValidator);
+    }
 };
 
 } // namespace caelestia::config

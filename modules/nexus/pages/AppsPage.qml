@@ -59,6 +59,70 @@ PageBase {
             onSelected: app => GlobalConfig.general.apps.explorer = app.command
         }
 
+        SectionHeader {
+            text: qsTr("Lệnh hệ thống")
+        }
+
+        TextFieldRow {
+            first: true
+            label: qsTr("Cài đặt Bluetooth")
+            subtext: qsTr("Lệnh mở trình quản lý Bluetooth bên ngoài")
+            value: GlobalConfig.general.apps.bluetooth.join(" ")
+            placeholder: "kcmshell6 kcm_bluetooth"
+            leadingIcon: "bluetooth"
+            onCommitted: value => GlobalConfig.general.apps.bluetooth = CUtils.splitCommand(value)
+        }
+
+        TextFieldRow {
+            label: qsTr("Đổi mật khẩu")
+            value: GlobalConfig.general.apps.changePassword.join(" ")
+            placeholder: "kitty -1 --hold=yes fish -i -c passwd"
+            leadingIcon: "password"
+            onCommitted: value => GlobalConfig.general.apps.changePassword = CUtils.splitCommand(value)
+        }
+
+        TextFieldRow {
+            label: qsTr("Cài đặt mạng")
+            value: GlobalConfig.general.apps.network.join(" ")
+            placeholder: "kcmshell6 kcm_networkmanagement"
+            leadingIcon: "wifi"
+            onCommitted: value => GlobalConfig.general.apps.network = CUtils.splitCommand(value)
+        }
+
+        TextFieldRow {
+            label: qsTr("Quản lý người dùng")
+            value: GlobalConfig.general.apps.manageUser.join(" ")
+            placeholder: "kcmshell6 kcm_users"
+            leadingIcon: "manage_accounts"
+            onCommitted: value => GlobalConfig.general.apps.manageUser = CUtils.splitCommand(value)
+        }
+
+        TextFieldRow {
+            label: qsTr("Cài đặt Ethernet")
+            value: GlobalConfig.general.apps.networkEthernet.join(" ")
+            placeholder: "kcmshell6 kcm_networkmanagement"
+            leadingIcon: "settings_ethernet"
+            onCommitted: value => GlobalConfig.general.apps.networkEthernet = CUtils.splitCommand(value)
+        }
+
+        TextFieldRow {
+            label: qsTr("Trình quản lý tác vụ")
+            value: GlobalConfig.general.apps.taskManager.join(" ")
+            placeholder: "plasma-systemmonitor --page-name Processes"
+            leadingIcon: "monitoring"
+            onCommitted: value => GlobalConfig.general.apps.taskManager = CUtils.splitCommand(value)
+        }
+
+        TextFieldRow {
+            last: true
+            label: qsTr("Cập nhật hệ thống")
+            subtext: qsTr("Chỉ chạy khi người dùng chọn action tương ứng")
+            value: GlobalConfig.general.apps.update.join(" ")
+            placeholder: "kitty -1 --hold=yes fish -i -c \"pkexec pacman -Syu\""
+            leadingIcon: "system_update"
+            onCommitted: value => GlobalConfig.general.apps.update = CUtils.splitCommand(value)
+        }
+
         // Library
         SectionHeader {
             text: qsTr("Thư viện")

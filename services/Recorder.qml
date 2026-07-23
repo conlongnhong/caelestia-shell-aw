@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Caelestia.Config
 
 Singleton {
     id: root
@@ -14,6 +15,12 @@ Singleton {
     property list<string> startArgs
     property bool needsStop
     property bool needsPause
+
+    function cliCommand(args: list<string>): list<string> {
+        const outputDir = GlobalConfig.paths.screenRecordDir.trim();
+        const command = ["caelestia", "record", ...args];
+        return outputDir ? ["env", `CAELESTIA_RECORDINGS_DIR=${outputDir}`, ...command] : command;
+    }
 
     function start(extraArgs = []): void {
         needsStart = true;
@@ -51,15 +58,15 @@ Singleton {
 
             if (code === 0) {
                 if (root.needsStop) {
-                    Quickshell.execDetached(["caelestia", "record"]);
+                    Quickshell.execDetached(root.cliCommand([]));
                     props.running = false;
                     props.paused = false;
                 } else if (root.needsPause) {
-                    Quickshell.execDetached(["caelestia", "record", "-p"]);
+                    Quickshell.execDetached(root.cliCommand(["-p"]));
                     props.paused = !props.paused;
                 }
             } else if (root.needsStart) {
-                Quickshell.execDetached(["caelestia", "record", ...root.startArgs]);
+                Quickshell.execDetached(root.cliCommand(root.startArgs));
                 props.running = true;
                 props.paused = false;
                 props.elapsed = 0;

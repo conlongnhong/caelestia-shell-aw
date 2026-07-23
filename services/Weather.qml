@@ -30,8 +30,22 @@ Singleton {
         return GlobalConfig.services.useFahrenheit ? `${temp !== undefined ? Math.round(toFahrenheit(temp)) : "--"}°F` : `${temp !== undefined ? Math.round(temp) : "--"}°C`;
     }
 
+    function languageCode(): string {
+        const configured = GlobalConfig.language.ui.trim();
+        const locale = configured && configured !== "auto" ? configured : Qt.locale().name;
+        return locale.replace("-", "_").split("_")[0] || "en";
+    }
+
+    function requestHeaders(): var {
+        const userAgent = GlobalConfig.services.networkUserAgent.trim();
+        return userAgent ? {
+            "User-Agent": userAgent
+        } : {};
+    }
+
     function reload(): void {
-        const configLocation = GlobalConfig.services.weatherLocation;
+        const barWeather = GlobalConfig.bar.weather;
+        const configLocation = barWeather.enable ? (barWeather.enableGPS ? "" : barWeather.city) : (GlobalConfig.services.weatherUseGps ? "" : GlobalConfig.services.weatherLocation);
 
         if (configLocation) {
             if (configLocation.indexOf(",") !== -1 && !isNaN(parseFloat(configLocation.split(",")[0]))) {
@@ -48,7 +62,7 @@ Singleton {
                     city = response.city ?? "";
                     timer.restart();
                 }
-            });
+            }, null, requestHeaders());
         }
     }
 
@@ -108,7 +122,7 @@ Singleton {
         }
 
         const [lat, lon] = coords.split(",").map(s => s.trim());
-        const lang = Qt.locale().name.split("_")[0] || "en";
+        const lang = languageCode();
 
         const fallbackToBigDataCloud = () => {
             const fallbackUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${lang}`;
@@ -121,7 +135,7 @@ Singleton {
                 } else {
                     city = qsTr("Không rõ thành phố");
                 }
-            });
+            }, null, requestHeaders());
         };
 
         const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=geocodejson&accept-language=${lang}`;
@@ -136,11 +150,11 @@ Singleton {
                 }
             }
             fallbackToBigDataCloud();
-        }, fallbackToBigDataCloud);
+        }, fallbackToBigDataCloud, requestHeaders());
     }
 
     function fetchCoordsFromCity(cityName: string): void {
-        const lang = Qt.locale().name.split("_")[0] || "en";
+        const lang = languageCode();
         const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=${lang}&format=json`;
 
         Requests.get(url, text => {
@@ -153,7 +167,7 @@ Singleton {
                 loc = "";
                 reload();
             }
-        });
+        }, null, requestHeaders());
     }
 
     function fetchWeatherData(): void {
@@ -207,7 +221,7 @@ Singleton {
                 });
             }
             hourlyForecast = hourlyList;
-        });
+        }, null, requestHeaders());
     }
 
     function toFahrenheit(celcius: real): real {
@@ -266,11 +280,40 @@ Singleton {
             root.reload();
         }
 
+        function onWeatherUseGpsChanged(): void {
+            root.reload();
+        }
+
         target: GlobalConfig.services
     }
 
+    Connections {
+        function onUiChanged(): void {
+            root.cachedCities.clear();
+            root.reload();
+        }
+
+        target: GlobalConfig.language
+    }
+
+    Connections {
+        function onEnableChanged(): void {
+            root.reload();
+        }
+
+        function onEnableGPSChanged(): void {
+            root.reload();
+        }
+
+        function onCityChanged(): void {
+            root.reload();
+        }
+
+        target: GlobalConfig.bar.weather
+    }
+
     Timer {
-        interval: 3600000 // 1 hour
+        interval: (GlobalConfig.bar.weather.enable ? GlobalConfig.bar.weather.fetchInterval : GlobalConfig.services.weatherFetchInterval) * 60000
         running: true
         repeat: true
         onTriggered: fetchWeatherData()

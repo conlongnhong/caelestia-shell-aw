@@ -13,6 +13,11 @@ Item {
     required property DesktopEntry modelData
     required property ScreenState screenState
 
+    function onClicked(): void {
+        Apps.launch(root.modelData);
+        root.screenState.launcher = false;
+    }
+
     implicitHeight: Tokens.sizes.launcher.itemHeight
 
     anchors.left: parent?.left
@@ -20,10 +25,7 @@ Item {
 
     StateLayer {
         radius: Tokens.rounding.large
-        onClicked: {
-            Apps.launch(root.modelData);
-            root.screenState.launcher = false;
-        }
+        onClicked: root.onClicked()
     }
 
     Item {

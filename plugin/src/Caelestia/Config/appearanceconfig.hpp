@@ -190,6 +190,9 @@ class AppearanceFont : public ConfigObject {
     CONFIG_PROPERTY(QString, clock, QStringLiteral("Rubik"))
     // Google Sans Flex doesn't play well with unicode symbols apparently, so use Rubik instead
     CONFIG_PROPERTY(QString, workspaces, QStringLiteral("Rubik"))
+    CONFIG_PROPERTY(QString, numbers, QStringLiteral("Google Sans Flex"))
+    CONFIG_PROPERTY(QString, reading, QStringLiteral("Readex Pro"))
+    CONFIG_PROPERTY(QString, expressive, QStringLiteral("Space Grotesk"))
 
 public:
     explicit AppearanceFont(QObject* parent = nullptr)
@@ -296,12 +299,73 @@ class AppearanceTransparency : public ConfigObject {
     QML_ANONYMOUS
 
     CONFIG_GLOBAL_PROPERTY(bool, enabled, false)
+    CONFIG_GLOBAL_PROPERTY(bool, automatic, true)
     CONFIG_GLOBAL_PROPERTY(qreal, base, 0.85)
     CONFIG_GLOBAL_PROPERTY(qreal, layers, 0.4)
 
 public:
     explicit AppearanceTransparency(QObject* parent = nullptr)
-        : ConfigObject(parent) {}
+        : ConfigObject(parent) {
+        addRangeConstraint(QStringLiteral("base"), 0, 1);
+        addRangeConstraint(QStringLiteral("layers"), 0, 1);
+    }
+};
+
+class TerminalGenerationProps : public ConfigObject {
+    Q_OBJECT
+    QML_ANONYMOUS
+
+    CONFIG_GLOBAL_PROPERTY(qreal, harmony, 0.6)
+    CONFIG_GLOBAL_PROPERTY(qreal, harmonizeThreshold, 100)
+    CONFIG_GLOBAL_PROPERTY(qreal, termFgBoost, 0.35)
+    CONFIG_GLOBAL_PROPERTY(bool, forceDarkMode, false)
+
+public:
+    explicit TerminalGenerationProps(QObject* parent = nullptr)
+        : ConfigObject(parent) {
+        addRangeConstraint(QStringLiteral("harmony"), 0, 1);
+        addRangeConstraint(QStringLiteral("harmonizeThreshold"), 0, 100);
+        addRangeConstraint(QStringLiteral("termFgBoost"), 0, 1);
+    }
+};
+
+class WallpaperThemingConfig : public ConfigObject {
+    Q_OBJECT
+    QML_ANONYMOUS
+
+    // Safety gate for the external CLI/application theme bridge.
+    CONFIG_GLOBAL_PROPERTY(bool, managed, false)
+    CONFIG_GLOBAL_PROPERTY(bool, enableAppsAndShell, true)
+    CONFIG_GLOBAL_PROPERTY(bool, enableQtApps, true)
+    CONFIG_GLOBAL_PROPERTY(bool, enableTerminal, true)
+    CONFIG_SUBOBJECT(TerminalGenerationProps, terminalGenerationProps)
+
+public:
+    explicit WallpaperThemingConfig(QObject* parent = nullptr)
+        : ConfigObject(parent)
+        , m_terminalGenerationProps(new TerminalGenerationProps(this)) {}
+};
+
+class AppearancePaletteConfig : public ConfigObject {
+    Q_OBJECT
+    QML_ANONYMOUS
+
+    CONFIG_GLOBAL_PROPERTY(QString, type, QStringLiteral("auto"))
+    CONFIG_GLOBAL_PROPERTY(QString, accentColor)
+
+public:
+    explicit AppearancePaletteConfig(QObject* parent = nullptr)
+        : ConfigObject(parent) {
+        addEnumConstraint(QStringLiteral("type"),
+            { QStringLiteral("auto"), QStringLiteral("scheme-content"),
+                QStringLiteral("scheme-expressive"), QStringLiteral("scheme-fidelity"),
+                QStringLiteral("scheme-fruit-salad"), QStringLiteral("scheme-monochrome"),
+                QStringLiteral("scheme-neutral"), QStringLiteral("scheme-rainbow"),
+                QStringLiteral("scheme-tonal-spot") });
+        addRegexConstraint(QStringLiteral("accentColor"),
+            QRegularExpression(QStringLiteral("^(?:|#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{8})$")),
+            QStringLiteral("must be empty or a #RRGGBB/#RRGGBBAA colour"));
+    }
 };
 
 class AppearanceConfig : public ConfigObject {
@@ -309,12 +373,16 @@ class AppearanceConfig : public ConfigObject {
     QML_ANONYMOUS
 
     CONFIG_PROPERTY(qreal, deformScale, 1)
+    CONFIG_PROPERTY(bool, extraBackgroundTint, true)
+    CONFIG_PROPERTY(int, fakeScreenRounding, 2)
     CONFIG_SUBOBJECT(AppearanceRounding, rounding)
     CONFIG_SUBOBJECT(AppearanceSpacing, spacing)
     CONFIG_SUBOBJECT(AppearancePadding, padding)
     CONFIG_SUBOBJECT(AppearanceFont, font)
     CONFIG_SUBOBJECT(AppearanceAnim, anim)
     CONFIG_SUBOBJECT(AppearanceTransparency, transparency)
+    CONFIG_SUBOBJECT(WallpaperThemingConfig, wallpaperTheming)
+    CONFIG_SUBOBJECT(AppearancePaletteConfig, palette)
 
 public:
     explicit AppearanceConfig(QObject* parent = nullptr)
@@ -324,7 +392,12 @@ public:
         , m_padding(new AppearancePadding(this))
         , m_font(new AppearanceFont(this))
         , m_anim(new AppearanceAnim(this))
-        , m_transparency(new AppearanceTransparency(this)) {}
+        , m_transparency(new AppearanceTransparency(this))
+        , m_wallpaperTheming(new WallpaperThemingConfig(this))
+        , m_palette(new AppearancePaletteConfig(this)) {
+        addRangeConstraint(QStringLiteral("deformScale"), 0, 4);
+        addRangeConstraint(QStringLiteral("fakeScreenRounding"), 0, 2);
+    }
 };
 
 } // namespace caelestia::config

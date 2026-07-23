@@ -129,6 +129,108 @@ PageBase {
             onMoved: v => GlobalConfig.nexus.networkRescanInterval = Math.round(v * 1000)
         }
 
+        SectionHeader {
+            text: qsTr("Mạng dịch vụ")
+        }
+
+        TextFieldRow {
+            first: true
+            last: true
+            label: "User-Agent"
+            subtext: qsTr("Được gửi bởi các yêu cầu thời tiết và định vị của shell")
+            value: GlobalConfig.services.networkUserAgent
+            placeholder: "Mozilla/5.0 ..."
+            leadingIcon: "language"
+            onCommitted: value => GlobalConfig.services.networkUserAgent = value.trim()
+        }
+
+        SectionHeader {
+            text: qsTr("Tìm kiếm")
+        }
+
+        ToggleRow {
+            first: true
+            text: qsTr("Tìm gần đúng kiểu Levenshtein")
+            subtext: qsTr("Chịu lỗi gõ sai tốt hơn thay cho thuật toán tìm hiện tại")
+            checked: GlobalConfig.search.sloppy
+            onToggled: GlobalConfig.search.sloppy = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Hiện action mặc định không cần tiền tố")
+            subtext: qsTr("Thêm “Tìm trên web” và “Chạy lệnh” vào kết quả ứng dụng")
+            checked: GlobalConfig.search.prefix.showDefaultActionsWithoutPrefix
+            onToggled: GlobalConfig.search.prefix.showDefaultActionsWithoutPrefix = checked
+        }
+
+        StepperRow {
+            label: qsTr("Độ trễ kết quả không phải ứng dụng")
+            subtext: qsTr("Tránh giật khi nhập nhanh (ms)")
+            value: GlobalConfig.search.nonAppResultDelay
+            from: 0
+            to: 1000
+            stepSize: 10
+            onMoved: value => GlobalConfig.search.nonAppResultDelay = Math.round(value)
+        }
+
+        TextFieldRow {
+            label: qsTr("Tiền tố action")
+            value: GlobalConfig.launcher.actionPrefix
+            placeholder: ">"
+            leadingIcon: "bolt"
+            validate: /^\S{0,8}$/
+            onCommitted: value => GlobalConfig.launcher.actionPrefix = value
+        }
+
+        TextFieldRow {
+            label: qsTr("Tiền tố ứng dụng")
+            subtext: qsTr("Để trống để tìm ứng dụng trực tiếp như Caelestia mặc định")
+            value: GlobalConfig.launcher.appPrefix
+            placeholder: ""
+            leadingIcon: "apps"
+            validate: /^\S{0,8}$/
+            onCommitted: value => GlobalConfig.launcher.appPrefix = value
+        }
+
+        TextFieldRow {
+            label: qsTr("Tiền tố lệnh shell")
+            value: GlobalConfig.search.prefix.shellCommand
+            placeholder: "$"
+            leadingIcon: "terminal"
+            validate: /^\S{0,8}$/
+            onCommitted: value => GlobalConfig.search.prefix.shellCommand = value
+        }
+
+        TextFieldRow {
+            label: qsTr("Tiền tố tìm web")
+            value: GlobalConfig.search.prefix.webSearch
+            placeholder: "?"
+            leadingIcon: "travel_explore"
+            validate: /^\S{0,8}$/
+            onCommitted: value => GlobalConfig.search.prefix.webSearch = value
+        }
+
+        TextFieldRow {
+            label: qsTr("Tiền tố phép tính")
+            value: GlobalConfig.search.prefix.math
+            placeholder: "="
+            leadingIcon: "calculate"
+            validate: /^\S{0,8}$/
+            onCommitted: value => GlobalConfig.search.prefix.math = value
+        }
+
+        TextFieldRow {
+            last: true
+            label: qsTr("URL công cụ tìm kiếm")
+            subtext: qsTr("Chuỗi truy vấn đã mã hóa được nối vào cuối URL")
+            value: GlobalConfig.search.engineBaseUrl
+            placeholder: "https://www.google.com/search?q="
+            leadingIcon: "link"
+            validate: /^https?:\/\/.+/
+            emptyIsValid: false
+            onCommitted: value => GlobalConfig.search.engineBaseUrl = value.trim()
+        }
+
         // Media & lyrics
         SectionHeader {
             text: qsTr("Phương tiện & lời bài hát")
@@ -189,6 +291,31 @@ PageBase {
             to: 200
             stepSize: 5
             onMoved: v => GlobalConfig.services.maxVolume = v / 100
+        }
+
+        SectionHeader {
+            text: qsTr("Bảo vệ âm lượng")
+        }
+
+        ToggleRow {
+            first: true
+            text: qsTr("Chặn tăng âm lượng đột ngột")
+            subtext: qsTr("Theo dõi thay đổi từ ứng dụng bên ngoài; thao tác chủ động trong Caelestia vẫn được phép")
+            checked: GlobalConfig.services.audioProtection.enabled
+            onToggled: GlobalConfig.services.audioProtection.enabled = checked
+        }
+
+        StepperRow {
+            enabled: GlobalConfig.services.audioProtection.enabled
+            opacity: enabled ? 1 : 0.55
+            last: true
+            label: qsTr("Mức tăng tối đa mỗi lần")
+            subtext: qsTr("Chặn thay đổi đầu ra lớn hơn tỷ lệ này (%)")
+            value: Math.round(GlobalConfig.services.audioProtection.maxIncrease * 100)
+            from: 0
+            to: 100
+            stepSize: 1
+            onMoved: v => GlobalConfig.services.audioProtection.maxIncrease = v / 100
         }
 
         // Service tuning

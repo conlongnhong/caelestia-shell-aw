@@ -214,6 +214,46 @@ PageBase {
             }
         }
 
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Tokens.spacing.extraSmall / 2
+
+            SectionHeader {
+                first: true
+                text: qsTr("Tùy biến")
+            }
+
+            NavRow {
+                first: true
+                icon: "tune"
+                label: qsTr("Tinh chỉnh giao diện")
+                status: qsTr("Tỷ lệ, độ trong suốt và viền shell")
+                onClicked: root.nState.openSubPage(4)
+            }
+
+            NavRow {
+                icon: "desktop_windows"
+                label: qsTr("Desktop & hiệu ứng nền")
+                status: qsTr("Đồng hồ, visualiser và thư mục hình nền")
+                onClicked: root.nState.openSubPage(5)
+            }
+
+            NavRow {
+                icon: "wallpaper_slideshow"
+                label: qsTr("Trình chọn hình nền nâng cao")
+                status: qsTr("Tìm kiếm, đường dẫn nhanh và tự đổi hình nền")
+                onClicked: root.nState.openSubPage(6)
+            }
+
+            NavRow {
+                last: true
+                icon: "screenshot_region"
+                label: qsTr("Task View & chụp vùng")
+                status: qsTr("Bố cục cửa sổ, vùng bám và công cụ chú thích")
+                onClicked: root.nState.openSubPage(7)
+            }
+        }
+
         ToggleRow {
             Layout.fillWidth: true
             first: true

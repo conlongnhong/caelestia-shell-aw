@@ -109,6 +109,55 @@ Q_LOGGING_CATEGORY(lcConfig, "caelestia.config", QtInfoMsg)
 ConfigObject::ConfigObject(QObject* parent)
     : QObject(parent) {}
 
+void ConfigObject::addValidator(const QString& name, ValueValidator validator) {
+    m_validators.insert(name, std::move(validator));
+}
+
+void ConfigObject::addRangeConstraint(const QString& name, qreal minimum, qreal maximum) {
+    addValidator(name, [minimum, maximum](const QVariant& value) {
+        bool ok = false;
+        const auto number = value.toDouble(&ok);
+        if (!ok || !std::isfinite(number))
+            return QStringLiteral("must be a finite number");
+        if (number < minimum || number > maximum) {
+            return QStringLiteral("must be between %1 and %2")
+                .arg(QString::number(minimum), QString::number(maximum));
+        }
+        return QString();
+    });
+}
+
+void ConfigObject::addEnumConstraint(const QString& name, const QStringList& values) {
+    addValidator(name, [values](const QVariant& value) {
+        const auto string = value.toString();
+        if (!values.contains(string)) {
+            return QStringLiteral("must be one of: %1").arg(values.join(QStringLiteral(", ")));
+        }
+        return QString();
+    });
+}
+
+void ConfigObject::addRegexConstraint(
+    const QString& name, const QRegularExpression& expression, const QString& description) {
+    addValidator(name, [expression, description](const QVariant& value) {
+        if (!expression.match(value.toString()).hasMatch())
+            return description;
+        return QString();
+    });
+}
+
+QString ConfigObject::validatePropertyValue(const QString& name, const QVariant& value) const {
+    const auto validator = m_validators.constFind(name);
+    if (validator == m_validators.cend())
+        return {};
+
+    const auto detail = validator.value()(value);
+    if (detail.isEmpty())
+        return {};
+
+    return QStringLiteral("Invalid value for option '%1': %2").arg(propertyPath(name), detail);
+}
+
 QString ConfigObject::validateJson(const QJsonObject& obj) const {
     const auto* meta = metaObject();
 
@@ -138,6 +187,10 @@ QString ConfigObject::validateJson(const QJsonObject& obj) const {
             return QStringLiteral("Invalid value for option '%1' (expected %2)")
                 .arg(propertyPath(key), QString::fromUtf8(prop.metaType().name()));
         }
+
+        const auto validationError = validatePropertyValue(key, value);
+        if (!validationError.isEmpty())
+            return validationError;
     }
 
     return {};

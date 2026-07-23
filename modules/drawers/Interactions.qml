@@ -83,7 +83,7 @@ CustomMouseArea {
                 bar.closeTray();
             }
 
-            if (Config.bar.showOnHover)
+            if (bar.hoverRevealEnabled)
                 bar.isHovered = false;
 
             if (Config.sidebar.showOnHover)
@@ -106,7 +106,7 @@ CustomMouseArea {
         }
 
         // Show bar in non-exclusive mode on hover
-        if (!screenState.bar && Config.bar.showOnHover && x < bar.clampedWidth)
+        if (!screenState.bar && bar.hoverRevealEnabled && x < bar.hoverTriggerWidth)
             bar.isHovered = true;
 
         // Show/hide bar on drag

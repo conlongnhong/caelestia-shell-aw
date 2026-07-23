@@ -11,7 +11,11 @@ Singleton {
     readonly property int minutes: clock.minutes
     readonly property int seconds: clock.seconds
 
-    readonly property string timeStr: format(GlobalConfig.services.useTwelveHourClock ? "hh:mm:A" : "hh:mm")
+    readonly property string timeFormat: GlobalConfig.time.useCustomFormats ? GlobalConfig.time.format : (GlobalConfig.services.useTwelveHourClock ? "hh:mm:A" : "hh:mm")
+    readonly property string timeStr: format(timeFormat)
+    readonly property string shortDateStr: format(GlobalConfig.time.shortDateFormat)
+    readonly property string dateWithYearStr: format(GlobalConfig.time.dateWithYearFormat)
+    readonly property string dateStr: format(GlobalConfig.time.dateFormat)
     readonly property list<string> timeComponents: timeStr.split(":")
     readonly property string hourStr: timeComponents[0] ?? ""
     readonly property string minuteStr: timeComponents[1] ?? ""
@@ -24,6 +28,6 @@ Singleton {
     SystemClock {
         id: clock
 
-        precision: SystemClock.Seconds
+        precision: GlobalConfig.time.secondPrecision ? SystemClock.Seconds : SystemClock.Minutes
     }
 }

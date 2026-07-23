@@ -38,6 +38,71 @@ Singleton {
                 minimum: 0,
                 maximum: 100
             },
+            "decoration:active_opacity": {
+                type: "real",
+                minimum: 0.1,
+                maximum: 1
+            },
+            "decoration:inactive_opacity": {
+                type: "real",
+                minimum: 0.1,
+                maximum: 1
+            },
+            "decoration:blur:size": {
+                type: "int",
+                minimum: 1,
+                maximum: 20
+            },
+            "decoration:blur:passes": {
+                type: "int",
+                minimum: 1,
+                maximum: 6
+            },
+            "decoration:shadow:range": {
+                type: "int",
+                minimum: 0,
+                maximum: 100
+            },
+            "general:layout": {
+                type: "string",
+                values: ["dwindle", "master", "scrolling"]
+            },
+            "input:kb_layout": {
+                type: "string",
+                pattern: /^[A-Za-z0-9_+,-]+$/
+            },
+            "input:numlock_by_default": {
+                type: "bool"
+            },
+            "input:repeat_delay": {
+                type: "int",
+                minimum: 100,
+                maximum: 1000
+            },
+            "input:repeat_rate": {
+                type: "int",
+                minimum: 10,
+                maximum: 100
+            },
+            "input:follow_mouse": {
+                type: "int",
+                minimum: 0,
+                maximum: 3
+            },
+            "input:touchpad:natural_scroll": {
+                type: "bool"
+            },
+            "input:touchpad:disable_while_typing": {
+                type: "bool"
+            },
+            "input:touchpad:clickfinger_behavior": {
+                type: "bool"
+            },
+            "input:touchpad:scroll_factor": {
+                type: "real",
+                minimum: 0.1,
+                maximum: 3
+            },
             "general:allow_tearing": {
                 type: "bool"
             }
@@ -143,9 +208,24 @@ Singleton {
         if (spec.type === "intVector")
             return _normaliseIntVector(value, spec, clampToRange);
 
+        if (spec.type === "string") {
+            if (typeof value !== "string")
+                return undefined;
+            const stringValue = value.trim();
+            if (!stringValue || (spec.values && !spec.values.includes(stringValue)) || (spec.pattern && !spec.pattern.test(stringValue)))
+                return undefined;
+            return stringValue;
+        }
+
         const numericValue = Number(value);
         if (isNaN(numericValue) || !isFinite(numericValue))
             return undefined;
+
+        if (spec.type === "real") {
+            if (!clampToRange)
+                return numericValue;
+            return Math.max(spec.minimum, Math.min(spec.maximum, numericValue));
+        }
 
         const roundedValue = Math.round(numericValue);
         if (!clampToRange)
@@ -197,7 +277,8 @@ Singleton {
 
         for (const [key, value] of Object.entries(options)) {
             const expected = _normaliseOption(key, value, false);
-            if (expected === undefined || _currentOption(key) !== expected)
+            const current = _currentOption(key);
+            if (expected === undefined || current === undefined || (typeof expected === "number" && typeof current === "number" ? Math.abs(current - expected) > 0.000001 : current !== expected))
                 return false;
         }
         return true;
@@ -327,6 +408,20 @@ Singleton {
 
     function setRounding(value: int): void {
         _queueOption("decoration:rounding", value, true);
+    }
+
+    function setOption(key: string, value: var): bool {
+        return _queueOption(key, value, true);
+    }
+
+    function setOptions(options: var): bool {
+        if (!options || typeof options !== "object" || Array.isArray(options))
+            return false;
+
+        let queued = false;
+        for (const [key, value] of Object.entries(options))
+            queued = _queueOption(key, value, true) || queued;
+        return queued;
     }
 
     function snapshotGameModeOptions(): var {

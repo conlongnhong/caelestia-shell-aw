@@ -1,0 +1,25 @@
+{
+    "folders": [
+        {
+            "name": "Caelestia Main",
+            "path": "."
+        },
+        {
+            "name": "Worker - Launcher",
+            "path": "../caelestia-workers/launcher"
+        },
+        {
+            "name": "Worker - System Tools",
+            "path": "../caelestia-workers/system-tools"
+        },
+        {
+            "name": "Worker - Control Center",
+            "path": "../caelestia-workers/control-center"
+        },
+        {
+            "name": "Worker - Desktop Integration",
+            "path": "../caelestia-workers/desktop-integration"
+        }
+    ],
+    "settings": {}
+}

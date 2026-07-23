@@ -18,6 +18,17 @@ class GeneralApps : public ConfigObject {
     CONFIG_GLOBAL_PROPERTY(QStringList, audio, { u"pavucontrol"_s })
     CONFIG_GLOBAL_PROPERTY(QStringList, playback, { u"mpv"_s })
     CONFIG_GLOBAL_PROPERTY(QStringList, explorer, { u"thunar"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, bluetooth, { u"kcmshell6"_s, u"kcm_bluetooth"_s })
+    CONFIG_GLOBAL_PROPERTY(
+        QStringList, changePassword, { u"kitty"_s, u"-1"_s, u"--hold=yes"_s, u"fish"_s, u"-i"_s, u"-c"_s, u"passwd"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, network, { u"kcmshell6"_s, u"kcm_networkmanagement"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, manageUser, { u"kcmshell6"_s, u"kcm_users"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, networkEthernet, { u"kcmshell6"_s, u"kcm_networkmanagement"_s })
+    CONFIG_GLOBAL_PROPERTY(
+        QStringList, taskManager, { u"plasma-systemmonitor"_s, u"--page-name"_s, u"Processes"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, update,
+        { u"kitty"_s, u"-1"_s, u"--hold=yes"_s, u"fish"_s, u"-i"_s, u"-c"_s,
+            u"pkexec pacman -Syu"_s })
 
 public:
     explicit GeneralApps(QObject* parent = nullptr)
@@ -80,10 +91,29 @@ class GeneralBattery : public ConfigObject {
             }),
         })
     CONFIG_GLOBAL_PROPERTY(int, criticalLevel, 3)
+    CONFIG_GLOBAL_PROPERTY(bool, autoHibernate, true)
+    CONFIG_GLOBAL_PROPERTY(int, hibernateDelay, 5)
+    CONFIG_GLOBAL_PROPERTY(int, fullLevel, 101)
 
 public:
     explicit GeneralBattery(QObject* parent = nullptr)
-        : ConfigObject(parent) {}
+        : ConfigObject(parent) {
+        addRangeConstraint(QStringLiteral("criticalLevel"), 0, 100);
+        addRangeConstraint(QStringLiteral("hibernateDelay"), 0, 3600);
+        addRangeConstraint(QStringLiteral("fullLevel"), 0, 101);
+        addValidator(QStringLiteral("warnLevels"), [](const QVariant& value) {
+            for (const auto& entry : value.toList()) {
+                const auto level = entry.toMap();
+                if (level.isEmpty())
+                    return QStringLiteral("must contain only warning objects");
+                bool ok = false;
+                const auto percentage = level.value(QStringLiteral("level")).toDouble(&ok);
+                if (!ok || percentage < 0 || percentage > 100)
+                    return QStringLiteral("each warning level must be between 0 and 100");
+            }
+            return QString();
+        });
+    }
 };
 
 class GeneralConfig : public ConfigObject {
@@ -103,7 +133,10 @@ public:
         : ConfigObject(parent)
         , m_apps(new GeneralApps(this))
         , m_idle(new GeneralIdle(this))
-        , m_battery(new GeneralBattery(this)) {}
+        , m_battery(new GeneralBattery(this)) {
+        addRangeConstraint(QStringLiteral("mediaGifSpeedAdjustment"), 0, 10000);
+        addRangeConstraint(QStringLiteral("sessionGifSpeed"), 0.01, 10);
+    }
 };
 
 } // namespace caelestia::config

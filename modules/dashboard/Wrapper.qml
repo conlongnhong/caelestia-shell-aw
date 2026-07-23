@@ -18,6 +18,14 @@ Item {
         filterLabel: qsTr("Tệp hình ảnh")
         filters: Images.validImageExtensions
         onAccepted: path => {
+            const localPath = Paths.toLocalFile(path) || path;
+            if (GlobalConfig.profile.avatarPath.trim()) {
+                GlobalConfig.profile.avatarPicture = localPath;
+                Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "low", "-h", `STRING:image-path:${localPath}`, "Đã đổi ảnh đại diện", `Đã dùng ${Paths.shortenHome(localPath)} làm ảnh đại diện`]);
+                return;
+            }
+
+            GlobalConfig.profile.avatarPicture = "";
             if (CUtils.copyFile(Qt.resolvedUrl(path), Qt.resolvedUrl(`${Paths.home}/.face`)))
                 Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "low", "-h", `STRING:image-path:${path}`, "Đã đổi ảnh đại diện", `Đã đổi ảnh đại diện thành ${Paths.shortenHome(path)}`]);
             else

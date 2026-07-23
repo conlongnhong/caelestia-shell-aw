@@ -64,6 +64,7 @@ Searcher {
 
     list: appDb.apps
     useFuzzy: GlobalConfig.launcher.useFuzzy.apps
+    useSloppy: GlobalConfig.search.sloppy
 
     AppDb {
         id: appDb

@@ -11,12 +11,30 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
+    readonly property bool managed: GlobalConfig.hyprland.enabled
+    readonly property list<MenuItem> animationPresetItems: [
+        MenuItem {
+            text: qsTr("Nhanh")
+        },
+        MenuItem {
+            text: qsTr("Bình thường")
+        },
+        MenuItem {
+            text: "Niri"
+        }
+    ]
+    readonly property list<string> animationPresetValues: ["fast", "normal", "niri"]
+
     function monitorDetails(monitor: var): string {
         return qsTr("%1 × %2 • tỷ lệ %3").arg(monitor.width).arg(monitor.height).arg(Number(monitor.scale).toFixed(2));
     }
 
     function availabilityText(description: string, supported: bool): string {
         return supported ? description : qsTr("%1 • không được phiên bản Hyprland này hỗ trợ").arg(description);
+    }
+
+    function animationPresetIndex(value: string): int {
+        return Math.max(0, animationPresetValues.indexOf(value));
     }
 
     title: "Hyprland"
@@ -58,20 +76,33 @@ PageBase {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Các thay đổi ở trang này chỉ áp dụng trong phiên Hyprland hiện tại.")
+                        text: root.managed ? qsTr("Các thay đổi được lưu trong cấu hình Caelestia và áp dụng lại bằng IPC khi shell khởi động.") : qsTr("Các thay đổi ở trang này chỉ áp dụng trong phiên Hyprland hiện tại.")
                         font: Tokens.font.body.small
                         wrapMode: Text.WordWrap
                     }
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Chúng không ghi vào hyprland.conf; nút Nạp lại cấu hình sẽ đọc lại thiết lập từ đĩa.")
+                        text: qsTr("Caelestia không ghi đè hyprland.conf; nút Nạp lại cấu hình vẫn đọc thiết lập từ đĩa.")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.label.small
                         wrapMode: Text.WordWrap
                     }
                 }
             }
+        }
+
+        SectionHeader {
+            text: qsTr("Lưu cấu hình")
+        }
+
+        ToggleRow {
+            first: true
+            last: true
+            text: qsTr("Caelestia quản lý các tùy chọn Hyprland")
+            subtext: qsTr("Mặc định tắt để giữ nguyên cấu hình Hyprland hiện tại")
+            checked: root.managed
+            onToggled: GlobalConfig.hyprland.enabled = checked
         }
 
         SectionHeader {
@@ -204,8 +235,23 @@ PageBase {
             first: true
             text: qsTr("Hiệu ứng động")
             subtext: root.availabilityText(qsTr("Bật chuyển động của cửa sổ và không gian làm việc"), HyprControl.supportsAnimations)
-            checked: HyprControl.animationsEnabled
-            onToggled: HyprControl.setAnimationsEnabled(checked)
+            checked: root.managed ? GlobalConfig.hyprland.animations.enabled : HyprControl.animationsEnabled
+            onToggled: {
+                if (root.managed)
+                    GlobalConfig.hyprland.animations.enabled = checked;
+                else
+                    HyprControl.setAnimationsEnabled(checked);
+            }
+        }
+
+        SelectRow {
+            enabled: root.managed && HyprControl.providerReady && !GameMode.enabled
+            opacity: enabled ? 1 : 0.55
+            label: qsTr("Preset chuyển động")
+            subtext: qsTr("Đường cong và tốc độ Fast, Normal hoặc kiểu Niri")
+            menuItems: root.animationPresetItems
+            active: root.animationPresetItems[root.animationPresetIndex(GlobalConfig.hyprland.animations.animation)]
+            onSelected: item => GlobalConfig.hyprland.animations.animation = root.animationPresetValues[root.animationPresetItems.indexOf(item)]
         }
 
         ToggleRow {
@@ -213,8 +259,13 @@ PageBase {
             opacity: enabled ? 1 : 0.55
             text: qsTr("Làm mờ")
             subtext: root.availabilityText(qsTr("Bật hiệu ứng làm mờ nền cửa sổ"), HyprControl.supportsBlur)
-            checked: HyprControl.blurEnabled
-            onToggled: HyprControl.setBlurEnabled(checked)
+            checked: root.managed ? GlobalConfig.hyprland.decoration.blur.enabled : HyprControl.blurEnabled
+            onToggled: {
+                if (root.managed)
+                    GlobalConfig.hyprland.decoration.blur.enabled = checked;
+                else
+                    HyprControl.setBlurEnabled(checked);
+            }
         }
 
         ToggleRow {
@@ -223,8 +274,49 @@ PageBase {
             last: true
             text: qsTr("Bóng đổ")
             subtext: root.availabilityText(qsTr("Bật bóng đổ quanh cửa sổ"), HyprControl.supportsShadow)
-            checked: HyprControl.shadowEnabled
-            onToggled: HyprControl.setShadowEnabled(checked)
+            checked: root.managed ? GlobalConfig.hyprland.decoration.shadow.enabled : HyprControl.shadowEnabled
+            onToggled: {
+                if (root.managed)
+                    GlobalConfig.hyprland.decoration.shadow.enabled = checked;
+                else
+                    HyprControl.setShadowEnabled(checked);
+            }
+        }
+
+        SectionHeader {
+            text: qsTr("Ứng dụng khởi động")
+        }
+
+        ToggleRow {
+            first: true
+            text: qsTr("Chạy danh sách autostart")
+            subtext: qsTr("Hỗ trợ command/cmd, workspace và delay; chỉ tự chạy một lần trong mỗi phiên đăng nhập")
+            checked: GlobalConfig.hyprland.autostartApps.enabled
+            onToggled: GlobalConfig.hyprland.autostartApps.enabled = checked
+        }
+
+        InfoRow {
+            icon: "playlist_play"
+            label: qsTr("Số mục đã cấu hình")
+            subtext: qsTr("Có thể dùng chuỗi lệnh hoặc object tương thích config end4")
+            value: GlobalConfig.hyprland.autostartApps.apps.length.toString()
+        }
+
+        ConnectedRect {
+            Layout.fillWidth: true
+            last: true
+            implicitHeight: runAutostart.implicitHeight + Tokens.padding.medium * 2
+
+            IconTextButton {
+                id: runAutostart
+
+                anchors.centerIn: parent
+                icon: "motion_play"
+                text: qsTr("Chạy danh sách ngay")
+                type: IconTextButton.Tonal
+                disabled: !GlobalConfig.hyprland.autostartApps.enabled || GlobalConfig.hyprland.autostartApps.apps.length === 0
+                onClicked: HyprlandSettings.runAutostart()
+            }
         }
 
         SectionHeader {
@@ -237,11 +329,16 @@ PageBase {
             first: true
             label: qsTr("Khoảng cách bên trong")
             subtext: root.availabilityText(qsTr("Hiển thị cạnh đầu; thay đổi sẽ đặt đều mọi cạnh (0–100 px)"), HyprControl.supportsGapsIn)
-            value: HyprControl.gapsIn
+            value: root.managed ? GlobalConfig.hyprland.general.gapsIn : HyprControl.gapsIn
             from: 0
-            to: 100
+            to: root.managed ? 40 : 100
             stepSize: 1
-            onMoved: value => HyprControl.setGapsIn(value)
+            onMoved: value => {
+                if (root.managed)
+                    GlobalConfig.hyprland.general.gapsIn = Math.round(value);
+                else
+                    HyprControl.setGapsIn(value);
+            }
         }
 
         StepperRow {
@@ -249,11 +346,16 @@ PageBase {
             opacity: enabled ? 1 : 0.55
             label: qsTr("Khoảng cách bên ngoài")
             subtext: root.availabilityText(qsTr("Hiển thị cạnh đầu; thay đổi sẽ đặt đều mọi cạnh (0–100 px)"), HyprControl.supportsGapsOut)
-            value: HyprControl.gapsOut
+            value: root.managed ? GlobalConfig.hyprland.general.gapsOut : HyprControl.gapsOut
             from: 0
-            to: 100
+            to: root.managed ? 60 : 100
             stepSize: 1
-            onMoved: value => HyprControl.setGapsOut(value)
+            onMoved: value => {
+                if (root.managed)
+                    GlobalConfig.hyprland.general.gapsOut = Math.round(value);
+                else
+                    HyprControl.setGapsOut(value);
+            }
         }
 
         StepperRow {
@@ -261,11 +363,16 @@ PageBase {
             opacity: enabled ? 1 : 0.55
             label: qsTr("Độ dày viền")
             subtext: root.availabilityText(qsTr("Độ dày viền cửa sổ (0–20 px)"), HyprControl.supportsBorderSize)
-            value: HyprControl.borderSize
+            value: root.managed ? GlobalConfig.hyprland.general.borderSize : HyprControl.borderSize
             from: 0
-            to: 20
+            to: root.managed ? 10 : 20
             stepSize: 1
-            onMoved: value => HyprControl.setBorderSize(value)
+            onMoved: value => {
+                if (root.managed)
+                    GlobalConfig.hyprland.general.borderSize = Math.round(value);
+                else
+                    HyprControl.setBorderSize(value);
+            }
         }
 
         StepperRow {
@@ -274,11 +381,16 @@ PageBase {
             last: true
             label: qsTr("Bo góc")
             subtext: root.availabilityText(qsTr("Bán kính bo góc cửa sổ (0–100 px)"), HyprControl.supportsRounding)
-            value: HyprControl.rounding
+            value: root.managed ? GlobalConfig.hyprland.decoration.rounding : HyprControl.rounding
             from: 0
-            to: 100
+            to: root.managed ? 30 : 100
             stepSize: 1
-            onMoved: value => HyprControl.setRounding(value)
+            onMoved: value => {
+                if (root.managed)
+                    GlobalConfig.hyprland.decoration.rounding = Math.round(value);
+                else
+                    HyprControl.setRounding(value);
+            }
         }
     }
 }

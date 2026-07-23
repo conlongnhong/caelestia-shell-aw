@@ -74,7 +74,7 @@ Item {
                 return;
             }
 
-            if (text.startsWith(`${GlobalConfig.launcher.actionPrefix}calc `)) {
+            if (typeof currentItem.onClicked === "function") {
                 currentItem.onClicked();
             } else if (text.startsWith(GlobalConfig.launcher.actionPrefix)) {
                 currentItem.modelData.onClicked(list.currentList);

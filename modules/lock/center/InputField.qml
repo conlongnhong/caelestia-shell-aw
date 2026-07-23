@@ -135,7 +135,7 @@ Item {
 
             anchors.centerIn: parent
             implicitSize: charList.implicitHeight * 1.5
-            shape: root.shapeQueue[charItem.index % root.shapeQueue.length] ?? MaterialShape.Circle
+            shape: Config.lock.materialShapeChars ? (root.shapeQueue[charItem.index % root.shapeQueue.length] ?? MaterialShape.Circle) : MaterialShape.Circle
             color: Colours.palette.m3onSurface
 
             Behavior on color {

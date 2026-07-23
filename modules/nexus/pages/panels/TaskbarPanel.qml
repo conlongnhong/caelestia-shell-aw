@@ -83,11 +83,25 @@ PageBase {
         }
 
         NavRow {
-            last: true
             icon: "schedule"
             label: qsTr("Đồng hồ")
             status: qsTr("Ngày, biểu tượng, nền")
             onClicked: root.nState.openSubPage(9)
+        }
+
+        NavRow {
+            icon: "view_list"
+            label: qsTr("Bố cục")
+            status: qsTr("Bật, tắt, sắp xếp thành phần và loại trừ màn hình")
+            onClicked: root.nState.openSubPage(10)
+        }
+
+        NavRow {
+            last: true
+            icon: "tune"
+            label: qsTr("Tùy chọn mở rộng")
+            status: qsTr("Tự ẩn, tài nguyên, thời tiết, media và nút tiện ích")
+            onClicked: root.nState.openSubPage(12)
         }
 
         // Scroll actions

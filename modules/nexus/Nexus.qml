@@ -16,6 +16,8 @@ Item {
 
         onClose: root.close()
     }
+    property string initialPageId
+    property int initialSubPage: -1
     property color blobColour: Colours.tPalette.m3surfaceContainerLow
 
     readonly property real screenWidth: nState.screen?.width ?? 0
@@ -25,6 +27,14 @@ Item {
     readonly property real desiredHeight: screenHeight * Tokens.sizes.nexus.heightMult
 
     signal close
+
+    Component.onCompleted: {
+        const pageIndex = PageRegistry.pages.findIndex(page => page.id === initialPageId);
+        if (pageIndex >= 0)
+            nState.currentPageIdx = pageIndex;
+        if (initialSubPage >= 0)
+            nState.subPageIdxStack = [initialSubPage];
+    }
 
     implicitWidth: implicitHeight * Tokens.sizes.nexus.ratio
     implicitHeight: Math.max(1, Math.min(desiredHeight, availableHeight, availableWidth / Tokens.sizes.nexus.ratio))

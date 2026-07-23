@@ -5,9 +5,11 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Caelestia
+import Caelestia.Config
 import qs.components
 import qs.components.effects
 import qs.services
+import qs.utils
 
 MouseArea {
     id: root
@@ -32,6 +34,7 @@ MouseArea {
     property real rsy: Math.min(sy, ey)
     property real sw: Math.abs(sx - ex)
     property real sh: Math.abs(sy - ey)
+    readonly property int snapPadding: GlobalConfig.regionSelector.targetRegions.selectionPadding
 
     property list<var> clients: {
         const mon = Hypr.monitorFor(screen);
@@ -50,6 +53,12 @@ MouseArea {
     }
 
     function checkClientRects(x: real, y: real): void {
+        if (!GlobalConfig.regionSelector.targetRegions.windows) {
+            onClient = false;
+            return;
+        }
+
+        let matched = false;
         for (const client of clients) {
             if (!client)
                 continue;
@@ -61,13 +70,49 @@ MouseArea {
             cx -= screen.x;
             cy -= screen.y;
             if (cx <= x && cy <= y && cx + cw >= x && cy + ch >= y) {
+                const padding = snapPadding;
                 onClient = true;
-                sx = cx;
-                sy = cy;
-                ex = cx + cw;
-                ey = cy + ch;
+                sx = Math.max(0, cx - padding);
+                sy = Math.max(0, cy - padding);
+                ex = Math.min(screen.width, cx + cw + padding);
+                ey = Math.min(screen.height, cy + ch + padding);
+                matched = true;
                 break;
             }
+        }
+        if (!matched)
+            onClient = false;
+    }
+
+    function copyScreenshot(path: string): void {
+        const saveDir = Paths.absolutePath(GlobalConfig.paths.screenSnipDir.trim());
+        if (!saveDir) {
+            Quickshell.execDetached(["sh", "-c", "wl-copy --type image/png < \"$1\"", "caelestia-picker", path]);
+            Quickshell.execDetached(["notify-send", "-a", "caelestia-cli", "-i", path, "Đã chụp màn hình", "Đã sao chép ảnh vào bảng nhớ tạm"]);
+            return;
+        }
+
+        Quickshell.execDetached([
+            "sh",
+            "-c",
+            "set -e; mkdir -p -- \"$1\"; dest=\"$1/screenshot-$(date '+%Y-%m-%d_%H.%M.%S').png\"; cp -- \"$2\" \"$dest\"; wl-copy --type image/png < \"$dest\"; notify-send -a caelestia-cli -i \"$dest\" 'Đã chụp màn hình' \"Đã lưu vào $dest và sao chép vào bảng nhớ tạm\"",
+            "caelestia-picker",
+            saveDir,
+            path
+        ]);
+    }
+
+    function annotateScreenshot(path: string): void {
+        if (GlobalConfig.regionSelector.annotation.useSatty) {
+            Quickshell.execDetached([
+                "sh",
+                "-c",
+                "if command -v satty >/dev/null 2>&1; then exec satty -f \"$1\"; else exec swappy -f \"$1\"; fi",
+                "caelestia-picker",
+                path
+            ]);
+        } else {
+            Quickshell.execDetached(["swappy", "-f", path]);
         }
     }
 
@@ -75,10 +120,9 @@ MouseArea {
         const tmpfile = Qt.resolvedUrl(`/tmp/caelestia-picker-${Quickshell.processId}-${Date.now()}.png`);
         CUtils.saveItem(screencopy, tmpfile, Qt.rect(Math.ceil(rsx), Math.ceil(rsy), Math.floor(sw), Math.floor(sh)), path => {
             if (root.loader.clipboardOnly) {
-                Quickshell.execDetached(["sh", "-c", "wl-copy --type image/png < " + path]);
-                Quickshell.execDetached(["notify-send", "-a", "caelestia-cli", "-i", path, "Đã chụp màn hình", "Đã sao chép ảnh vào bảng nhớ tạm"]);
+                root.copyScreenshot(path);
             } else {
-                Quickshell.execDetached(["swappy", "-f", path]);
+                root.annotateScreenshot(path);
             }
             closeAnim.start();
         });
@@ -101,14 +145,15 @@ MouseArea {
         opacity = 1;
 
         const c = clients[0];
-        if (c) {
+        if (c && GlobalConfig.regionSelector.targetRegions.windows) {
             const cx = c.lastIpcObject.at[0] - screen.x;
             const cy = c.lastIpcObject.at[1] - screen.y;
+            const padding = snapPadding;
             onClient = true;
-            sx = cx;
-            sy = cy;
-            ex = cx + c.lastIpcObject.size[0];
-            ey = cy + c.lastIpcObject.size[1];
+            sx = Math.max(0, cx - padding);
+            sy = Math.max(0, cy - padding);
+            ex = Math.min(screen.width, cx + c.lastIpcObject.size[0] + padding);
+            ey = Math.min(screen.height, cy + c.lastIpcObject.size[1] + padding);
         } else {
             sx = screen.width / 2 - 100;
             sy = screen.height / 2 - 100;
@@ -227,13 +272,41 @@ MouseArea {
 
         anchors.fill: parent
         color: Colours.palette.m3secondaryContainer
-        opacity: 0.3
+        opacity: GlobalConfig.regionSelector.targetRegions.opacity
 
         layer.enabled: true
         layer.effect: Mask {
             maskSource: selectionWrapper
             maskInverted: true
         }
+    }
+
+    Rectangle {
+        color: Colours.palette.m3primaryContainer
+        opacity: GlobalConfig.regionSelector.targetRegions.content ? 1 - GlobalConfig.regionSelector.targetRegions.contentRegionOpacity : 0
+        radius: root.realRounding
+        x: root.rsx
+        y: root.rsy
+        width: root.sw
+        height: root.sh
+    }
+
+    Rectangle {
+        visible: GlobalConfig.regionSelector.rect.showAimLines && !root.pressed
+        color: Colours.palette.m3primary
+        opacity: 0.45
+        x: Math.round(root.mouseX)
+        width: 1
+        height: parent.height
+    }
+
+    Rectangle {
+        visible: GlobalConfig.regionSelector.rect.showAimLines && !root.pressed
+        color: Colours.palette.m3primary
+        opacity: 0.45
+        y: Math.round(root.mouseY)
+        width: parent.width
+        height: 1
     }
 
     Item {
@@ -251,6 +324,25 @@ MouseArea {
             y: root.rsy
             implicitWidth: root.sw
             implicitHeight: root.sh
+        }
+    }
+
+    StyledRect {
+        visible: GlobalConfig.regionSelector.targetRegions.showLabel && root.sw > 0 && root.sh > 0
+        color: Colours.palette.m3primaryContainer
+        radius: Tokens.rounding.full
+        x: Math.max(0, Math.min(root.width - width, root.rsx + root.sw / 2 - width / 2))
+        y: root.rsy > height + Tokens.spacing.small ? root.rsy - height - Tokens.spacing.small : Math.min(root.height - height, root.rsy + root.sh + Tokens.spacing.small)
+        implicitWidth: dimensions.implicitWidth + Tokens.padding.large * 2
+        implicitHeight: dimensions.implicitHeight + Tokens.padding.small * 2
+
+        StyledText {
+            id: dimensions
+
+            anchors.centerIn: parent
+            color: Colours.palette.m3onPrimaryContainer
+            font: Tokens.font.label.medium
+            text: qsTr("%1 × %2 px").arg(Math.round(root.sw)).arg(Math.round(root.sh))
         }
     }
 

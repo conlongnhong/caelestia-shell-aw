@@ -22,7 +22,7 @@ ColumnLayout {
 
     readonly property int ws: groupOffset + index + 1
     readonly property bool isOccupied: occupied[ws] ?? false
-    readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows
+    readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows && Config.bar.workspaces.showAppIcons
 
     Layout.alignment: Qt.AlignHCenter
     Layout.preferredHeight: size
@@ -37,6 +37,9 @@ ColumnLayout {
 
         animate: true
         text: {
+            if (Config.bar.workspaces.alwaysShowNumbers)
+                return Config.bar.workspaces.numberMap[root.ws - 1] || root.ws;
+
             const ws = Hypr.workspaces.values.find(w => w.id === root.ws);
             const wsName = !ws || ws.name == root.ws ? root.ws : ws.name[0];
             let displayName = wsName.toString();
@@ -52,7 +55,7 @@ ColumnLayout {
         }
         color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
         verticalAlignment: Qt.AlignVCenter
-        font.family: Tokens.font.workspaces
+        font.family: Config.bar.workspaces.alwaysShowNumbers && !Config.bar.workspaces.useNerdFont ? Tokens.font.body.small.family : Tokens.font.workspaces
     }
 
     Loader {

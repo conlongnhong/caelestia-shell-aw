@@ -15,7 +15,9 @@ class OsdConfig : public ConfigObject {
 
 public:
     explicit OsdConfig(QObject* parent = nullptr)
-        : ConfigObject(parent) {}
+        : ConfigObject(parent) {
+        addRangeConstraint(QStringLiteral("hideDelay"), 100, 60000);
+    }
 };
 
 } // namespace caelestia::config

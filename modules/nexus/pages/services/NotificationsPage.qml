@@ -86,6 +86,43 @@ PageBase {
         }
 
         StepperRow {
+            label: qsTr("Thời gian chờ toàn màn hình")
+            subtext: qsTr("Thời gian trước khi đóng thông báo trên ứng dụng toàn màn hình (ms)")
+            value: GlobalConfig.notifs.fullscreenExpireTimeout
+            from: 500
+            to: 60000
+            stepSize: 500
+            onMoved: v => GlobalConfig.notifs.fullscreenExpireTimeout = Math.round(v)
+        }
+
+        ToggleRow {
+            text: qsTr("Thực hiện action khi bấm")
+            subtext: qsTr("Bấm vào nội dung thông báo để chạy action mặc định nếu có")
+            checked: GlobalConfig.notifs.actionOnClick
+            onToggled: GlobalConfig.notifs.actionOnClick = checked
+        }
+
+        StepperRow {
+            label: qsTr("Ngưỡng kéo để xóa")
+            subtext: qsTr("Tỷ lệ chiều rộng cần kéo trước khi xóa thông báo (%)")
+            value: Math.round(Config.notifs.clearThreshold * 100)
+            from: 5
+            to: 100
+            stepSize: 5
+            onMoved: v => GlobalConfig.notifs.clearThreshold = v / 100
+        }
+
+        StepperRow {
+            label: qsTr("Ngưỡng kéo để mở rộng")
+            subtext: qsTr("Khoảng kéo dọc trước khi mở rộng nội dung (px)")
+            value: Config.notifs.expandThreshold
+            from: 0
+            to: 200
+            stepSize: 5
+            onMoved: v => GlobalConfig.notifs.expandThreshold = Math.round(v)
+        }
+
+        StepperRow {
             last: true
             label: qsTr("Số thông báo xem trước trong nhóm")
             subtext: qsTr("Số thông báo mỗi nhóm trước khi thu gọn")
@@ -128,6 +165,12 @@ PageBase {
 
         ToggleRow {
             first: true
+            text: qsTr("Đã tải cấu hình")
+            checked: GlobalConfig.utilities.toasts.configLoaded
+            onToggled: GlobalConfig.utilities.toasts.configLoaded = checked
+        }
+
+        ToggleRow {
             text: qsTr("Thay đổi trạng thái sạc")
             checked: GlobalConfig.utilities.toasts.chargingChanged
             onToggled: GlobalConfig.utilities.toasts.chargingChanged = checked
@@ -173,6 +216,13 @@ PageBase {
             text: qsTr("Thay đổi bố cục bàn phím")
             checked: GlobalConfig.utilities.toasts.kbLayoutChanged
             onToggled: GlobalConfig.utilities.toasts.kbLayoutChanged = checked
+        }
+
+        ToggleRow {
+            text: qsTr("Giới hạn bố cục bàn phím")
+            subtext: qsTr("Thông báo khi không thể chuyển tiếp bố cục bàn phím")
+            checked: GlobalConfig.utilities.toasts.kbLimit
+            onToggled: GlobalConfig.utilities.toasts.kbLimit = checked
         }
 
         ToggleRow {

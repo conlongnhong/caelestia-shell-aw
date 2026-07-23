@@ -32,13 +32,19 @@ class DashboardConfig : public ConfigObject {
     CONFIG_PROPERTY(bool, showWeather, true)
     CONFIG_GLOBAL_PROPERTY(int, mediaUpdateInterval, 500)
     CONFIG_GLOBAL_PROPERTY(int, resourceUpdateInterval, 1000)
+    CONFIG_GLOBAL_PROPERTY(int, resourceHistoryLength, 60)
     CONFIG_PROPERTY(int, dragThreshold, 50)
     CONFIG_SUBOBJECT(DashboardPerformance, performance)
 
 public:
     explicit DashboardConfig(QObject* parent = nullptr)
         : ConfigObject(parent)
-        , m_performance(new DashboardPerformance(this)) {}
+        , m_performance(new DashboardPerformance(this)) {
+        addRangeConstraint(QStringLiteral("mediaUpdateInterval"), 50, 60000);
+        addRangeConstraint(QStringLiteral("resourceUpdateInterval"), 100, 60000);
+        addRangeConstraint(QStringLiteral("resourceHistoryLength"), 2, 1000);
+        addRangeConstraint(QStringLiteral("dragThreshold"), 0, 500);
+    }
 };
 
 } // namespace caelestia::config

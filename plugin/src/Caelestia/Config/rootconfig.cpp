@@ -1,5 +1,7 @@
 #include "rootconfig.hpp"
 
+#include <cmath>
+#include <limits>
 #include <qcryptographichash.h>
 #include <qdatetime.h>
 #include <qdir.h>
@@ -39,6 +41,8 @@ QStringList RootConfig::collectUnknownKeys(const ConfigObject* obj, const QJsonO
     QSet<QString> known;
     for (int i = ConfigObject::basePropertyOffset(); i < meta->propertyCount(); ++i)
         known.insert(QString::fromUtf8(meta->property(i).name()));
+    if (qobject_cast<const RootConfig*>(obj))
+        known.insert(QStringLiteral("configVersion"));
 
     for (auto it = json.begin(); it != json.end(); ++it) {
         if (!known.contains(it.key())) {
@@ -170,7 +174,9 @@ void RootConfig::setupFileBackend(const QString& path, const QString& screen) {
             return;
         }
 
-        const auto json = mergePreservingUnknown(this, sourceJson, toJsonObject());
+        auto json = mergePreservingUnknown(this, sourceJson, toJsonObject());
+        if (const auto version = currentConfigVersion(); version > 0)
+            json.insert(QStringLiteral("configVersion"), version);
         const auto data = QJsonDocument(json).toJson(QJsonDocument::Indented);
         const auto savedSignature = dataSignature(data);
         if (file.write(data) != data.size()) {
@@ -378,7 +384,35 @@ std::optional<QString> RootConfig::reloadFromFile() {
 
     qCDebug(lcConfig) << "Reloading" << metaObject()->className() << "from" << m_filePath;
 
-    const auto jsonObj = doc.object();
+    auto jsonObj = doc.object();
+    bool migrationPending = false;
+    if (const auto currentVersion = currentConfigVersion(); currentVersion > 0) {
+        int sourceVersion = 0;
+        if (jsonObj.contains(QStringLiteral("configVersion"))) {
+            const auto versionValue = jsonObj.take(QStringLiteral("configVersion"));
+            const auto versionNumber = versionValue.toDouble(std::numeric_limits<double>::quiet_NaN());
+            if (!versionValue.isDouble() || !std::isfinite(versionNumber)
+                || std::floor(versionNumber) < versionNumber || versionNumber < 0
+                || versionNumber > std::numeric_limits<int>::max()) {
+                return QStringLiteral("Option 'configVersion' must be a non-negative integer");
+            }
+            sourceVersion = static_cast<int>(versionNumber);
+        }
+
+        if (sourceVersion > currentVersion) {
+            return QStringLiteral("Config version %1 is newer than supported version %2")
+                .arg(sourceVersion)
+                .arg(currentVersion);
+        }
+
+        if (sourceVersion < currentVersion) {
+            const auto migrationError = migrateConfig(jsonObj, sourceVersion);
+            if (!migrationError.isEmpty())
+                return QStringLiteral("Config migration failed: %1").arg(migrationError);
+            migrationPending = true;
+        }
+    }
+
     const auto validationError = validateJson(jsonObj);
     if (!validationError.isEmpty()) {
         qCWarning(lcConfig, "Failed to validate %s: %s", qUtf8Printable(m_filePath),
@@ -404,6 +438,8 @@ std::optional<QString> RootConfig::reloadFromFile() {
     m_lastSignature = loadedSignature;
     if (fileSignature() != loadedSignature)
         m_reloadDebounce->start();
+    else if (migrationPending)
+        saveToFile();
 
     return QString(); // success
 }
@@ -434,6 +470,14 @@ void RootConfig::reload() {
 
 void RootConfig::setDefaults(ConfigObject* defaults) {
     setDefaultSource(defaults);
+}
+
+int RootConfig::currentConfigVersion() const {
+    return 0;
+}
+
+QString RootConfig::migrateConfig(QJsonObject&, int) const {
+    return {};
 }
 
 } // namespace caelestia::config
