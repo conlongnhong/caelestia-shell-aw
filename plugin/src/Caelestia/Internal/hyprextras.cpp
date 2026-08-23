@@ -334,17 +334,26 @@ HyprExtras::SocketPtr HyprExtras::makeRequest(
     auto completionTimer = QSharedPointer<QTimer>::create();
     completionTimer->setSingleShot(true);
 
-    const auto complete = [socket, completionTimer, completed, callback](bool success, QByteArray responseData) {
+    const auto complete = [this, socket, completionTimer, completed, callback](
+                               bool success, QByteArray responseData) {
         if (*completed) {
             return;
         }
 
         *completed = true;
-        QObject::disconnect(socket.data(), nullptr, nullptr, nullptr);
-        QObject::disconnect(completionTimer.data(), nullptr, nullptr, nullptr);
-        completionTimer->stop();
-        socket->abort();
-        callback(success, std::move(responseData));
+
+        // disconnected/errorOccurred call complete() synchronously from within Qt's own
+        // socket-engine dispatch for this socket (QAbstractSocketPrivate::canReadNotification
+        // is still on the stack). Tearing the socket down here (abort()) races that dispatch
+        // and corrupts its in-progress state, so defer teardown to the next event loop turn.
+        QTimer::singleShot(0, this,
+            [socket, completionTimer, callback, success, responseData = std::move(responseData)]() mutable {
+                QObject::disconnect(socket.data(), nullptr, nullptr, nullptr);
+                QObject::disconnect(completionTimer.data(), nullptr, nullptr, nullptr);
+                completionTimer->stop();
+                socket->abort();
+                callback(success, std::move(responseData));
+            });
     };
 
     QObject::connect(completionTimer.data(), &QTimer::timeout, this, [request, response, complete]() {
