@@ -37,12 +37,12 @@ Item {
         if (!clean)
             return "";
         if (clean[0] === "/") {
-            // Encode path segments so # and ? remain filename characters.
             return "file://" + clean.split("/").map(segment => encodeURIComponent(segment)).join("/");
         }
 
         return Qt.resolvedUrl(clean);
     }
+
     function updateVideoPreview(): void {
         if (!sourceIsVideo)
             return;
@@ -62,11 +62,13 @@ Item {
             });
         }
     }
+
     onSourceChanged: {
         if (sourceIsVideo) {
             const previous = current;
             current = null;
             videoUpdateTimer.restart();
+
             if (previous === one)
                 two.update();
             else
@@ -83,7 +85,7 @@ Item {
     Timer {
         id: videoUpdateTimer
 
-        interval: 50
+        interval: 200
         repeat: false
 
         onTriggered: {
@@ -93,6 +95,7 @@ Item {
             }
         }
     }
+
     Connections {
         function onPausedChanged() {
             if (videoLoader.video && root.sourceIsVideo) {
@@ -108,6 +111,7 @@ Item {
         ignoreUnknownSignals: true
         target: WallpaperPauser
     }
+
     Connections {
         function onCacheBusterChanged() {
             root.updateVideoPreview();
@@ -186,6 +190,7 @@ Item {
             }
         }
     }
+
     Img {
         id: one
     }
